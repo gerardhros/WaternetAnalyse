@@ -1,0 +1,358 @@
+---
+title: "Ecologische sleutelfactoren in beeld"
+subtitle: "Versie 1.3"
+author: "Laura Moria"
+always_allow_html: yes
+delete_merged_file: TRUE
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output:
+  bookdown::gitbook:
+    split_by: none
+    download: yes
+    link-citations: yes
+    config:
+      toolbar:
+        position: static
+bibliography: [referenties.bib]
+biblio-style: apalike
+documentclass: book
+---
+
+```{r global, include = FALSE}
+#  Settings-------------------------------------------------------
+rm(list=ls())                               #maakt geheugen leeg voor aanvang
+chooseCRANmirror(graphics=FALSE, ind=1)
+knitr::opts_chunk$set(echo = TRUE)
+dirGIS <-"../GIS"
+
+# Load packages and functions-------------------------------------
+source('../scripts/loadPackages.R')
+source('../scripts/createOutput.R')
+source('../scripts/postProces.R')
+source('../scripts/makePmaps.R')
+
+# other settings
+proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+
+# run for pdf and word
+# bookdown::render_book("index.Rmd", "bookdown::word_document2")
+# bookdown::render_book("index.Rmd", "bookdown::pdf_book")
+```
+```{r data, include = FALSE}
+hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
+                 stringsAsFactors = F)
+hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
+hybi$jaar <- format(hybi$datum, '%Y')
+hybi$jaar <- as.numeric(hybi$jaar)
+hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
+EKRset <- readRDS('../hydrobiologie/EKRset.rds')
+doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+gEAG<- importOGR("EAG20170611.shp", dirGIS, CRSobj = proj4.google)
+gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
+gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
+
+# laden: Rdata file die meegestuurd is
+load("../pbelasting/dat.Rdata") # data van G.Ros obv balansen M. Ouboter 201808
+Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+#vol <- importCSV('input/vollenweider.csv', path = getwd()) 
+nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
+
+bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")
+bod$jaar <- format(bod$datum, '%Y')
+bod$jaar <- as.numeric(bod$jaar)
+bod$meetwaarde[bod$limietsymbool == '<'] <- bod$meetwaarde[bod$limietsymbool == '<']/2 # meetwaarden detectiegrens/ halve detectiegrens meenemen
+
+simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
+wq$jaar <- format(wq$datum, '%Y')
+wq$meetwaarde[wq$limietsymbool == '<'] <- wq$meetwaarde[wq$limietsymbool == '<']/2 
+
+```
+
+# Inleiding
+De informatie over ontwikkeling van de ecologische toestand van het aquatisch ecosysteem in de regio Amstel, Gooi en Vechtstreek is in deze rapportage gebundeld in een Atlas met thema kaarten. 
+
+Hiermee wordt verbeeld welke processen de ecologische toestand bepalen en belangrijke omgevingswaarden in beeld gebracht. De ecologische sleutelfactoren (ESF) helpen om deze waarden en de potentie van een watersysteem gestructureerd in beeld te brengen. Een sleutelfactor vormt een belangrijke voorwaarde voor een goed functionerend ecologisch watersysteem. De ecologische sleutelfactoren kennen een logische volgorde: pas als een vorige sleutelfactor op orde is, heeft het zin om te werken aan het op orde krijgen van volgende sleutelfactoren. De ESFen helpen daarom bij het definiëren van effectieve waterkwaliteitsmaatregelen. 
+
+Op een andere pagina (Waterkwaliteit in beeld) staan kaarten van verschillende indicatoren van ecologische kwaliteit voor de Habitatrichtlijn (Natura2000) en de Kaderrichtlijn water. 
+
+In deze documenten staan toestand en sturende processen alleen verbeeld. Hier worden de gegevens niet in samenhang geïnterpreteerd of maatregelen geformuleerd.
+
+# Ecologische sleutelfactoren in beeld
+
+Met behulp van ecologische sleutelfactoren kan inzichtelijk worden gemaakt wat de huidige ecologische staat van een watersysteem is en waarom die zo is. De sleutelfactoren geven aan waar belangrijke ‘stuurknoppen’ zitten voor het bereiken van de ecologische doelen van een watersysteem. In de paragrafen hieronder wordt de stand van zake per sleutelfactor weergegeven.
+In [dit filmpje](https://youtu.be/rit0Ryph23I) wordt uitgelegd wat de sleutelfactoren zijn en waar ze belangrijk voor zijn.
+
+### Waterdiepte
+De ecologie heeft een minimale waterdiepte nodig om zich te kunnen ontwikkelen. Te ondiep water wordt te warm, zuurstofloos en krijgt snel een slechte waterkwaliteit. In sloten en andere lijnvormige wateren is dat op veel plaatsen een probleem, in meren niet. Figuur \@ref(fig:diepte) geeft een indruk van de gemiddelde waterdiepte in Ecologische analysegebieden. Vooral in de roodgekleurde gebieden kan de ecologische kwaliteit verbeteren als watergangen worden verdiept. Bovendien zal er minder vissterfte optreden in deze gebieden en zal de uitstoot van broeikasgassen verminderen wanneer watergangen worden verdiept.    
+```{r diepte1, fig.cap = 'Waterdiepte per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+diepte1(hybi[hybi$jaar > '2013',])
+#saveWidget(krw, "diepte.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "PvskP.png")
+```
+
+```{r diepte, fig.cap = 'Waterdiepte per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+diepte(hybi[hybi$jaar > '2013',])
+#saveWidget(krw, "diepte.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "PvskP.png")
+```
+
+*vooral waterdiepte is de oorzaak van de slechte ecologische toestand in lijnvormig water. bv in waardassacker, nieuwe keverdijkse polder, hollands ankeveense polder, de eerste bedijking*
+
+### ESF 1 Productiviteit
+De productiviteit van een water wordt bepaald door de beschikbaarheid van fosfaat, een van de belangrijkste voedingsstoffen voor de groei van planten en algen. Te veel fosfaat leidt tot (veel) te veel algen en kroos. De fosforbelasting is dan te hoog. Bepalend voor het functioneren van het watersysteem is de toevoer van fosfaat (de belasting) en niet de concentraties. De concentraties zijn een gevolg van de systeemkenmerken en de biologie die zich in het water bevindt. De beschikbaarheid van fosfaat wordt in beeld gebracht door de toevoer van buitenaf te bepalen (externe belasting), bijvoorbeeld via toestromend water en af- en uitspoeling van het land. We beschouwen de productiviteit in relatie tot de draagkracht, uitgedrukt als kritische belasting. Een minimale vereiste voor een goede waterkwaliteit is dat de fosforbelasting onder de kritische belasting ligt. Onder de kritische belasting levert elke verlaging een potentie tot verbetering van de ecologie. Die potentie komt tot uitdrukking bij een goede waterkwaliteit, inrichting en beheer. 
+
+```{r PvskP, fig.cap = 'Fosforbelasting ten opzichte van de berekende kritische fosforbelasting', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+makePmaps(dat)
+#krw<- 
+  makePmaps1(sel, sel2)# obv eag
+#krw <- 
+  makePmaps2(sel, sel2)# obv gaf
+# waarom geen Pbel in naardermeer en loosdrecht?
+# krw3 <- makePmaps3(sel, sel2)#obv KRW wl
+saveWidget(krw, "PvskP_gaf.html", selfcontained = FALSE)
+#webshot("PvskP.html", file = "PvskP.png")
+```
+
+Door verschillende processen kan fosfor vanuit de waterbodem beschikbaar komen in het oppervlaktewater. Dit wordt P-nalevering genoemd. De actuele P-nalevering (datgene wat momenteel vrijkomt) kan worden geschat op basis van metingen van de totaalgehalten van fosfor, ijzer en zwavel in het poriewater van de toplaag van de waterbodem. Een inschatting van de potentiële P-nalevering (datgene wat kan vrijkomen) kan worden gemaakt op basis van metingen van de totaalgehalten van  fosfor, ijzer en zwavel  in verse bodem (in mg/l natgewicht).  
+
+```{r nalevering, fig.cap = 'Nalevering waterbodem berekend op basis van de in BaggerNut gevonden relaties tussen poriewater, waterbodem en nalevering.', message = FALSE, echo = FALSE, out.width= '100%', fig.align = 'left', fig.show='hold'}
+plotbod(bod)
+```
+
+```{r nalevering2, fig.cap = 'Nalevering waterbodem berekend op basis van de in BaggerNut gevonden relaties tussen poriewater, waterbodem en nalevering.', message = FALSE, echo = FALSE, out.width= '100%', fig.align = 'left', fig.show='hold'}
+bodmap2(bod)
+```
+
+Een aantal gebieden zijn wit op de kaart. In deze gebieden zijn geen waterbalansen beschikbaar om de fosforbelasting mee uit te rekenen. Uit metingen aan de waterbodem blijkt wel dat de P belasting in een wit gebied, zoals Blokland erg hoog is. De resultaten van deze metingen zijn te vinden in de bijlage.
+
+*relatie ptotaal en waterplanten*
+
+#### Belangrijke knelpunten P belasting: 
+
+* vernatting, 
+* glastuinbouw, 
+* particuliere inlaten en hoogwatervoorzieningen, 
+* foutaansluitingen en falen rioolgemalen in stedelijk gebied, 
+* veenafbraak door peilverlaging, 
+* lanbouwpraktijk & bemesting, 
+* klimaatdruk (meer neerslag in winter, en veenafbraak door droogte), 
+* nieuwe sanitatie en afstromend regenwater.
+
+In veel plassen is de belasting met fosfor te hoog, bijvoorbeeld omdat ze belast worden met doorstroomwater dat niet nodig is om het water op peil te houden (HAP, SAP) of omdat het water dat via percelen in de plassen terecht komt (`t Hol, Botshol, Ster en Zodden) te voedselrijk is of omdat het inlaatwater van onvoldoende kwaliteit is (Spiegelplas, Loosdrecht).
+
+De waterkwaliteit in Botshol is achteruitgegaan door een verhoogde belasting met fosfor. Hierdoor zijn er algen gaan bloeien en zijn onderwaterplanten verdwenen. Er zijn verschillende factoren die gezamelijk bij hebben gedragen aan deze verslechtering. Deze factoren zijn een veranderend klimaat, waarbij er steeds minder frequent droge opeenvolgende winters zijn. In natte winters spoelt er veel fosfor uit de percelen in Botshol. Vogels, die voedsel vinden in de zeer eiwitrijke graslanden in de omgeving en poepen in de plassen. En een verhoogde afbraak van veen bij een lager waterpeil, graafwerkzaamheden en een minder goed functionerende defosfatering resulteren ook in een hoge fosforbelasting.
+
+#### Succesvolle maatregelen die ingrijpen op ESF 1
+
+* Ouderkerkerplas (hydrologische isolatie en zuurstoftoediening waterbodem waardoor nalevering van fosfor uit de waterbodem vemindert).
+* Vecht (P bronnen als RWZI Utrecht en RWZI Horstermeer en bodem gesaneerd, woonboten aangesloten)
+* GWV en reservaat Demmerik (P belasting veminderd door defos, hydrologische isolatie en omleiden waterstromen)
+* Gaaspersingel (P belasting vanuit stedelijk achterland lager, minder algen)
+
+### ESF 2 Lichtklimaat
+De belangrijkste voorwaarde voor het voorkomen van waterplanten is voldoende licht op de bodem. Door zwevende deeltjes vermindert het doorzicht en de diepte tot waar  licht in het water kan doordringen. Zwevende deeltjes komen in het water door opwerveling van slib (door vis, scheepvaart of wind), algen en kroos, afkalvende oevers, afgestorven algen en afbraak van de waterbodem en humuszuren. 
+
+In \@ref(fig:licht) is in rood aangegeven in welke gebieden onvoldoende licht in het water doordringt. In de Loosdrechtse Plassen komt dit door algen en opwerveling van slib door wind, in de Hollands Ankeveense Plas door de aanwezigheid van veel (bodemwoelende) vis en algen en in de grachten van Amsterdam door opwerveling van slib door de scheepvaart. In de Zuiderlegmeerpolder, Molenpolder, Amstel, Ouderkerkerplas, Kortenhoef, Bijlmer, de Zanderijvaarten, IJburg, de Noorder IJplas en Botshol zweven er vooral veel algen in het water. 
+
+```{r licht, fig.cap = 'Lichtklimaat per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+diepteZicht(hybi[hybi$jaar > '2013',])
+#saveWidget(krw, "dieptezicht.html", selfcontained = FALSE)
+#webshot("simoni.html", file = "simoni2.png")
+```
+
+*PM hier ook figuur extinctie vs kritische extinctie op 1, 3 en 7 meter waterdiepte*
+*PM interpretatie toevoegen, In .. is wel voldoende doorzicht, maar staan weinig waterplanten.*
+*figuur relatie submerse vegetatie en licht, met EAGs zichtbaar als legenda*
+
+### ESF 3 Voedselrijkdom waterbodem
+Een hoge voedselrijkdom van de waterbodem kan zorgen voor het ontstaan van een woekerende waterplantenvegetatie, bestaande uit algemeen voorkomende soorten. De grenswaarde voor het totaal-P-gehalte van de waterbodem die hiervoor wordt aangehouden bedraagt 500 mgP/kg drooggewicht [@esf123].
+
+```{r Pbodem, fig.cap = 'Totaal fosfor in de waterbodem', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+bodmap(bod)
+```
+
+In een aantal gebieden vormt een voedselrijk waterbodem een probleem voor ecologisch herstel. In de Vuntus, de Bovenlanden van de kromme Mijdrecht, de Kortenhoefse plassen, de Middelpolder, de Hilversumse Bovenmeent en de Nieuwe Keverdijkse polder vormt de bodem een risico voor woekerende waterplanten.
+
+*PM figuur relatie voedselrijke waterbodem en submerse bedekking (in gebieden die laag en hoog belast zijn)*
+
+### ESF 4
+
+*PM figuur relatie koolstof(bicarbonaat) en stratoides, hottonia, bronmos*
+*basen en vegetatie*
+*bedekking emers*
+*relatie vis en vegetatie - brasem ekr en submerse bedekking*
+
+```{r koolstof, fig.cap = 'Relatie koolstof en taxa vegetatie', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#plotkoolstof(hybi, taxa = 'Stratiotes aloides')
+```
+
+### ESF 8 Toxiciteit
+Bepaalde stoffen in het watersysteem kunnen een giftig effect hebben op de aanwezige planten en dieren. Het gaat hierbij om zware metalen, pesticiden, herbiciden, medicijnresten en andere microverontreinigingen. Het effect van deze verontreinigingen hangt onder meer af van de plaats waar de stoffen zich in het systeem bevinden en van de vorm waarin ze voorkomen. De gevoeligheid van soorten voor verontreiniging verschilt.
+
+In het beheergebied van AGV zijn risicogebieden voor toxische druk aangewezen op basis van grondgebruik (glastuinbouw en akkerbouw), aanwezigheid van (oude) havens, (oude) gasfabrieken, (oude) grote industrieën, vuilstorten, begraafplaatsen en bodemsaneringslocaties. In deze gebieden wordt gemeten of er een risico van toxische druk voor de ecologie kan zijn. Dit risico wordt bepaald op basis van een combinatie van snelwerkende (acute) toxiciteit en de effecten na langdurige blootstelling (chronische toxiciteit). 
+
+```{r toxiciteit, fig.cap = 'Simoni score op meetpunten gemeten in 2016 t/m 2018', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+toxiciteit(simoni, locatie)
+```
+
+In \@ref(fig:toxiciteit) is te zien dat de hoogste risico’s aanwezig zijn in de glastuinbouwgebieden van de Noorder en Zuider Legmeerpolder, in de oude haven van Hilversum, een haven in Loosdrecht, langs de A2, bij bodemsaneringslocaties in Amsterdam en de bij riooloverstorten in Bussum, Breukelen, Amstelveen en Huizen. In de Amstel en de Vecht zijn in de droge zomer van 2018 geen hoge toxicische risico`s voor het watermilieu gevonden. 
+
+```{r toxiciteit2, fig.cap = 'Simoni score op meetpunten gemeten in 2016 t/m 2018', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#simoni2 <-
+toxiciteit2(simoni)
+#saveWidget(simoni2, "simoni2.html", selfcontained = FALSE)
+#webshot("simoni.html", file = "simoni2.png")
+```
+
+## ESF versus toestand
+
+In \@ref(fig:ESFvsT) kunnen verschillende relaties in beeld worden gebracht door de parameters te kiezen die op de x en y as tegen elkaar worden uitgezet.
+NB: Het lukt helaas nog niet om dit figuur dynamisch te integreren in deze webpagina.
+
+```{r matrix, include=FALSE}
+#krw <- makeMatrix(EKRset[!EKRset$Grootheid.code %in% c("AANTPVLME", "SOORTRDM"),])
+#saveRDS(krw,'../matrix/input/matrix.rds')
+# load data
+krw <- readRDS('../matrix/input/matrix.rds')
+```
+
+```{r ESFvsT, echo = FALSE, fig.cap='In dit figuur kan de relatie tussen indicatoren van bepalende processen en de ecologische toestand in beeld worden gebracht.', message=FALSE, warning=FALSE}
+varNames <- names(krw)
+
+plotClusters <- function(xvar, yvar, clusters) {
+     plot_ly(x = ~krw[[xvar]], y = ~krw[[yvar]], color = ~krw[[clusters]],
+           type = "scatter", mode = "markers") %>% 
+     layout(xaxis = list(title=xvar), yaxis = list(title=yvar))
+ }
+ 
+manipulateWidget(
+   plotClusters(xvar, yvar, clusters),
+    xvar = mwSelect(varNames, value = "PvskP"),
+   yvar = mwSelect(varNames, value = "Soortensamenstelling macrofyten "),
+   clusters = mwSelect(varNames, value = "watertype"),
+   .viewer = 'browser',
+   .height = 500,
+   .width = 700
+   
+ )
+```
+
+```{r subwatdte,echo = FALSE, fig.cap='Relatie submerse bedekking en waterdiepte.', message=FALSE, warning=FALSE}
+# krw2<- krw[ ,c('PTN_BEDKG_%_SUBMSPTN_',"PTN_BEDKG_%_FLAB_SUBMS" , "PTN_BEDKG_%_FLAB_DRIJVD" ,"WATDTE_m_WATDTE_")]
+# krw2$subms <- krw2$`PTN_BEDKG_%_SUBMSPTN_`- krw2$`PTN_BEDKG_%_FLAB_SUBMS`
+# pairs(krw2)
+
+#krw2<- krw[ ,c('2V21 Soortensamenstelling macrofyten','PTN_BEDKG_%_SUBMSPTN',"PTN_BEDKG_%_FLAB","WATDTE_m_grensWTP_WATDTE", "4VI2 Massafractie Abramis brama", "4VI2 Massafractie Visgroep - brasem en karper (BK)",
+# "CHLFa_ug/l_CHLFa", "WATDTE_m_WATDTE", "wp_tot_sum" ,"PvskP","nlvrPW", "ZICHT_m_grensWTP_ZICHT", "Ptot_gP/kg_dg_BS")]
+##pairs(krw2)
+```
+
+*Relatie submerse bedekking en waterdiepte, dat er bij 35 cm waterdiepte de hoogste EKR scores zijn gevonden in sloten*
+
+*PM*
+*Relatie biomassverhouding brasem en submerse bedekking*
+*Relatie waterplanten en chloride en calcium - bandbreedtes*
+*Relatie submerse bedekking en voedselrijkdom waterbodem. Er is te zien dat we een te lage grenswaarde hanteren voor totaal P in de waterbodem. Bij Pmg/kgdg > 1300 worden nog steeds hoge EKRs gemeten (dit is wel op het niveau van EAG, aangenomen dat er geen grote heterogeniteit binnen een EAG bestaat in bodem en vegetatie), er wel een relatie tussen totaal fosfor en sulfide (een maat voor veel zuurstofvraag en afbraak) in de waterbodem en EKR scores. Vooral in wateren met watertype M10.*
+*Relatie submerse bedekking en lichtklimaat, er is te zien dat scores pas groter worden dan 0.4 in lijnvormig water bij een doorzicht/diepte- ratio > 0.6 *
+
+*Relatie soortenrijkdom en bedekking en P belasting. Er is te zien dat er in sloten ekr scores op de soortenmaatlat vegetatie > 0.6 worden berekend bij PvskP <2,  dat er in meren ekr scores op de soortenmaatlat vegetatie > 0.6 worden berekend bij PvskP <1, dat er geen relatie bestaat tussen berekende nalevering per EAG en EKR scores per EAG. Alleen in sloten is wel een relatie te zien *
+*Relatie emerse bedekking en beschoeiing. Er is te zien dat er hogere EKR scores worden gemeten bij oevers zonder beschoeiing (14), dan met beschoeiing. Behalve in watertype M20*
+*Relatie slibdikte en soortensamenstelling vegetatie. Er is te zien dat er bij een slibdikte > 20 cm nooit hoge scores (>0.5) worden bepaald*
+
+# Conclusies
+
+In veel waterlichamen worden doelen nog niet gehaald.
+Gebieden waar we onze KRW doelen niet halen en onvoldoende of geen eigen maatregelen gepland zijn:
+
+* Tussenboezem Vinkeveen B, 
+* Grote Maarsseveense plas, 
+* Vaarten Ronde Hoep, 
+* Vaarten Groot Mijdrecht, 
+* Vaarten Ronde Venen?, 
+* Noorder IJplas, 
+* Vaarten Zevenhoven, 
+* Amsterdam.
+
+*PM in de waterlichamen in agrarisch gebied moet nog worden doorgerekend wat het effect is van DAW maatregelen op de P belasting en ecologische kwaliteit.*
+
+Overige wateren die achteruitgaan en waar geen nieuwe maatregelen gepland staan om de waterkwaliteit te verbeteren:
+
+* Broekzijdse polder,
+* De Wilgenplas,
+* De nieuwe Kerverdijkse polder,
+* Het Zijdelmeer,
+* De `s Gravenlandse polder, 
+* Agrarisch Molenpolder, 
+* Polder Achttienhoven, 
+* Hilversumse Bovenmeent, 
+* Polder Mijnden, 
+* Dorssewaard, 
+* Waardassacker en Holendrechter polder, 
+* De Gooise zomerkade,
+* Polder Nijerode.
+
+## Wat is er nodig om doelen te halen en de achteruitgang te stoppen?
+
+In (Kaarten toestand waterplanten (Overige waterflora)) en ([Trend in EKR score vegetatie]) staan de gebieden benoemd waar sprake is van van achteruitgang of waar we onze doelen niet halen. In een behoorlijk aantal van deze gebieden zijn maatregelen gepland of in uitvoering. In een aantal gebieden is dit niet genoeg, zijn er ontwikkelingen die gemitigeerd moeten worden (denk aan vernatting en vaarrecreatie) of zijn er geen gerichte maatregelen gepland. Er is dus noodzaak om instumenten als agrarisch waterbeheer, subsidies, handhaving, keurregels en omgevingsvisies effectiever in te zetten en aanvullende (KRW)maatregelen te nemen.
+Hieronder staan verschillende potentieel effectieve maatregelen verder uitgewerkt:
+•	‘Goede waterbeheerpraktijk’. Dit is in feite een uitwerking van de strategische uitgangspunten:
+*	bij watertekort water van goede kwaliteit op de goede plek krijgen, zodat de wateraanvoer strookt met daar geldende doelen; Dit is opnieuw van groot belang bij droogte 2019.
+*	de integrale aanpak bij het uitvoeren van onderhoud (dijkreconstructie en baggerwerk);
+*	vernattingsgebieden: van groot belang dat we regie houden op peilen, effecten monitoren, evalueren en bijsturen waar nodig.
+*	recreatievaart (???)
+*	Gezamelijke fact finding: Studieclub Noorderpark, BKP, BBO?
+*	Geen nieuwe prive inlaten meer en afsluiters plaatsen op bestaande inlaten. Communicatiecampagne?
+*	Verbeteren opsporen lozingen vanuit glastuinbouw
+*	Geen drijvende objecten.
+*	grondwaterontrekkingen in en rond gebieden die afhankelijk zijn van kwel minimaliseren
+*	Handhaven op waterdiepte
+•	Goede zuiveringsbeheerpraktijk
+*	Verbeterde operationele sturing op rendement en efficientie objecten, een frequentere evaluatie van defos Naardermeer, Vinkeveen en Botshol.
+*	het aantal uitwisselingspunten tussen de waterketen en gevoelige wateren minimaliseren
+•	‘Goede landbouwpraktijk’. Dit is gericht op het zo effectief mogelijk beperken van meststofverliezen door een goede bedrijfsvoering in de landbouw.
+*	glastuinbouw: versterken samenwerking met sector en intern met handhaving bij het opsporen lozingen en handhaving
+*	watergangen op diepte brengen is in het landelijk gebied een van de belangrijkste stuurknoppen. Bijkomend voordeel is dat BKG emissies lager worden: verstereken samenwerking met de omgeving
+•	‘Goede praktijk van stedelijk waterbeheer’. Dit is gericht op het zo effectief mogelijk beperken van verliezen van stedelijk afvalwater naar het oppervlaktewater. Samenwerking tussen waterschap en gemeenten is hierbij van groot belang;
+*	foutaansluitingen: versterken samenwerking met gemeente bij het opsporen lozingen en handhaving
+*	Afvoer van regenwaterstelsels niet meer via gevoelige waterlichamen, zoals plassen. In omgevingsvisie.
+
+
+*	goede praktijk water(zuiverings)beheer (frequente evluatie efficientie en functioneren, waterstromen),
+*	goede agrarische praktijk (kringloplandbouw),
+*	goede stedelijk waterbeheer, samenwerking met gemeenten (infiltratie vergroten in hogergelegen gebied, foutaansluitingen)
+*	aanvullende hydrologische maatregelen(scheiden of omkeren waterstromen)
+*	systeemmaatregelen (zoals zuiveren en baggeren).
+
+Een voorbeeld van een effectief maatregelenpakket in Botshol:
+*	afkoppelen gebied met aalscholverkolonie,
+*	betere zuiveringsbeheerpraktijk,
+*	veenafbraak beperken door peil minder ver uit te laten zakken (nuancering op flexpeil),
+*	snelle afvoer van water uit veenmosrietlanden beperken door greppels af te sluiten.
+*	Een potentiele maatregel die het systeem vele malen robuuster en klimaatbestendiger kan maken is het afkoppelen van het noordelijk ‘achterland’, maar heeft weer nadelen voor de verbinding; Natuurmonumenten heeft een voorkeur om dit in aanvulling te doen als andere maatregelen niet blijken te werken.
+
+In veel waterlichamen waar we onze doelen niet halen zijn nu nog maatregelen in uitvoering of net uitgevoerd. Hiervan wordt in de nabije toekomst een positief effect verwacht. Hiermee zal de ecologische kwaliteit in de Loosdrechtse plassen, de Amstel en de Molenpolder en tienhoven verbeteren.
+
+Ook zijn er in de komende planperiode een aantal maatregelen gepland, waarmee de ecologische kwaliteit in de Amstellandboezem, Vecht, het Stergebied bij Loosdrecht, de Loosdrechtse plassen, Hollands en Stichts Ankeveense plassen, de Spiegelplas, Molenpolder en Tienhoven, het Naardermeer en de Kortenhoefse plassen (verder) zal verbeteren.
+
+# Methoden
+## ESF-en
+Om realistische doelen en maatregelen in beeld te brengen is inzicht nodig in de factoren die de ontwikkelingen in de huidige ecologische toestand bepalen. Dit kan met behulp van ecologische sleutelfactoren op een gestructureerde, eenduidige en navolgbare wijze. Het doel van de systeemanalyse aan de hand van sleutelfactoren is om te begrijpen waardoor de ecologische toestand, die we in het veld waarnemen, veroorzaakt wordt [@esf]. 
+
+Het raamwerk van de ecologische Sleutelfactoren helpt om inzicht te krijgen in het ecologisch functioneren van een watersysteem en biedt een kapstok voor het uitvoeren van een gestructureerde watersysteemanalyse. De methodiek bestaat uit acht ecologische sleutelfactoren; iedere sleutelfactor beschrijft een voorwaarde voor een goede kwaliteit. Hierbij geldt een toestand met helder plantenrijk water, met een hoge biodiversiteit als streefbeeld.
+
+Voor een goede waterkwaliteit is het allereerst noodzakelijk dat ondergedoken waterplanten tot ontwikkeling kunnen komen. Hier gaan de eerste 3 sleutelfactoren over. Het belangrijkste is dat de externe nutriëntenbelasting niet zo hoog is dat algen of kroos dominant worden (ESF 1). Ten tweede is het belangrijk dat er geen andere factoren zijn die het lichtklimaat negatief beïnvloeden, zoals veel kleideeltjes of humuszuren (ESF 2). Ten derde is het voor de ontwikkeling van een soortenrijke submerse vegetatie van belang dat de bodem niet teveel nutriënten bevat (ESF 3). De ecologische sleutelfactoren 4, 5 en 6 zijn bepalend voor de aanwezigheid van specifieke soorten of levensgemeenschappen. ESF 7 en 8 zijn alleen belangrijk in specifieke situaties. ESF 9 gaat over de belangenafweging op een hoger niveau. Dit is geen onderdeel van deze waterkwaliteitsanalyse.
+
+## Gebruikte grenswaarden en bronnen
+*PM hier een tabel toevoegen met grenswaarden per EAG en bron*
