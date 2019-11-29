@@ -6,7 +6,7 @@
   # water types
   watertypen <- fread('data/KRWWatertype.csv')
   
-  # locaties (van wat?)
+  # locaties van alle metingen (water, biologie, en slootbodem)
   locaties <- fread('data/Location.csv')
   
   # locaties van EAG oppervlaktes
