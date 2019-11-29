@@ -17,7 +17,6 @@ m1 <- readRDS('data/180709_koppeltabel.rds')
 s2 <- st_read('data/191128_percelen_agv.gpkg',quiet = T)
 
 # load raster with interpolated soil data from Job
-load('data/predSoil50.Rdata')
 load('data/meanSoilPerceel50.Rdata')
 load('data/xy_soil.Rdata')
 
@@ -117,4 +116,7 @@ load('data/xy_soil.Rdata')
   
   # save updated file
   saveRDS(d2,file='matrix_updated.rds')
+  
+  # save as csv file
+  fwrite(d2,file='data/matrix20191129.csv',sep=';',dec=',')
   
