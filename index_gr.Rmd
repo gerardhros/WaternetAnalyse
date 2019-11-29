@@ -38,8 +38,6 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 ```
 
 ```{r data, include = FALSE}
-ESFoordelen <- read.csv('../factsheets/esfKRW_20191008.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
-maatregelen <- read.csv('../factsheets/maatregelenKRW_20191022.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
 watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
 eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen

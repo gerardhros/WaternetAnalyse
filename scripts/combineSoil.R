@@ -11,7 +11,7 @@ d1 <- readRDS('matrix.rds') %>% as.data.table()
 
 # load shape file with EAG and match table
 s1 <- st_read('data/EAG20180612.gpkg',quiet=T) %>% st_transform(28992)
-m1 <- readRDS('data/180709_koppeltabel.rds')
+m1 <- readRDS('data/180727_koppeltabel.rds')
 
 # load parcel dependent covariables
 s2 <- st_read('data/191128_percelen_agv.gpkg',quiet = T)
@@ -99,7 +99,7 @@ load('data/xy_soil.Rdata')
   setDT(d1)
   
   # reset names
-  rn <- readxl::read_xlsx('data/191129 colnames.xlsx') %>% as.data.table()
+  rn <- readRDS('data/191129 colnames.rds')
   setnames(d1,rn$oud,rn$nieuw)
   
   # remove empty columns
