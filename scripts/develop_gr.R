@@ -26,3 +26,9 @@
   rn <- readxl::read_xlsx('development/191129 colnames.xlsx') %>% as.data.table()
   saveRDS(rn,'data/191129 colnames.rds')  
   
+  # aanpassen shape file from shp to gpkg
+  s1 <- st_read('data/EAG20170611.shp') %>% st_transform(28992)
+  st_write(s1,'data/EAG20170611.gpkg')
+  s1 <- st_read('data/WBPKRW20170611.shp') %>% st_transform(28992)
+  st_write(s1,'data/WBPKRW20170611.gpkg')
+  
