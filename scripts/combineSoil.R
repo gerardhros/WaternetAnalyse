@@ -115,8 +115,8 @@ load('data/xy_soil.Rdata')
   d2 <- merge(d2,eag3.sd,by.x='eag',by.y='GAFIDENT_sd',all.x = T)
   
   # save updated file
-  saveRDS(d2,file='matrix_updated.rds')
+  #saveRDS(d2,file='matrix_updated.rds')
   
   # save as csv file
-  fwrite(d2,file='data/matrix20191129.csv',sep=';',dec=',')
+  #fwrite(d2,file='data/matrix20191129.csv',sep=';',dec=',')
   
