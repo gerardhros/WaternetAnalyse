@@ -23,7 +23,7 @@ dirGIS <-"../GIS"
 # Load packages and functions-------------------------------------
 source('../scripts/loadPackages.R')
 source('../scripts/createOutput.R')
-source('../scripts/postProces.R')
+source('scripts/postProces.R')
 source('../scripts/makePmaps.R')
 
 # other settings
@@ -38,40 +38,40 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 ```
 
 ```{r data, include = FALSE}
-watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
-eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen
+# watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+# locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
+# eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen
+# 
+# 
+# hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
+#                  stringsAsFactors = F)
+# hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
+# hybi$jaar <- format(hybi$datum, '%Y')
+# hybi$jaar <- as.numeric(hybi$jaar)
+# hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
+# hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
+#  hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10
+# hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
+# hybi$locatie.EAG <- hybi$EAGIDENT
+# hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+# hybi$locatie.KRW.watertype <- hybi$watertype
 
-
-hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
-                 stringsAsFactors = F)
-hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
-hybi$jaar <- format(hybi$datum, '%Y')
-hybi$jaar <- as.numeric(hybi$jaar)
-hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
-hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
- hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10
-hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
-hybi$locatie.EAG <- hybi$EAGIDENT
-hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-hybi$locatie.KRW.watertype <- hybi$watertype
-
-EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
-EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
-EKRset <- smartbind(EKRset,EKRset2)
-EKRset$XCOORD <- as.integer(EKRset$XCOORD)
-EKRset$YCOORD <- as.integer(EKRset$YCOORD)
-doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+# EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
+# EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
+# EKRset <- smartbind(EKRset,EKRset2)
+# EKRset$XCOORD <- as.integer(EKRset$XCOORD)
+# EKRset$YCOORD <- as.integer(EKRset$YCOORD)
+# doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
 gEAG<- importOGR("EAG20190523.shp", dirGIS, CRSobj = proj4.google)
 gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
 gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
 
 # laden: Rdata file die meegestuurd is
-dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
-Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+#dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
+#Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
 #vol <- importCSV('input/vollenweider.csv', path = getwd()) 
-nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
+#nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
 
 bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")

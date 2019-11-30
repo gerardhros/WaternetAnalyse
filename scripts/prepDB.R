@@ -78,4 +78,14 @@
     # load nonogram
     nomogram <- fread('data/nomogram.csv')
   
+  # add slootbodem data
+    
+    # load csv file with measurement data
+    bod  <- fread("data/bodemfews.csv")
+    
+    # adapt file
+    bod[,datum := as.Date(datum, format = "%Y-%m-%d %H:%M")]
+    bod[,jaar := year(datum)]
+    bod[limietsymbool == '<',meetwaarde := meetwaarde * 0.5] 
+    
     
