@@ -21,3 +21,5 @@ for (i in unique(locB$EAG)){
 afsPB <- as.data.frame(afsPB)
 BB <- merge(selb, afsPB, by.x = 'Monsterp_1', by.y = 'locatiebodem')
 selp <- merge(BB, selp, by.y = 'locatiecode', by.x = 'locatieplant', all.x = TRUE, all.y = FALSE)
+
+d1 = fread('data/alles_reliable.csv')

@@ -1,0 +1,598 @@
+---
+date: "`r Sys.Date()`"
+output: 
+  flexdashboard::flex_dashboard:
+    css: css/factsheet.css
+    orientation: rows
+    vertical_layout: scroll
+    logo: images/WN__Waternet-RGB_small.png
+---
+
+```{r preprocessing, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
+# Deze chunck runnen in console of als apart script met iteratie: data staat nu niveau hoger dan script
+# Settings-------------------------------------------------------
+options(repos = c(CRAN = "https://cran.rstudio.com"))
+
+# Load packages and functions-------------------------------------
+source('../scripts/loadPackages.R')
+source('../scripts/factsheetfuncties.R')
+
+#  Directories and names------------------------------------------
+dirGIS <-"../data"
+dirFactsheets <- "../factsheets"
+dirOutput <- "./output"
+
+# other settings ---------------------------
+proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+
+col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+
+```
+
+```{r 2iteratie, eval = FALSE, echo = FALSE, message = FALSE, warning=FALSE, include=FALSE}
+# wordt eenmalig geladen om iteratie mee te maken
+# er wordt veel te veel data (meer jaren, gebieden en parameters dan nodig) geladen omdat ik lui ben
+rm(list=ls())  
+source('../scripts/loadPackages.R')
+source('../scripts/factsheetfuncties.R')
+
+#  Directories and names------------------------------------------
+dirGIS <-"../data"
+
+# other settings ---------------------------
+proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
+
+col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+
+# basisdata gebieden en communique-------------------------
+ESFoordelen <- read.csv('../data/esfKRW_20191008.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
+maatregelen <- read.csv('../data/maatregelenKRW_20191022.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
+watertypen <- read.csv('../data/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+# data hybi voor waterdiepte: hier kan een selectie gemaakt van alleen waterdiepte omwille van grootte -----------------
+locaties <- read.csv("../data/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+## aanvullende eag data, watertype en krw waterlichamen kloppen vaak niet: gaat dit ook niet goed bij toetsing? eag ook koppelen met watertype
+eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+hybi <- read.csv("../data/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
+                 stringsAsFactors = F)
+hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
+hybi$jaar <- format(hybi$datum, '%Y')
+hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
+hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
+ hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10 #correctie verkeerde waterdiepte eenheid (moet eruit als database is verbeterd)
+hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
+hybi$locatie.EAG <- hybi$EAGIDENT
+hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+hybi$locatie.KRW.watertype <- hybi$watertype
+
+# data voor P belasting
+dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
+dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
+Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
+pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
+
+wq <- read.csv("../data/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
+wq$jaar <- format(wq$datum, '%Y')
+wq$maand <- format(wq$datum, '%m')
+wq$jaar <- as.numeric(wq$jaar)
+wq$maand <- as.numeric(wq$maand)
+wq$meetwaarde[wq$limietsymbool == '<'] <- wq$meetwaarde[wq$limietsymbool == '<']/2 
+wq <- merge(wq, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =TRUE, all.y=FALSE)
+wq$locatie.EAG <- wq$EAGIDENT
+wq <- merge(wq, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+wq$locatie.KRW.watertype <- wq$watertype
+
+## --------
+bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")
+bod$jaar <- format(bod$datum, '%Y')
+bod$jaar <- as.numeric(bod$jaar)
+bod$meetwaarde[bod$limietsymbool == '<'] <- bod$meetwaarde[bod$limietsymbool == '<']/2 # meetwaarden detectiegrens/ halve detectiegrens meenemen
+# bod <- merge(bod, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =TRUE, all.y=FALSE)
+#bod$locatie.EAG <- bod$EAGIDENT
+bod <- merge(bod, eag_wl[,c('watertype','GAFIDENT')], by.x ='locatie.EAG', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+bod$locatie.KRW.watertype <- bod$watertype
+
+## data voor kaart ----------
+gKRW  <- importOGR("WBPKRW20170611_simplified.shp", dirGIS, proj4.rd)
+gEAG<- importOGR("EAG_20190717_simplified.shp", dirGIS, proj4.rd)
+#water<- importOGR("Watervlakken_simplified.shp", dirGIS, proj4.rd)
+waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirGIS, proj4.rd)
+
+
+# data voor grafiek ----------------
+EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
+EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
+EKRset <- smartbind(EKRset,EKRset2)
+doelen <- read.csv('../hydrobiologie/Doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+# data voor EST tekening -----------------------
+EST <- read.csv('../hydrobiologie/EST.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+```
+
+```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
+# itereren over een rmd voorbeeld--------------
+# waterlichamen weg, eags ipv waterlichamen op kaart, invoegen plaatje, maatregel gauge, doelen nieuw toevoegen, monitoringswensen tab 3
+for (i in 1:nrow(ESFoordelen)){
+    waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
+    wl <- waterlichamenwl$OWL # of waterlichaam of eagcode
+    
+    #hier een koppeltabel nodig voor selectie toetsgebied
+    namewl <- dcast(EKRset, HoortBijGeoobject.identificatie+GeoObject.identificatie+EAGIDENT~.)
+    wlname <- namewl$HoortBijGeoobject.identificatie[(namewl$GeoObject.identificatie %in% wl)|(namewl$EAGIDENT %in% wl)] 
+   
+    if(nrow(eag_wl[eag_wl$OPMERKING %in% wl,])>0){
+      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,]} 
+    if(nrow(eag_wl[eag_wl$OPMERKING %in% wl,])==0){
+      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]} 
+                        
+    my_title <- paste0(waterlichamenwl$OWMNAAM)
+    pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|
+                        pvskp$GAF %in% substr(eagwl$GAFIDENT, 1, 4),] 
+    ESF <- waterlichamenwl
+    maatregelen1 <- maatregelen[maatregelen$HoortbijKRWWaterlichaam %in% wl,]
+    if(nrow(maatregelen1)>0){
+    maatregelen1[,16:21] <- apply(maatregelen1[,16:21], 2, as.numeric)}
+    waterlichamenwl$motstat <- waterlichamenwl$MotiveringBegrenzing
+    waterlichamenwl$prov <- waterlichamenwl$Provincies
+    waterlichamenwl$gem <- waterlichamenwl$Gemeenten
+    waterlichamenwl$typebesch <- watertypen$Omschrijving[watertypen$Code %in% unique(eagwl$watertype)]
+    wq1 <- wq[wq$locatie.EAG %in% eagwl$GAFIDENT,]
+    hybi1 <- hybi[hybi$locatie.EAG %in% eagwl$GAFIDENT,]
+    bod1 <- bod[bod$locatie.EAG %in% eagwl$GAFIDENT,]
+    EKRset1 <- EKRset[EKRset$HoortBijGeoobject.identificatie %in% wlname,] # ingewikkeld, nu niet voor EAG
+    gEAG_sel <- gEAG[gEAG$GAFIDENT %in% eagwl$GAFIDENT, ]
+    deelgebieden <- unique(as.data.table(gEAG_sel[c("GAFIDENT","GAFNAAM")]), sorted=TRUE, keep.rownames=FALSE)
+    deelgebieden <- as.data.frame(deelgebieden)
+    deelgebieden$samen <- paste0(deelgebieden$GAFIDENT," (",deelgebieden$GAFNAAM,")")
+    EST_sel <- EST[EST$OWMIDENT %in% wl|EST$EAG %in% eagwl$GAFIDENT,]
+    if(nrow(EST_sel)>0){
+    EST_sel[,3:19] <- apply(EST_sel[,3:19], 2, as.numeric)}
+    
+    outputF <- "html"
+    rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
+                    output_format = "flexdashboard::flex_dashboard", #pdf_document
+                    output_file = paste("FS_", wlname, ".html", sep=''),
+                    output_dir = "output/")
+    
+    # Render preview
+    webshot::webshot(
+      url = paste("output/FS_", wlname, ".html", sep=''),
+      file = paste("output/FS_", wlname, ".png", sep=''),
+      vwidth = 1200,
+      vheight = floor(1200 * sqrt(2)),          # Use A series aspect ratio
+      delay = 1,                                 # Wait to allow all element to load
+      zoom = 23.4 / (1200 / 300) )       # Adjust elements relative size
+      
+    outputF <- "word"
+    rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
+                    output_format = "bookdown::word_document2", #pdf_document
+                    output_file = paste("FS_", wlname, ".docx", sep=''),
+                    output_dir = "output/")
+
+   
+    
+
+}
+
+# iterenen voor p plaatjes-------
+# waterlichamen <- waterlichamen[waterlichamen$Code %in% dat$KRW & !is.na(waterlichamen$Code),]
+# for (i in unique(waterlichamen$Code)){
+#   pvskpsel <- pvskp[pvskp$KRW %in% i,]
+#   pvskpplot(pvskpsel)} # functie om p vs kp alvast te printen
+# eags <- gKRW$EAGIDENT[gKRW$OWMIDENT %in% i]
+```
+
+<script>
+document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r my_title`";
+</script> 
+
+# Factsheet toestand en ecologische sleutelfactoren (DIPS)
+
+## Hoofdlijnen {data-height=200}
+
+### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
+Het `r waterlichamenwl$OWMNAAM` (`r waterlichamenwl$OWL`) heeft watertype `r unique(waterlichamenwl$typebesch)` (`r unique(eagwl$watertype)`) en bestaat uit de deelgebieden: `r deelgebieden$samen`.
+<br>
+`r waterlichamenwl$Karakterschets`
+<br>
+Onze gebiedspartners zijn provincie `r waterlichamenwl$prov` en gemeente(n) `r waterlichamenwl$gem`.
+Het waterlichaam `r waterlichamenwl$OWMNAAM` heeft de status `r waterlichamenwl$Status` en is in eigendom van `r waterlichamenwl$Eigenaren`. 
+
+
+## Ligging en beeld {data-height=400}
+
+### Het ecosysteem ziet eruit als onderstaand beeld {data-width=400}
+
+```{r chartT, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
+if(nrow(EST_sel)>0){
+  ## merge 
+dtEST2 <- merge(EST_sel, eagwl, by.x = "EAG", by.y  = "GAFIDENT")
+dtEST2 <- dtEST2[dtEST2$OWMIDENT == "",]
+
+## gather O en W 
+dtEST4 <- dtEST2 %>%
+          group_by(jaar)%>%
+          top_n(1, wt = jaar) 
+dtEST4 <- dtEST4 %>%
+          dplyr::select(-EAG)%>%
+          gather(key = "typeEST", value = "waarde", 2:18) %>%
+          separate(typeEST, c("locatietype", "nummer"), 1) %>%
+          group_by(locatietype) %>%
+          top_n(1, wt = waarde) %>%
+          top_n(1, wt = nummer) %>%
+          arrange(desc(locatietype))
+
+dtEST4$type2 <- ifelse(dtEST4$watertype == 'M20','DM',ifelse(dtEST4$type %in% c('plas','kleine plas'),'OM', ifelse(dtEST4$type %in% c('sloot'),'Sl','K')))
+dtEST4$stland <- ifelse(dtEST4$StedelijkLandelijk == 'Stedelijk','St','L')
+
+myimages<-list.files("esticon/", pattern = paste0(dtEST4$locatietype[1], dtEST4$nummer[1],"_",dtEST4$locatietype[2],
+                          dtEST4$nummer[2],"_",dtEST4$type2[1],"_",dtEST4$stland[1],".jpg"), full.names = TRUE)
+
+if(dtEST4$OPMERKING %in% c('NL11_3_8')){
+ myimages<- "esticon/W6_O7_DM_L.jpg" 
+}
+if(dtEST4$OPMERKING %in% c('NL11_5_1')){
+  myimages<- "esticon/W4_O6_OM_L.jpg" 
+}
+
+include_graphics(myimages)}
+
+```
+
+### Ligging waterlichaam{data-width=300}
+
+```{r kaart, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
+## make ggplot map layers
+eag     <- fortify(gEAG)
+eag_sel <- fortify(gEAG_sel)
+ws      <- fortify(waterschappen)
+wlich   <- fortify(gKRW)
+
+## get bounding box
+min.x <- min(eag$long)
+max.x <- max(eag$long)
+min.y <- min(eag$lat)
+max.y <- max(eag$lat)
+
+## plot
+map <- ggplot() +
+         geom_polygon(data = ws,
+                      aes(x = long, y = lat, group = group),
+                      fill = "white", color = "white", size = 1) +  
+         geom_path(data = wlich,
+                   aes(x = long, y = lat, group = group),
+                   color = 'azure2', size = .1) +
+         geom_path(data = eag,
+                   aes(x = long, y = lat, group = group),
+                   color = 'grey', size = .2) +
+         geom_polygon(data = eag_sel,
+                   aes(x = long, y = lat, group = group),
+                   color = 'red', fill = NA, size = 1.5) +
+         theme(panel.grid = element_blank(),
+               panel.background = element_rect(fill = "azure2"),  ## azure
+               axis.title.x=element_blank(),
+               axis.text.x=element_blank(),
+               axis.ticks.x=element_blank(),
+               axis.title.y=element_blank(),
+               axis.text.y=element_blank(),
+               axis.ticks.y=element_blank(),
+               panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
+               legend.position="none") +
+         coord_fixed(xlim = c(min.x, max.x), ylim = c(min.y, max.y))
+map
+
+```
+
+### Ligging deelgebieden{data-width=300}
+
+```{r kaart2, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
+## make ggplot map layers
+#eag     <- fortify(gEAG)
+eag_sel <- fortify(gEAG_sel)
+gEAG_sel@data$GAFIDENT <- as.character(gEAG_sel@data$GAFIDENT)
+idList <- unique(gEAG_sel@data$GAFIDENT)
+centroids.df <- as.data.frame(coordinates(gEAG_sel))
+names(centroids.df) <- c("Longitude", "Latitude")
+randomMap.df <- data.frame(id = idList, shading = runif(length(idList)), centroids.df)
+
+ws      <- fortify(waterschappen)
+wlich      <- fortify(gKRW)
+
+## get bounding box
+min.x <- min(eag_sel$long)
+max.x <- max(eag_sel$long)
+min.y <- min(eag_sel$lat)
+max.y <- max(eag_sel$lat)
+
+## plot
+map <- ggplot() +
+         geom_polygon(data = ws,
+                      aes(x = long, y = lat, group = group),
+                      fill = "white", color = "white", size = 1) +  
+         geom_path(data = wlich,
+                   aes(x = long, y = lat, group = group),
+                   color = 'azure2', size = .1) +
+         # geom_path(data = eag,
+         #           aes(x = long, y = lat, group = group),
+         #           color = 'grey', size = .2) +
+         geom_polygon(data = eag_sel,
+                   aes(x = long, y = lat, group = group),
+                   color = 'red', fill = NA,size = 1.5) +
+         geom_text(data=randomMap.df, aes(label = id, x = Longitude, y = Latitude)) +
+         theme(panel.grid = element_blank(),
+               panel.background = element_rect(fill = "azure2"),  ## azure
+               axis.title.x=element_blank(),
+               axis.text.x=element_blank(),
+               axis.ticks.x=element_blank(),
+               axis.title.y=element_blank(),
+               axis.text.y=element_blank(),
+               axis.ticks.y=element_blank(),
+               panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
+               legend.position="none") +
+         coord_fixed(xlim = c(min.x, max.x), ylim = c(min.y, max.y))
+map
+
+```
+
+## Toestand {data-height=700}
+
+```{r, echo = FALSE, message = FALSE, warning= FALSE, echo=FALSE}
+## calculate score 
+ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, doelen = doelen)
+ekr_scores_sel <- ekr_scores #[grep("gewogen", ekr_scores$waterlichaam, ignore.case = T),]
+ekr_scores_sel2 <- ekr_scores_sel[-grep("Maatlatten2012 Ov. waterflora", ekr_scores_sel$Waardebepalingsmethode.code, ignore.case = T),]
+ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
+## make neat titles
+ekr_scores_sel2$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel2$Waardebepalingsmethode.code, 
+                               from = c("Maatlatten2012 Fytoplankton", "Maatlatten2012 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2012 Vis"),
+                               to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))
+d3 <-  ekr_scores_sel2  %>%
+        dplyr::arrange(facet_wrap_code, desc(oordeelsort)) %>% 
+        dplyr::top_n(-1, wt = oordeelsort) 
+
+```
+
+### Ecologische analyse op hoofdlijnen {data-width=600}
+
+**De doelen**
+<br>
+
+`r ifelse(is.na(waterlichamenwl$Doelen),"",waterlichamenwl$Doelen)` 
+<br>
+
+**De huidige toestand vergeleken met de doelen –**`r d3$oordeel`
+<br>
+
+De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hierboven) is `r d3$oordeel`. De slechts scorende biologische indicator is `r as.character(d3$facet_wrap_code)`. `r waterlichamenwl$Toestand`
+<br>
+
+**Oorzaken op hoofdlijnen**
+<br>
+
+`r ifelse(is.na(waterlichamenwl$Oorzaken),"",waterlichamenwl$Oorzaken)` 
+<br>
+
+**Maatregelen op hoofdlijnen**
+<br>
+
+`r ifelse(is.na(waterlichamenwl$Maatregelen),"",waterlichamenwl$Maatregelen)` 
+
+### Toestand {data-width=400}
+
+```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen.De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel in de linkerbalk (SGBP2) en het technisch aangepaste doel voor SGBP3 rechts. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
+ekrplot(ekr_scores_sel2)
+```
+
+
+## Ecologische sleutelfactoren {data-height=700}
+
+### Ecologische sleutelfactoren
+
+```{r esf, echo= FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
+ESFtab <- t(ESF[,17:24])
+ESFtab2 <- t(ESF[,3:10])
+ESFtab <- as.data.frame(ESFtab);ESFtab2 <- as.data.frame(ESFtab2)
+ESFtab$esf <- substr(rownames(ESFtab), 1, 4);ESFtab2$esf <- substr(rownames(ESFtab2), 1, 4)
+ESFtab <- merge(ESFtab,ESFtab2, by = 'esf')
+
+if(outputF == "html"){
+ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'groennummer.jpg', ifelse(ESFtab[3] == '2','oranjenummer.jpg', ifelse(ESFtab[3] == '3', 'roodnummer.jpg', 'grijsnummer.jpg')))
+ESFtab$OORDEEL <- paste0(substr(ESFtab$esf, 4, 5),ESFtab$OORDEEL)
+ESFtab$OORDEEL = sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/",ESFtab$OORDEEL, " "))
+}
+
+if(outputF == "word"){
+  ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'voldoet', ifelse(ESFtab[3] == '2','at risk',
+                          ifelse(ESFtab[3] == '3', 'voldoet niet', 'onbekend')))
+  ESFtab$OORDEEL <- paste0(substr(ESFtab$esf, 4, 5),"_",ESFtab$OORDEEL)
+}
+ESFtab <- ESFtab[,c(4,2)]
+
+if(outputF == "word"){
+print(kable(ESFtab, col.names = NULL) %>% 
+          kable_styling(full_width=FALSE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "120em")%>%
+          collapse_rows(columns=1, valign="top"))}
+if(outputF == "html"){
+print(kable(ESFtab, format = "html",col.names = NULL) %>% 
+          kable_styling(full_width=FALSE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "120em")%>%
+          collapse_rows(columns=1, valign="top"))}
+
+```
+
+## Bron {data-height=30}
+Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en `r waterlichamenwl$Literatuurverwijzing`.
+
+# Maatregelen `r waterlichamenwl$Naam` (R)
+
+## {data-height=150}
+
+### SGBP 1 en 2 maatregelen die (deels) zijn uitgevoerd
+```{r, echo = FALSE}
+0 -> maatregelen1$Uitgevoerd[is.na(maatregelen1$Uitgevoerd)]
+maatregelen1$Uitgevoerd1 <- as.numeric(maatregelen1$Uitgevoerd)+as.numeric(maatregelen1$Uitvoering)
+
+rate <- length(maatregelen1$Uitgevoerd1[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015") & maatregelen1$Uitgevoerd1 >0])
+gauge(rate, min = 0, max = (length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])), symbol = '', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+
+# in uitvoering toevoegen
+```
+
+### SGBP 1 en 2 maatregelen in planvorming
+```{r, echo= FALSE}
+0 -> maatregelen1$Plan[is.na(maatregelen1$Plan)]
+maatregelen1$Plan <- as.numeric(maatregelen1$Plan)
+
+rate <- length(maatregelen1$Plan[maatregelen1$Plan > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]), symbol = '', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+```
+
+### SGBP 1 en 2 maatregelen die zijn gefaseerd
+```{r, echo=FALSE}
+0 -> maatregelen1$Gefaseerd[is.na(maatregelen1$Gefaseerd)]
+maatregelen1$Gefaseerd <- as.numeric(maatregelen1$Gefaseerd)
+rate <- length(maatregelen1$Gefaseerd[maatregelen1$Gefaseerd > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]), symbol = '', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+```
+
+### SGBP 1 en 2 maatregelen die zijn ingetrokken of vervangen
+```{r, echo=FALSE}
+0 -> maatregelen1$Ingetrokken[is.na(maatregelen1$Ingetrokken)]
+0 -> maatregelen1$Vervangen[is.na(maatregelen1$Vervangen)]
+rate <- length(maatregelen1$Vervangen[maatregelen1$Vervangen > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]+ maatregelen1$Ingetrokken[maatregelen1$Ingetrokken > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]), symbol = '', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+```
+
+### Nieuwe maatregelen voor SGBP3 tov totaal aantal maatregelen
+
+```{r, echo = FALSE}
+rate <- length(maatregelen1[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027", "SGBP3 na 2026")])
+gauge(rate, min = 0, max = length(maatregelen1), symbol = '', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+```
+
+## Maatregelen
+
+###
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
+ESFtab <- t(ESF[,17:24])
+ESFtab2 <- t(ESF[,3:10])
+ESFtab <- as.data.frame(ESFtab);ESFtab2 <- as.data.frame(ESFtab2)
+ESFtab$esf <- substr(rownames(ESFtab), 1, 4);ESFtab2$esf <- substr(rownames(ESFtab2), 1, 4)
+ESFtab <- merge(ESFtab,ESFtab2, by = 'esf')
+if(outputF == "html"){
+ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'groennummer.jpg', ifelse(ESFtab[3] == '2','oranjenummer.jpg', ifelse(ESFtab[3] == '3', 'roodnummer.jpg', 'grijsnummer.jpg')))
+ESFtab$OORDEEL <- paste0(substr(ESFtab$esf, 4, 5),ESFtab$OORDEEL)
+ESFtab$OORDEEL = sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/",ESFtab$OORDEEL, " "))
+}
+if(outputF == "word"){
+  ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'voldoet', ifelse(ESFtab[3] == '2','at risk',
+                          ifelse(ESFtab[3] == '3', 'voldoet niet', 'onbekend')))
+  ESFtab$OORDEEL <- paste0(substr(ESFtab$esf, 4, 5),"_",ESFtab$OORDEEL)
+}
+
+maatregelen1$Gebiedspartner <- maatregelen1$gebiedspartner..gesprekspartner.bij.financiering..uitvoering.of.beleid.
+maatregelen1$SGBPPeriode <- maatregelen1$SGBPPeriode.omschrijving
+maatregelen1$Initiatiefnemer <- maatregelen1$Initiatiefnemer.naam
+maatregelen1$UitvoeringIn <- ifelse(maatregelen1$Plan > 0,'2019-2021', ifelse(maatregelen1$Uitvoering+maatregelen1$Uitgevoerd > 0,'2006-2019','niet uitgevoerd'))
+maatregelen1$esffrst <- substr(maatregelen1$esf,1,4)
+
+maatregelen2 <- merge(ESFtab, maatregelen1[,c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer',
+                                              'Gebiedspartner','UitvoeringIn')], 
+                      by.x = 'esf', by.y = 'esffrst', all.y = T) 
+# als meerdere esf dan gaat het niet goed: nu eerste de rest in tekst oplossen
+maatregelen2$ESFoordeel <- maatregelen2$OORDEEL
+maatregelen2 <- maatregelen2[,c(11,7,5,6,8,9,10)]
+if(outputF == "html"){
+maatregelen2$ESFoordeel[maatregelen2$ESFoordeel %in% c('NTB','NVT')|is.na(maatregelen2$ESFoordeel)] <- sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/","9grijsnummer.jpg", " "))
+}
+if(outputF == "word"){
+  maatregelen2$ESFoordeel[maatregelen2$ESFoordeel %in% c('NTB','NVT')|is.na(maatregelen2$ESFoordeel)] <- "onbekend"
+}
+  
+maatregelen2 <- maatregelen2[order(maatregelen2$SGBPPeriode, decreasing = TRUE),]
+
+options(knitr.table.format = "markdown")
+if(nrow(maatregelen2)>0){
+
+maatregelen2 <- maatregelen2 %>%
+  group_by(ESFoordeel)%>%
+  arrange(ESFoordeel, desc(ESFoordeel))
+
+if(outputF == "word"){
+print(
+knitr::kable(maatregelen2) %>% 
+          kable_styling(full_width=FALSE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "12em", border_right = F)%>%
+          collapse_rows(columns=1, valign="top"))}
+if(outputF == "html"){
+print(
+knitr::kable(maatregelen2, format = "html") %>% 
+          kable_styling(full_width=FALSE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "12em", border_right = F)%>%
+          collapse_rows(columns=1, valign="top"))}
+
+}
+
+```
+
+# Toelichting en onderbouwing ESF-en, monitoring en begrenzing
+## {data-height=250}
+
+### Motivering KRW status en herbegrenzing
+`r waterlichamenwl$motstat` 
+
+### Monitoringswensen
+`r waterlichamenwl$MonitoringAnalyseWensen`
+
+## Indicatoren ESF {data-height=500}
+### ESF 1: Productiviteit
+```{r chartP, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = 'Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).'}
+if(nrow(pvskpsel)>0){
+  if(!is.na(pvskpsel$naam)){
+pvskpplot(pvskpsel)}}
+```
+
+### ESF 2 en 4: Lichtklimaat en waterdiepte
+```{r licht2, echo= FALSE, warning = FALSE, message = FALSE, fig.cap= "Lichtklimaat in plassen obv extinctie tussen 2010 en 2019 of Waterdiepte in sloten."}
+if(nrow(wq1[wq1$fewsparameter == 'VEC' & wq1$jaar > '2015',]) > 0) {
+  wq1$watertype <- wq1$locatie.KRW.watertype
+extinctie1(wq = wq1[wq1$jaar > '2015',], hybi= hybi1, parameter = c('VEC','WATDTE_m'))
+}
+if(nrow(hybi1[hybi1$fewsparameter == 'WATDTE_m',])>0){
+  hybi1$watertype <- hybi1$locatie.KRW.watertype
+  hybi2<-hybi1[!is.na(hybi1$fewsparameter == 'WATDTE_m'),]
+waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
+}
+```
+
+### ESF 1 en 3: Waterbodem
+```{r watbodem, echo= FALSE, warning = FALSE, message = FALSE, fig.cap = 'Nalevering en voedselrijkdom waterbodem.', echo = FALSE, message = FALSE, warning = FALSE}
+if(nrow(bod1) > 0) {
+plotbod(bod1)
+}
+```
+## {data-height=50}
+
+### Brondata: water- en stoffenbalansen
+### Brondata: Monitoringsresultaten uit meetprogramma`s fysisch-chemie en hydrobiologie
+### Brondata: Monitoringsresultaten uit meetprogramma waterbodemchemie
