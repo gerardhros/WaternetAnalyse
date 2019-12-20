@@ -104,7 +104,30 @@
     selb[,klasseP := factor(klasseP,levels=1:8)]
     selb[is.na(klasseP), klasseP := 8]
     
-   # load water quality information
+  # load water quality information
+  
+    # load file rds
+    wq  <- readRDS("data/ImportWQ.rds") %>% as.data.table()
+    
+    # adapt wq database
+    wq[,jaar := year(datum)]
+    wq[,maand := month(datum)]
+    wq[limietsymbool == '<',meetwaarde := meetwaarde * 0.5]
+    
+    # delete years before 2000
+    wq <- wq[jaar>1999,]
+    
+    # merge with locaties, remove older EAGIDENT with new one
+    wq[,EAGIDENT := NULL]
+    wq <- merge(wq,locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE',all.x = T)
+    wq <- merge(wq,eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all =FALSE)
+    
+  # simoni : toxiciteitsdata
+    
+    # inladen van database
+    simoni <- readRDS('data/simoni.rds')
+
+        
     
     
     
