@@ -81,7 +81,7 @@
     # load nonogram
     nomogram <- fread('data/nomogram.csv')
   
-  # add slootbodem data
+  # add slootbodem data ----
     
     # load csv file with measurement data
     bod  <- fread("data/bodemfews.csv")
@@ -107,7 +107,7 @@
     selb[,klasseP := factor(klasseP,levels=1:8)]
     selb[is.na(klasseP), klasseP := 8]
     
-  # load water quality information
+  # load water quality information ----
   
     # load file rds
     wq  <- readRDS("data/ImportWQ.rds") %>% as.data.table()
@@ -125,76 +125,46 @@
     wq <- merge(wq,locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE',all.x = T)
     wq <- merge(wq,eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all =FALSE)
     
-  # simoni : toxiciteitsdata
+  # simoni : toxiciteitsdata -----
     
     # inladen van database
     simoni <- readRDS('data/simoni.rds')
 
+  # bodemdata ----
+    
+    # inladen database
+    dat <- readRDS("pbelasting/dat.rds")  
+    
 # make final matrix
     
     
     # calculate mean EKR score per EAG over last three years
     
-    tabelPerWL3jaargemEAG <- function (EKRset,gEAG,doelen){
-      
-      # calculate mean per groep
-      colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code.y',
-                    'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
-      d1 <- EKRset[,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
-             
-      # rename columns and order data.table
-      setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','GHPR_level','GHPR','level','jaar'))
-      setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,-jaar)
-      
-      # add year number (given ordered set), and take only three most recent years
-      d1 <- d1[,yearid := seq_len(.N),by=.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)][yearid < 4]
-      
-      # calculate mean EKR per group over the three years
-      d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by =.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)]
-      
-      # remove empty spaces in GHPR needed for joining later
-      d1[,GHPR := gsub(' ','',GHPR)]
-      
-      # merge with doelen
-      
-      # rename columns doelen object
-      setnames(doelen,c('HoortBijGeoobject.identificatie'),c('id'))
-      
-      # mean GEP per object
-      doelgeb <- doelen[,.(GEP = mean(Doel,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
-      
-      # merge with doelen
-      d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
-      
-      # add classification for EKR
-      d2[EKR < GEP/3,oordeel := 'slecht']
-      d2[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
-      d2[EKR >= 2 * GEP / 3,oordeel := 'matig']
-      d2[EKR >= GEP, oordeel := 'goed']
-      
-      # add type water body
-      d2[,wl := sapply(strsplit(id, '_'), `[`, 2)]
-      d2[is.na(wl), wl := paste0('gewogen_',id)]
-      d2[wl=='OvWa',wl := sapply(strsplit(id, '_'), `[`, 3)]
-      d2[!is.na(EAGIDENT), wl := EAGIDENT]
-      
-      # merge with EAG shape
-      d3 <- merge(d2, gEAG[,c('GAFIDENT','GAFNAAM')], by.x = 'wl',by.y = 'GAFIDENT', all.x = TRUE)
-      
-      # return the object
-      return(d3)
-     }
-    
   
       
     makeMatrix <- function(EKRset, bod, wq, hybi, dat){
+      
       #laatste 3 meetjaren EKR scores ---------
-      krw <- tabelPerWL3jaargemEAG(EKRset[!EKRset$Grootheid.code %in% c("AANTPVLME", "SOORTRDM"),])
+      
+        # remove some data rows
+        EKRinp <- EKRset[!Grootheid.code %in% c("AANTPVLME", "SOORTRDM")]
+      
+        # derive mean EKR for last three years
+        krw <- tabelPerWL3jaargemEAG(EKRset = EKRinp,gEAG = gEAG,doelen)
+      
+        # rename GHPR in more readible (and less long names)
+        krw[,GPHRnew := renameGHPR(GHPR)]
+        krw[,wbmethode := renameWbmethode(wbmethode)]
+        
+        # remove all data rows without EAGIDENT
+        krw <- krw[!is.na(EAGIDENT)]
+        
       # dcst om maatlatten aprt te beschouwen en relaties tussen maatlatten te leggen
-      krw <- dcast(krw, EAGIDENT+HoortBijGeoobject.identificatie+KRWwatertype.code.y ~ GHPR+Waardebepalingsmethode.code, value.var = "EKR", fun.aggregate = mean)
+      krw <- dcast(krw, EAGIDENT + geo_id + watertype ~ GPHRnew + wbmethode, 
+                    value.var = "EKR", fun.aggregate = mean)
+      
       # koppel op jaar? nee want dat doet P belasting en bodem ook niet en dan zijn er te veel mismatches
-      krw$GAF <- substr(krw$EAGIDENT, 1, 4)
-      krw <- krw[!is.na(krw$EAGIDENT),]
+      krw[,GAF := substr(EAGIDENT, 1, 4)]
       
       # p vskp ---------------
       PvskP <- makePmaps(dat)
