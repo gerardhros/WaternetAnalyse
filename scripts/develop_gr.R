@@ -32,3 +32,7 @@
   s1 <- st_read('data/WBPKRW20170611.shp') %>% st_transform(28992)
   st_write(s1,'data/WBPKRW20170611.gpkg')
   
+  # inladen toxiciteitsdata
+  simoni <- fread("toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv",stringsAsFactors = F)
+  saveRDS(simoni,'data/simoni.rds')
+  
