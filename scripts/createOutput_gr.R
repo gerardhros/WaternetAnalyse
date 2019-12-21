@@ -119,120 +119,115 @@ renameWbmethode <- function(inp){
 
 
 
-makePmaps <- function(dbsoil,dbhybi){
+makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP){
   
-  # convert to data.table
-  dat <- as.data.table(dbsoil)
-  
-  # adapt one variable manually
-  dat[GAF == '8070',watertype := 'M3']
-  
-  # adapt soil types
-  dat[,bodem := i_bt1]
-  dat[is.na(i_bt1) & watertype %in% c('M8','M10','M27','M25'),bodem := 'VEEN']
-  dat[is.na(i_bt1) & watertype %in% c("M3", "M1a","M30","M14","M11","M6a","M7b","M6b","M7a"),bodem := 'KLEI']
-  
-  # select only relevant years
-  dg <- dat[jaar %in% 2010:2018]
-  
-  # get mean per group
-  colsg <- colnames(dg)[grepl('^a_in|^a_uit|^EAG|^GAF|^KRW$|watertype|^bodem$|^pol',colnames(dg))]
-  colss <- colnames(dg)[grepl('^a_|^wp_|jaar|maand|^w_^|^p_i',colnames(dg))]
-  colss <- colss[!colss %in% colsg]
-  dg <- dg[,lapply(.SD,mean,na.rm=TRUE),.SDcols=colss,by=colsg]
-  
-  # add total P-load
-  dg[,wp_tot_sum := wp_min_sum + wp_inc_sum]
-  
-  # filter hydrobiologische data.base before calculating water depth
+  # convert to data.table, and make local copies
+  dbwbal <- as.data.table(dbwbal)
   dbhybi <- copy(dbhybi)
-  dbhybi <- dbhybi[jaar %in% 2010:2017 & fewsparameter =='WATDTE_m']
+  dbnomogram <- copy(dbnomogram)
+  kP_plas <- copy(dbov_kP)
   
-  # mean water depth per EAG
-  mdPtb <- copy(dbhybi)[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by='locatie.EAG']
-  mdPtb[,watdteF := cut(meetwaarde, breaks = c('0','0.3','0.5','0.7','7.0'))]
-  setnames(mdPtb,'locatie.EAG','EAG')
+  # reset names of the databases to simplify references
+  setnames(dbnomogram,"debiet (mm/dag)","debiet",skip_absent=TRUE)
+  setnames(dbhybi,c('locatie.EAG','locatie.afaanvoergebied','locatie.KRWmeetpuntlocatie'),c('EAG','GAF','KRW'),skip_absent=TRUE)
+
+  # adapt datasets
+  dbwbal[GAF == '8070',watertype := 'M3']
+  dbwbal[,bodem := i_bt1]
+  dbwbal[is.na(i_bt1) & watertype %in% c('M8','M10','M27','M25'),bodem := 'VEEN']
+  dbwbal[is.na(i_bt1) & watertype %in% c("M3", "M1a","M30","M14","M11","M6a","M7b","M6b","M7a"),bodem := 'KLEI']
   
-  # mean water depth per GAF
-  mdPtbG <- copy(dbhybi)[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by='locatie.afaanvoergebied']
-  mdPtbG[,watdteF := cut(meetwaarde, breaks = c('0','0.3','0.5','0.7','7.0'))]
-  setnames(mdPtbG,'locatie.afaanvoergebied','GAF')
-  
-  # mean water depth per waterkwaliteitspunt
-  mdPtbK <- copy(dbhybi)[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by='locatie.KRWmeetpuntlocatie']
-  mdPtbK[,watdteF := cut(meetwaarde, breaks = c('0','0.3','0.5','0.7','7.0'))]
-  setnames(mdPtbK,'locatie.KRWmeetpuntlocatie','KRW')
-  
-  # merge with kP
-  
-  # koppel waterdiepte per eag en afvoergebied aan water en stoffenbalans
-  dgwatdte  <- merge(dg[is.na(GAF),], mdPtb, by = 'EAG', all.x = F)
-  dgwatdteG <- merge(dg[is.na(EAG),], mdPtbG, by = 'GAF', all.x = F)
-  dgwatdteK <- merge(dg[is.na(EAG) & is.na(GAF),], mdPtbK, by = 'KRW', all.x = T)
-  dgwatdte <- rbindlist(list(dgwatdte,dgwatdteG,dgwatdteK),fill=TRUE)
-  setnames(dgwatdte,'meetwaarde','watdte')
-  
-  # one manuel correction
-  dgwatdte[watdte > 0.7, watdteF := '(0.5,0.7]']
+  # select relevant water balance data ----
+    
+    # select only relevant years
+    dg <- dbwbal[jaar %in% 2010:2018]
+    
+    # get mean per EAG-GAF-bodem-polder (gr: is this combined grouping really needed?)
+    colsg <- colnames(dg)[grepl('^a_in|^a_uit|^EAG|^GAF|^KRW$|watertype|^bodem$|^pol',colnames(dg))]
+    colss <- colnames(dg)[grepl('^a_|^wp_|jaar|maand|^w_|^p_i',colnames(dg))]
+    colss <- colss[!colss %in% colsg]
+    dg <- dg[,lapply(.SD,mean,na.rm=TRUE),.SDcols=colss,by=colsg]
+    
+    # add total P-load
+    dg[,wp_tot_sum := wp_min_sum + wp_inc_sum]
  
+  # select relevant hydrobiological data ----
+    
+    # filter hydrobiologische data.base before calculating water depth
+    dbhybi <- dbhybi[jaar %in% 2010:2017 & fewsparameter =='WATDTE_m']
+    
+    # mean water depth per EAG
+    mdPtb <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='EAG']
+    mdPtb[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
   
+    # mean water depth per GAF
+    mdPtbG <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='GAF']
+    mdPtbG[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
+    
+    # mean water depth per waterkwaliteitspunt
+    mdPtbK <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='KRW']
+    mdPtbK[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
+
+  # merge water balance data with water depth ----
   
-  nomogram$watdteF <- cut(nomogram$watdte_m, breaks = c('0','0.3','0.5','0.7'))
+    # koppel waterdiepte per eag en afvoergebied aan water en stoffenbalans
+    dgwatdte  <- merge(dg[is.na(GAF),], mdPtb, by = 'EAG', all.x = F)
+    dgwatdteG <- merge(dg[is.na(EAG),], mdPtbG, by = 'GAF', all.x = F)
+    dgwatdteK <- merge(dg[is.na(EAG) & is.na(GAF),], mdPtbK, by = 'KRW', all.x = T)
+    dgwatdte <- rbindlist(list(dgwatdte,dgwatdteG,dgwatdteK),fill=TRUE)
+
+    # manuel correction for high watdte (needed for coupling with nomogram)
+    dgwatdte[watdte > 0.7, watdteF := '(0.5,0.7]']
+ 
+    # remove temporary objects
+    rm(dgwatdteG,dgwatdteK,mdPtb,mdPtbG,mdPtbK)
+    
+  # retreive kP from meta-model PCditch ----
+    
+    # add depth category, similar to dbhybi dataset
+    dbnomogram[,watdteF := cut(watdte_m, breaks = c('0','0.3','0.5','0.7','7.0'))]
+    
+    # model to predict kP as function of debiet (given soil and water depth)
+    m1 <- lm(kP~bodemtype*watdteF*debiet*I(debiet^0.5)*I(debiet^2)*I(debiet^3),data=dbnomogram)
+    
+    # predict kP for dataset (suppress warnings ivm rank-deficient fit)
+    suppressWarnings(dgwatdte[,kP := predict(m1,newdata = data.frame(debiet = w_debiet, bodemtype = tolower(bodem), watdteF = watdteF))])
+    
+    # renamed by Laura
+    dgwatdte[,kPDitch := kP]
+    
+    # calc critical P-concentration 
+    dgwatdte[,PvskPDitch := wp_min_sum / kP]
+    
+  # koppel kp plassen obv invoertabel per EAG ----
   
-  ditchkP <- NULL
-  # i <- unique(nomogram$bodemtype)[1]
-  for (i in unique(nomogram$bodemtype)){
-    nomogram_bt <- nomogram[nomogram$bodemtype == i,]
-    dgwatdte_bt <- dgwatdte[dgwatdte$bodem == toupper(i),]
-    dgwatdte_bt <- dgwatdte_bt[!is.na(dgwatdte_bt$bodem),]
-    for(j in unique(nomogram_bt$watdteF)){
-      nomogram_btdp <- nomogram_bt[nomogram_bt$watdteF == j,]
-      dgwatdte_btdp <- dgwatdte_bt[dgwatdte_bt$watdteF == j,]
-      dgwatdte_btdp <- dgwatdte_btdp[!is.na(dgwatdte_btdp$watdteF),]
-      ditch <- merge(dgwatdte_btdp, nomogram_btdp[,c('debiet..mm.dag.','kP')], by.x = 'w_debiet', by.y = 'debiet..mm.dag.', all = TRUE)
-      ditch <- ditch[order(ditch$w_debiet),]
-      ditch$kP2 <- na.approx(ditch$kP, method = "linear", rule = 2) # interpolatie kP tussen debieten in nomogram
-      ditch$w_debiet <- as.numeric(ditch$w_debiet)
-      ditchkP <- rbind(ditch[!is.na(ditch$pol),], ditchkP)
-    }
-  }
+    # relevant columns to be merged
+    cols <- colnames(kP_plas)[grepl('^pc_|^lake|^p_bel|^EAG$|^GAF$',colnames(kP_plas))]
   
-  #koppel kritische fosforgrenzen obv waterdiepte, hydraulische belasting en bodemtype aan metamodel PCditch
-  PvskP <- merge(dgwatdte, ditchkP[,c('kP2','pol','EAG')], by = c('pol','EAG'), all.x = TRUE, all.y =FALSE); PvskP$kPDitch <- PvskP$kP2; PvskP$kP2 = NULL
-  # bereken kP ------------------------------------------------------------
-  PvskP$PvskPDitch<- PvskP$wp_min_sum/PvskP$kP # >1 is te veel
-  # hier toevoegen welke wel aan max belasting moet
+    # merge per EAG and per GAF, and combine both (assuming its either EAG or GAF)
+    PvskPplas1 <- merge(dgwatdte[watertype %in% c('M20','M27','M25',"M14") & !is.na(EAG),],
+                       kP_plas[,mget(cols)],by='EAG',all.y = TRUE,all.x = FALSE)
+    PvskPplas2 <- merge(dgwatdte[watertype %in% c('M20','M27','M25',"M14") & !is.na(GAF),],
+                        kP_plas[,mget(cols)],by = 'GAF',all.y = TRUE,all.x = FALSE) 
+    pvskp <- rbindlist(list(PvskPplas1,PvskPplas2),fill = TRUE)
   
+    # merge plas kP with original water balance db
+    dgwatdte <- merge(dgwatdte, pvskp[,c('pol','EAG','pc_troebel_helder', 'p_bel_year', 
+                                 'pc_helder_troebel', 'lake_ditch_vol')], by = c('pol','EAG'), all = TRUE)
   
-  # koppel kp plassen obv invoertabel per EAG
-  Overzicht_kP_plas <- Overzicht_kP
+    # calc PvskP for lakes
+    dgwatdte[!is.na(p_bel_year),wp_min_sum := p_bel_year]
+    dgwatdte[,PvskPlake := wp_min_sum / pc_helder_troebel]
+
+  # remove rows without estimated P-belasting
+  dgwatdte <- dgwatdte[!is.na(wp_min_sum)]
   
-  sel <- dgwatdte$watertype %in% c('M20','M27','M25',"M14")  
-  PvskPplas <-  merge(dgwatdte[sel & !is.na(dgwatdte$EAG) ,], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$EAG),c('EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
-                                                                                                                'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                      by.x = 'EAG', by.y = 'EAG', all.x = F, all.y = T)
+  # remove cases without name (was originally in makematrix)
+  dgwatdte <- dgwatdte[!is.na(pol),]
+  dgwatdte <- dgwatdte[!is.na(EAG) |!is.na(GAF),]
   
-  PvskPplas1 <-  merge(dgwatdte[sel& !is.na(dgwatdte$GAF),], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$afvoergebied),c('afvoergebied','EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
-                                                                                                                        'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                       by.x = 'GAF', by.y = 'afvoergebied', all.x = F, all.y = T)
-  
-  PvskPplas2 <-  merge(dgwatdte[sel,], Overzicht_kP_plas[,c('EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.',
-                                                            'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                       by.x = 'KRW', by.y = 'EAG', all.x = F, all.y = T)
-  
-  pvskp <- smartbind(PvskPplas, PvskPplas1)
-  
-  PvskP <- merge(PvskP, pvskp[,c('pol','EAG','Troebel.naar.helder..mg.P.m2.d.', 'P.load_year..mgP.m2.d.', 
-                                 'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')], by = c('pol','EAG'), all = TRUE)
-  
-  PvskP$wp_min_sum[!is.na(PvskP$P.load_year..mgP.m2.d.)]  <- PvskP$P.load_year..mgP.m2.d.[!is.na(PvskP$P.load_year..mgP.m2.d.)] 
-  PvskP$PvskPLake <- PvskP$wp_min_sum/PvskP$Helder.naar.troebel..mg.P.m2.d. # >1 is te veel
-  
-  PvskP <- PvskP[!is.na(PvskP$wp_min_sum),]
-  return(PvskP)
-  #write.table(PvskP, file = paste(getwd(),"/pbelasting/output/PvskPditchlakeALL",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-  # schrijf data weg voor controle ------------------------------------------------
-  # geen p belasting in ouderkerk, gaasperplas, loenderveen en terra nova, boezem toevoegen: toevoegen tabel
-  
+  # return output
+  return(dgwatdte)
+
 }
 

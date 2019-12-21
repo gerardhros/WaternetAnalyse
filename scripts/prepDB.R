@@ -1,6 +1,8 @@
 # prepare final database
 # Laura Moria & Gerard H. Ros, november-19
 
+  # clear environment
+  rm(list=ls())
   # require packages
   require(data.table);require(sf);require(dplyr)
 
@@ -71,9 +73,9 @@
     
     # rename columns
     setnames(Overzicht_kP,c('EAG','GAF','EAGnaam','plv_o2','plv','opp','diepte','fr_moeras','strijklengte',
-                            'debiet','inflow','extinctie','sedimenttype','pgrens_helder_troebel',
-                            'pgrens_troebel_helder','type','morfologie','systeemgrens','p_load'))
-  
+                            'debiet','inflow','extinctie','sedimenttype','pc_helder_troebel',
+                            'pc_troebel_helder','lake_ditch_vol','morfologie','systeemgrens','p_bel_year'))
+    
     # remove columns
     cols <- c('opp','EAGnaam')
     Overzicht_kP[,c(cols):=NULL]
@@ -129,15 +131,11 @@
     
     # inladen van database
     simoni <- readRDS('data/simoni.rds')
-
-  # bodemdata ----
-    
-    # inladen database
-    dat <- readRDS("pbelasting/dat.rds")  
     
 # make final matrix
     
     
+    test_gr <- makePmaps(dbwbal = dat, dbhybi = hybi,dbnomogram = nomogram,dbov_kP = Overzicht_kP)
     # calculate mean EKR score per EAG over last three years
     
   
