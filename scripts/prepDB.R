@@ -135,7 +135,7 @@
 # make final matrix
     
     
-    test_gr <- makePmaps(dbwbal = dat, dbhybi = hybi,dbnomogram = nomogram,dbov_kP = Overzicht_kP)
+    test_gr <- 
     # calculate mean EKR score per EAG over last three years
     
   
@@ -165,16 +165,10 @@
       krw[,GAF := substr(EAGIDENT, 1, 4)]
       
       # p vskp ---------------
-      PvskP <- makePmaps(dat)
-      PvskP <- PvskP[!is.na(PvskP$pol),]
-      PvskP <- PvskP[!is.na(PvskP$EAG) |!is.na(PvskP$GAF),]
-      PvskPeag <- PvskP[!is.na(PvskP$EAG),]
-      PvskPgaf <- PvskP[!is.na(PvskP$GAF),]
-      eag_wl$GAF<- substr(eag_wl$GAFIDENT, 1, 4)
-      PvskPgaf <- merge(PvskPgaf,eag_wl[,c("GAFIDENT","GAF")], by = "GAF")
-      PvskPgaf$EAG <- PvskPgaf$GAFIDENT; PvskPgaf$GAFIDENT <- NULL
-      PvskPgaf <- PvskPgaf[!PvskPgaf$EAG %in% PvskP$EAG,]
-      PvskP <- smartbind(PvskPeag, PvskPgaf)
+      PvskP <- makePmaps(dbwbal = dat, dbhybi = hybi,dbnomogram = nomogram,
+                         dbov_kP = Overzicht_kP, dbeag_wl = eag_wl)
+
+      
       
       # bodem toevoegen ------------------
       gemwaterbod <- bodsam(bod)

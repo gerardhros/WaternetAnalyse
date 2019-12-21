@@ -119,19 +119,21 @@ renameWbmethode <- function(inp){
 
 
 
-makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP){
+makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
   
   # convert to data.table, and make local copies
   dbwbal <- as.data.table(dbwbal)
   dbhybi <- copy(dbhybi)
   dbnomogram <- copy(dbnomogram)
   kP_plas <- copy(dbov_kP)
+  dbeag_wl <- copy(dbeag_wl)
   
   # reset names of the databases to simplify references
   setnames(dbnomogram,"debiet (mm/dag)","debiet",skip_absent=TRUE)
   setnames(dbhybi,c('locatie.EAG','locatie.afaanvoergebied','locatie.KRWmeetpuntlocatie'),c('EAG','GAF','KRW'),skip_absent=TRUE)
 
   # adapt datasets
+  dbeag_wl[,GAF:= substr(GAFIDENT, 1, 4)]
   dbwbal[GAF == '8070',watertype := 'M3']
   dbwbal[,bodem := i_bt1]
   dbwbal[is.na(i_bt1) & watertype %in% c('M8','M10','M27','M25'),bodem := 'VEEN']
@@ -226,8 +228,60 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP){
   dgwatdte <- dgwatdte[!is.na(pol),]
   dgwatdte <- dgwatdte[!is.na(EAG) |!is.na(GAF),]
   
+  # update EAG code for GAFs (was originally in makematrix) ----
+  
+    # split file in data.tables for EAG and GAF
+    dgwatdte.eag <- dgwatdte[!is.na(EAG)]
+    dgwatdte.gaf <- dgwatdte[!is.na(GAF)]
+
+    # merge GAFIDENT from eag_wl and rename as EAG
+    dgwatdte.gaf <- merge(dgwatdte.gaf,dbeag_wl[,c("GAFIDENT","GAF")], by = "GAF")
+    dgwatdte.gaf[ , EAG := GAFIDENT][,GAFIDENT :=NULL]
+    
+    # set columns order equal (prevents warning in rbindlist)
+    setcolorder(dgwatdte.gaf,colnames(dgwatdte.eag))
+    
+    # subset only those that are not yet in subset EAG
+    dgwatdte.gaf <- dgwatdte.gaf[!EAG %in% dgwatdte.eag$EAG]
+  
+    # combine again
+    dgwatdte <- rbindlist(list(dgwatdte.eag,dgwatdte.gaf))
+ 
   # return output
   return(dgwatdte)
 
 }
 
+# esf3 bodem ----------------------------------------------------
+bodsam <- function(bod){
+  
+  selb <- dcast(bod, locatie.EAG+locatiecode+locatie.omschrijving+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  selb$FESPFWratio <-((selb$`Fe_mg/l_ng_BS`/55.845)-(selb$`Stot_mg/l_ng_BS`/32.065))/(selb$`Ptot_mgP/l_ng_BS`/30.974)
+  selb$FESPDWratio <-((selb$`Fe_mg/kg_dg_BS`/55.845)-(selb$`Stot_mg/kg_dg_BS`/32.065))/((selb$`Ptot_gP/kg_dg_BS`*1000)/30.974)
+  #selb$`Ptot_mgP/l_nf_PW`<- selb$`Ptot_mgP/l_PW`
+  
+  if(is.null(selb$`Stot_mg/l_nf_PW`)){
+    if(!is.null(selb$`SO4_mg/l_PW`)){
+      selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`SO4_mg/l_PW`/96.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+    }
+    if(!is.null(selb$`Stot_mg/l_PW`)){
+      selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_PW`/32.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+    }}
+  if(!is.null(selb$`Stot_mg/l_nf_PW`)){  
+    selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_nf_PW`/32.065))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+  }
+  selb$nlvrFW <- 0.0247*selb$`Ptot_mgP/l_ng_BS`-1.6035
+  selb$nlvrDW <- 0.0077*(selb$`Ptot_gP/kg_dg_BS`*1000)-4.7259
+  
+  selb <- selb[!is.na(selb$FESPFWratio) ,]
+  selb$FESPFWratio <-cut(selb$FESPFWratio, breaks= c((min(selb$FESPFWratio)-1), 1.4, 4, max(selb$FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))
+  selb <- selb[!is.na(selb$FESPDWratio) ,]
+  selb$FESPDWratio <-cut(selb$FESPDWratio, breaks= c((min(selb$FESPDWratio)-1), 1.4, 4, max(selb$FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))
+  if(!is.null(selb$FESPPWratio)){
+    selb$nlvrPW <- 0.8095*selb$`Ptot_mgP/l_nf_PW`-0.2905
+    #write.table(selb, file = paste(getwd(),"baggernutQuickscan",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+    selb <- selb[!is.na(selb$FESPPWratio) ,]
+    selb$FESPPWratio <-cut(selb$FESPPWratio, breaks= c((min(selb$FESPPWratio)-1), 1.4, 4, max(selb$FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))
+  }
+  return(selb)
+}
