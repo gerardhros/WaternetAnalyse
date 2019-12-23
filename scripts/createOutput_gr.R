@@ -59,7 +59,55 @@ tabelPerWL3jaargemEAG <- function (EKRset,gEAG,doelen){
   return(d3)
 }
 
+# hybi indicatoren matrix maken obv mediaan per gebied en gemiddelde over jaren van laatste drie meetjaren ------
+# compartiment slecteren en soms EZ en soms OW: nog niet gedaan
 
+calcMeanHybi <- function(dbhybi){
+  
+  # make local copy
+  b = copy(dbhybi) 
+  
+  # adjust fews parameter names
+  b[,fewsparameter := gsub("/","_",fewsparameter)]
+  
+  # dcast table
+  b <- dcast(b, locatiecode+locatie.EAG+locatie.KRW.watertype+compartiment+jaar~fewsparameter+parametercode+parameterfractie, 
+             value.var = "meetwaarde", fun.aggregate = mean)
+  
+  # calculate and classify zichtdiepte
+  b[,DTEZICHT := ZICHT_m_ZICHT_/WATDTE_m_WATDTE_]
+  b[DTEZICHT > 1, DTZICHT := NaN]
+  b[,DTEZICHTfac := cut(DTEZICHT, breaks = c('0.1','0.2','0.3','0.4','0.6', '0.8','1.0'))]
+  
+  # filter and sort database
+  b <- b[!is.na(DTEZICHTfac) & !is.na(jaar) &!is.na(locatie.EAG),]
+  setorder(b,jaar)
+  
+  # rename relevant columns
+  cols <- c('PTN_BEDKG_%_SUBMSPTN_','PTN_BEDKG_%_FLAB_SUBMS','PTN_BEDKG_%_FLAB_DRIJVD','PTN_BEDKG_%_EMSPTN_',
+            'TALBVWTR_graad_TALBVWTR_','ZICHT_m_ZICHT_','WATDTE_m_WATDTE_','DTEZICHT','DTEZICHTfac')
+  colsn <- c('bedsubmers','draadwieren','FLAB','bedemers','taludhoek','doorzicht',
+             'waterdiepte','dieptedoorzicht','dieptedoorzichtfac')
+  setnames(b,cols,colsn)
+  
+  # select those columns
+  b <- b[,mget(c('locatie.EAG','locatie.KRW.watertype','jaar',colsn))]
+  
+  # calculate median value per EAG, watertype and year
+  cols <- colnames(b)[sapply(b, is.numeric)]
+  b <- b[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(locatie.EAG,locatie.KRW.watertype,jaar)]
+  
+  # sort and extract the last three years per location if present
+  setorder(b,locatie.EAG,locatie.KRW.watertype,-jaar)
+  b <- b[,yearid := seq_len(.N),by=.(locatie.EAG,locatie.KRW.watertype)][yearid < 4]
+  
+  # calculate mean value per location
+  b <- b[,lapply(.SD,mean),.SDcols = cols,by=.(locatie.EAG,locatie.KRW.watertype)]
+  
+  # return database
+  return(b)
+  
+}
 # rename categories in more easier names
 
 renameGHPR <- function(inp){
@@ -301,3 +349,5 @@ bodsam <- function(bod, cmean = FALSE){
   # return extended soil-ditch properties database
   return(selb)
 }
+
+
