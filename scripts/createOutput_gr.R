@@ -253,7 +253,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
 }
 
 # esf3 bodem ----------------------------------------------------
-bodsam <- function(bod){
+bodsam <- function(bod, cmean = FALSE){
   
   # dcast slootbodem 
   selb <- dcast(bod, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
@@ -276,10 +276,28 @@ bodsam <- function(bod){
   selb[,nlvrPW := 0.8095 * Ptot_mgP_l_nf_PW - 0.2905]
   
   # add categories
-  selb[,FESPFWratio := cut(FESPFWratio, breaks = c((min(FESPFWratio)-1), 1.4, 4, max(FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
-  selb[,FESPDWratio := cut(FESPDWratio, breaks = c((min(FESPDWratio)-1), 1.4, 4, max(FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
-  selb[,FESPPWratio := cut(FESPPWratio, breaks = c((min(FESPPWratio)-1), 1.4, 4, max(FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPFWratio := cut(FESPFWratio, breaks = c((min(FESPFWratio)-1), 1.4, 4, max(FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPDWratio := cut(FESPDWratio, breaks = c((min(FESPDWratio)-1), 1.4, 4, max(FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPPWratio := cut(FESPPWratio, breaks = c((min(FESPPWratio)-1), 1.4, 4, max(FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
   
+  # calculate a mean per EAG and year if requested
+  if(cmean){
+    
+    # what are the numeric columns
+    cols <- colnames(selb)[sapply(selb, is.numeric)]
+    selb.num <- selb[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(loc.eag,jaar)]
+      
+    # function to get modal value for categorial columns
+    fmod <- function(x){names(sort(table(x),decreasing = T)[1])}
+    
+    # categorial columns to get modal
+    cols <- colnames(selb)[grepl('^class',colnames(selb))]
+    selb.cat <- selb[,lapply(.SD,fmod),.SDcols = cols,by=.(loc.eag,jaar)]
+     
+    # combine categorial and numerical columns
+    selb <- merge(selb.num,selb.cat,by=c('loc.eag','jaar'))
+  }
+    
   # return extended soil-ditch properties database
   return(selb)
 }
