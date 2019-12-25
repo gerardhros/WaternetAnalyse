@@ -44,3 +44,25 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   # return updated database
   return(db)
 }
+
+ppr_ekr <- function(ekr1,ekr2){
+  
+  # combine both EKR from KRW and overig water into one data.table
+  db <- rbindlist(ekr1,ekr2, fill=TRUE)
+  
+  # remove columns without information
+  cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
+  db[,c(cols):= NULL]
+  
+  # remove some columns based on judgement Gerard
+  cols <- c('MEETNET_HISTORIE','REFERENTIEVLAK','GLOBALID','GN_CREATED_USER','GN_CREATED_DATE',
+            'GN_LAST_EDITED_USER','GN_LAST_EDITED_DATE','MEETNET_ACTUEEL','FEWSFILTER_HISTORIE',
+            'FEWSFILTER_ACTUEEL','PROGRAMMA_HISTORIE','PROGRAMMA_ACTUEEL','.',
+            'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer','Compartiment.code',
+            'Begintijd','Eindtijd')
+  db[,c(cols):=NULL]
+  
+  # return updated database
+  return(db)
+  
+}
