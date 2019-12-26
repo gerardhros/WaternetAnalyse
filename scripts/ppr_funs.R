@@ -103,3 +103,65 @@ ppr_slootbodem <- function(db,wtype = NULL){
   # return updated database
   return(db)
 }
+
+ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
+  
+  # make local copies
+  db <- copy(db)
+  
+  # adapt wq database
+  db[,jaar := year(datum)]
+  db[,maand := month(datum)]
+  db[limietsymbool == '<',meetwaarde := meetwaarde * 0.5]
+  
+  # delete years before 2000
+  db <- db[jaar>=syear,]
+  
+  # merge with locaties, remove older EAGIDENT and older watertype with new one
+  db[,c('EAGIDENT','watertype') := NULL]
+  db <- merge(db,mlocs[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE',all.x = T)
+  db <- merge(db,wtype[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all =FALSE)
+  
+  # replace other column with same info (is that needed Laura?)
+  db[,locatie.EAG := EAGIDENT]
+  db[,locatie.KRW.watertype := watertype]
+  
+  # select relevant data
+  srow <- c("IONEN","NUTRI","ALG","VELD","ALGEN","LICHT")
+  
+  # subset waterquality data
+  db <- db[fewsparametercategorie %in% srow]
+  
+  # adjust fews parameter names to avoid complicated columns names
+  db[,fewsparameter := gsub("/","_",fewsparameter)]
+  db[,eenheid := gsub("/","_",eenheid)]
+  
+  # remove columns with no data or non-relevant information (judgement gerard)
+  cols <- c('locatie.referentievlakzcoord','locatie.meetprogrammahistorie','locatie.meetprogrammaactueel',
+            'locatie.meetnethistorie','locatie.meetnetactueel','fewsparametereenheidequivalent',
+            'fewsparametereenheidreferentie')
+  db[,c(cols) := NULL]
+  
+  # return output wq parameters
+  return(db)
+  
+}
+
+ppr_pcditch <- function(db){
+  
+  # make local copy
+  db <- copy(db)
+  
+  # rename columns
+  setnames(db,c('EAG','GAF','EAGnaam','plv_o2','plv','opp','diepte','fr_moeras','strijklengte',
+                          'debiet','inflow','extinctie','sedimenttype','pc_helder_troebel',
+                          'pc_troebel_helder','lake_ditch_vol','morfologie','systeemgrens','p_bel_year'))
+  
+  # remove columns
+  cols <- c('opp','EAGnaam')
+  db[,c(cols):=NULL]
+ 
+  # return updated database
+  return(db) 
+}
+
