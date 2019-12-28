@@ -4,7 +4,7 @@
 # hydrobiological data
 ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   
-  # four inputs are possible
+  # input description
   # db: the database downloaded from FEWS, a data.table
   # syear: a numeric value to filter data for the years after syear 
   # wtype: a data.table with watertype per EAG
@@ -48,7 +48,7 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
 ppr_ekr <- function(ekr1,ekr2){
   
   # combine both EKR from KRW and overig water into one data.table
-  db <- rbindlist(ekr1,ekr2, fill=TRUE)
+  db <- rbindlist(list(ekr1,ekr2), fill=TRUE)
   
   # remove columns without information
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
@@ -165,3 +165,46 @@ ppr_pcditch <- function(db){
   return(db) 
 }
 
+# adapt water balance properties
+ppr_wbal <- function(db){
+  
+  # make local copy
+  db <- copy(as.data.table(db))
+  
+  # make some adjustements (source: Laura Moria)
+  db[GAF == '8070',watertype := 'M3']
+  
+  # add year
+ 
+  # add soil type, given watertype
+  db[,bodem := i_bt1]
+  db[is.na(i_bt1) & watertype %in% c('M8','M10','M27','M25'),bodem := 'VEEN']
+  db[is.na(i_bt1) & watertype %in% c("M3", "M1a","M30","M14","M11","M6a","M7b","M6b","M7a"),bodem := 'KLEI']
+  
+  # add total P-load
+  db[,wp_tot_sum := wp_min_sum + wp_inc_sum]
+  
+  # return updated database
+  return(db) 
+  
+}
+
+ppr_wbalfiles <- function(wdir){
+  
+  # select file names in the directory where waterbalansen are stored
+  files <- list.files(wdir)
+  
+  # select only the xlsx files (all are renewed to xlsx) and those with a F00 code in the name
+  files <- files[grepl('xlsx$',files) & grepl('F00',files)]
+  
+  # remove some files manually
+  files <- files[!grepl('^Kock|^GAF|^deTol|Mande',files)]
+  
+  # what are the unique file names before first underscore
+  filesn <- unique(gsub("(.+?)(\\_.*)", "\\1", files))
+  
+  # use the files with the highest score in the name
+  files <- sapply(1:length(filesn),function(x) max(files[grep(filesn[x],files)]))
+  
+  return(files)
+}
