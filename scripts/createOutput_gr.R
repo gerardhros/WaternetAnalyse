@@ -108,6 +108,7 @@ calcMeanHybi <- function(dbhybi){
   return(b)
   
 }
+
 # rename categories in more easier names
 
 renameGHPR <- function(inp){
