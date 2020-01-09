@@ -31,6 +31,15 @@
   st_write(s1,'data/EAG20170611.gpkg')
   s1 <- st_read('data/WBPKRW20170611.shp') %>% st_transform(28992)
   st_write(s1,'data/WBPKRW20170611.gpkg')
+  s1 <- st_read('development/EAG_20190717.shp') %>% st_transform(28992)
+  st_write(s1,'data/EAG_20190717.gpkg')
+  s1 <- st_read('development/EAG_20190717_simplified.shp') %>% st_transform(28992)
+  st_write(s1,'data/EAG_20190717_simplified.gpkg')
+  s1 <- st_read('development/GAF.shp') %>% st_transform(28992)
+  st_write(s1,'data/GAF.gpkg')
+  s1 <- st_read('development/WBPKRW20170611_simplified.shp') %>% st_transform(28992)
+  st_write(s1,'data/WBPKRW20170611_simplified.gpkg')
+  
   
   # inladen toxiciteitsdata
   simoni <- fread("toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv",stringsAsFactors = F)
