@@ -204,7 +204,10 @@ ppr_wbalfiles <- function(wdir){
   filesn <- unique(gsub("(.+?)(\\_.*)", "\\1", files))
   
   # use the files with the highest score in the name
-  files <- sapply(1:length(filesn),function(x) max(files[grep(filesn[x],files)]))
+  files <- sapply(1:length(filesn),function(x) max(files[grep(filesn[x],files)])[1])
+  
+  # avoid duplicated names
+  files <- unique(files)
   
   return(files)
 }
