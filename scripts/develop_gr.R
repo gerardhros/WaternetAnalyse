@@ -31,6 +31,7 @@
   st_write(s1,'data/EAG20170611.gpkg')
   s1 <- st_read('data/WBPKRW20170611.shp') %>% st_transform(28992)
   st_write(s1,'data/WBPKRW20170611.gpkg')
+
   # aanpassen shape file from shp to gpkg van Laura
   s1 <- st_read('../GIS/KRWwaterdelen_AGV_concept_December2019_2.shp') %>% st_transform(28992)
   st_write(s1,'data/WBPKRW20191220.gpkg')
@@ -45,4 +46,19 @@
 # importeren en converteren fychem data
   wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
   saveRDS(wq, "data/ImportWQ", compress = "xz")
+
+  s1 <- st_read('development/EAG_20190717.shp') %>% st_transform(28992)
+  st_write(s1,'data/EAG_20190717.gpkg')
+  s1 <- st_read('development/EAG_20190717_simplified.shp') %>% st_transform(28992)
+  st_write(s1,'data/EAG_20190717_simplified.gpkg')
+  s1 <- st_read('development/GAF.shp') %>% st_transform(28992)
+  st_write(s1,'data/GAF.gpkg')
+  s1 <- st_read('development/WBPKRW20170611_simplified.shp') %>% st_transform(28992)
+  st_write(s1,'data/WBPKRW20170611_simplified.gpkg')
+  
+  
+  # inladen toxiciteitsdata
+  simoni <- fread("toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv",stringsAsFactors = F)
+  saveRDS(simoni,'data/simoni.rds')
+
   
