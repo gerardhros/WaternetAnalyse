@@ -451,6 +451,7 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, doelen){
     dplyr::group_by(HoortBijGeoobject.identificatie,KRWwatertype.code.y,GHPR,level, Waardebepalingsmethode.code) %>% 
     dplyr::summarize_all(mean)
   d4$EKR <- d4$.; d4$. <- NULL
+  d4$GHPR <- gsub(' $','',d4$GHPR)
   
   doelen2 <- as.data.table(doelen)
   doelgeb <- dcast(doelen2, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = c("Doel", "Doel_2022"), fun.aggregate = mean)

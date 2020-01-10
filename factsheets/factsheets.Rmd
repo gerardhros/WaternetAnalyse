@@ -54,91 +54,86 @@ proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0
 col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
-# basisdata gebieden en communique-------------------------
+  # source functions
+  source('../scripts/ppr_funs.R')
+  
+  # inladen basis bestanden ----
+
 ESFoordelen <- read.csv('../data/esfKRW_20191008.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
 maatregelen <- read.csv('../data/maatregelenKRW_20191216.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
 watertypen <- read.csv('../data/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-
-# data hybi voor waterdiepte: hier kan een selectie gemaakt van alleen waterdiepte omwille van grootte -----------------
-locaties <- read.csv("../data/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-## aanvullende eag data, watertype en krw waterlichamen kloppen vaak niet: gaat dit ook niet goed bij toetsing? eag ook koppelen met watertype
-
+  
 ## data voor kaart ----------
 gKRW  <- st_read("../data/WBPKRW20191220.gpkg") %>% st_transform(proj4.rd) # projectie hoeft niet, maar staat er als voorbeeld
 gEAG<- st_read("../data/EAG_20191205.gpkg") %>% st_transform(proj4.rd)
 waterpereag1 <- st_read("../data/WaterPerEAG20191205.gpkg") %>% st_transform(proj4.rd)
 waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirGIS, proj4.rd)
 gKRW$GAFIDENT <- gsub("^NL11_","",gKRW$OWAIDENT)
-
-eag_wl    <- merge(gEAG %>% st_set_geometry(NULL), gKRW %>% st_set_geometry(NULL), by = 'GAFIDENT', all.x = T) 
-## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
-eag_extra    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-#eag_wl$watertype <- eag_extra$watertype[eag_extra$GAFIDENT %in% eag_wl$GAFIDENT]
-eag_wl <- merge(eag_extra[,c("GAFIDENT",'StedelijkLandelijk')],eag_wl, by = 'GAFIDENT')
-
-# inladen hydrobiologische gegevens ---watertype
+    
+# water types
+    watertypen <- fread('../data/KRWWatertype.csv')
+    
+    # locaties van alle metingen (water, biologie, en slootbodem)
+    locaties <- fread('../data/Location.csv')
+    
+    # locaties van EAG oppervlaktes
+    eag_wl <- fread('../data/Oppervlaktes EAGs en Water.csv')
   
-# inladen gegevens hydrobiologie
-hybi <- readRDS('../data/alles_reliable.rds')
-    
-# adapt few properties
-    hybi[, datum := as.Date(datum, format = "%Y-%m-%d %H:%M")]
-    hybi[, jaar := year(datum)]
-    hybi[limietsymbool == '<', meetwaarde := meetwaarde * 0.5]
-    hybi[fewsparameter == 'WATDTE_m' & jaar == 2006 & planvanaanpak == 'PVA MAFY LIJN 2006 WP', meetwaarde := meetwaarde]
-    
-# filter measurements on periode since 2000
-    hybi <- hybi[jaar>=2000]
-    
-# merge with locaties
-    hybi <- merge(hybi,locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE')
-    hybi <- merge(hybi,eag_wl[,c('watertype','GAFIDENT')],by.x ='EAGIDENT', by.y = 'GAFIDENT')
+    # shape with EAG
+    gEAG <- st_read('../data/EAG20180612.gpkg',quiet = TRUE)
 
-# data voor P belasting
+    # KRW doelen 
+    doelen <- fread('../hydrobiologie/doelen.csv')
+
+    # nonogram
+    nomogram <- fread('../data/nomogram.csv')
+    
+    # waterbalans data (made by loadBalances)
+    dat <- readRDS("../pbelasting/dat.rds") 
+    
+    # gegevens hydrobiologie
+    hybi <- readRDS('../data/alles_reliable.rds')
+    
+    # EKR sets KRW en overig water
+    EKRset1 <- readRDS('../hydrobiologie/EKRset_KRW.rds') %>% as.data.table()
+    EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds') %>% as.data.table()
+    
+    # slootbodem measurements
+    bod  <- fread("../data/bodemfews.csv")
+    
+    # waterquality measurements
+    wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
+    
+    # datafile with P-load PC Ditch
+    Overzicht_kP <- fread('../data/Overzicht_kP.csv') 
+    
+    # toxiciteitsdata simoni
+    simoni <- readRDS('../data/simoni.rds')
+    
+  # update, filter and clean up databases -----------
+   
+    # EKR measurements
+    EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2)
+ 
+    # hybi measurements
+    hybi <- ppr_hybi(db = hybi,syear = 2000,wtype = eag_wl,mlocs = locaties)
+    
+    # slootbodemdata
+    bod <- ppr_slootbodem(db = bod, wtype = eag_wl)
+    
+    # water quality
+    wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
+      
+    # Pload and limits from PC Ditch
+    Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
+    
+    # data voor P belasting
 dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
 dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
 Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
 nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
 pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
 
-# load water quality information
-  
-    # load file rds
-    wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
-    
-    # adapt wq database
-    wq[,jaar := year(datum)]
-    wq[,maand := month(datum)]
-    wq[limietsymbool == '<',meetwaarde := meetwaarde * 0.5]
-    
-    # delete years before 2000
-    wq <- wq[jaar>1999,]
-    
-    # merge with locaties, remove older EAGIDENT with new one
-    wq[,EAGIDENT := NULL]
-    wq <- merge(wq,locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE',all.x = T)
-    wq <- merge(wq,eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all =FALSE)
-
-
-# add slootbodem data
-    
-    # load csv file with measurement data
-    bod  <- fread("../data/bodemfews.csv")
-    
-    # adapt file
-    bod[,datum := as.Date(datum, format = "%Y-%m-%d %H:%M")]
-    bod[,jaar := year(datum)]
-    bod[limietsymbool == '<',meetwaarde := meetwaarde * 0.5] 
-    
-    # merge with GAFIDENT from eag_wl
-    bod <- merge(bod,eag_wl[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all = FALSE)
-
-# data voor grafiek ----------------
-EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
-EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
-EKRset <- smartbind(EKRset,EKRset2)
-doelen <- read.csv('../hydrobiologie/Doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-# data voor EST tekening -----------------------
 EST <- read.csv('../hydrobiologie/EST.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
 ```
@@ -147,6 +142,7 @@ EST <- read.csv('../hydrobiologie/EST.csv', header = TRUE, na.strings = " ", sep
 # itereren over een rmd voorbeeld--------------
 # waterlichamen weg, eags ipv waterlichamen op kaart, invoegen plaatje, maatregel gauge, doelen nieuw toevoegen, monitoringswensen tab 3
 for (i in 1:nrow(ESFoordelen)){
+  i=37
     waterlichamenwl <- ESFoordelen[37,] # i als iteratie aan, anders nummer waterlichaam
     wl <- waterlichamenwl$OWL # of waterlichaam of eagcode
     
@@ -154,10 +150,8 @@ for (i in 1:nrow(ESFoordelen)){
     namewl <- dcast(EKRset, HoortBijGeoobject.identificatie+GeoObject.identificatie+EAGIDENT~.)
     wlname <- namewl$HoortBijGeoobject.identificatie[(namewl$GeoObject.identificatie %in% wl)|(namewl$EAGIDENT %in% wl)] 
    
-    if(nrow(eag_wl[eag_wl$OWMIDENT %in% wl,])>0){
-      eagwl <- eag_wl[eag_wl$OWMIDENT %in% wl,]} 
-    if(nrow(eag_wl[eag_wl$OWMIDENT %in% wl,])==0){
-      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]} 
+   
+      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,] 
                         
     my_title <- paste0(waterlichamenwl$OWMNAAM)
     pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|
@@ -183,26 +177,33 @@ for (i in 1:nrow(ESFoordelen)){
     if(nrow(EST_sel)>0){
     EST_sel[,3:19] <- apply(EST_sel[,3:19], 2, as.numeric)}
     
-    outputF <- "html"
-    rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
-                    output_format = "flexdashboard::flex_dashboard", #pdf_document
-                    output_file = paste("FS_", wlname, ".html", sep=''),
-                    output_dir = "output/")
     
-    # Render preview
-    webshot::webshot(
-      url = paste("output/FS_", wlname, ".html", sep=''),
-      file = paste("output/FS_", wlname, ".png", sep=''),
-      vwidth = 1200,
-      vheight = floor(1200 * sqrt(2)),          # Use A series aspect ratio
-      delay = 1,                                 # Wait to allow all element to load
-      zoom = 23.4 / (1200 / 300) )       # Adjust elements relative size
-      
-    outputF <- "word"
-    rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
-                    output_format = "bookdown::word_document2", #pdf_document
-                    output_file = paste("FS_", wlname, ".docx", sep=''),
-                    output_dir = "output/")
+    pagedown::chrome_print(
+      input = "factsheets.Rmd",
+      output = "hoi.pdf",
+      wait = 10,
+      format = "pdf"
+    )
+    # outputF <- "html"
+    # rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
+    #                 output_format = "flexdashboard::flex_dashboard", #pdf_document
+    #                 output_file = paste("FS_", wlname, ".html", sep=''),
+    #                 output_dir = "output/")
+    # 
+    # # Render preview
+    # webshot::webshot(
+    #   url = paste("output/FS_", wlname, ".html", sep=''),
+    #   file = paste("output/FS_", wlname, ".png", sep=''),
+    #   vwidth = 1200,
+    #   vheight = floor(1200 * sqrt(2)),          # Use A series aspect ratio
+    #   delay = 1,                                 # Wait to allow all element to load
+    #   zoom = 23.4 / (1200 / 300) )       # Adjust elements relative size
+    #   
+    # outputF <- "word"
+    # rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
+    #                 output_format = "bookdown::word_document2", #pdf_document
+    #                 output_file = paste("FS_", wlname, ".docx", sep=''),
+    #                 output_dir = "output/")
 
    
     
@@ -242,7 +243,6 @@ Het waterlichaam `r waterlichamenwl$OWMNAAM` heeft de status `r waterlichamenwl$
 if(nrow(EST_sel)>0){
   ## merge 
 dtEST2 <- merge(EST_sel, eagwl, by.x = "EAG", by.y  = "GAFIDENT")
-dtEST2 <- dtEST2[,1:21]
 
 ## gather O en W 
 dtEST4 <- dtEST2 %>%
@@ -264,10 +264,10 @@ dtEST4$stland <- ifelse(dtEST4$StedelijkLandelijk == 'Stedelijk','St','L') #toch
 myimages<- list.files("esticon/", pattern = paste0(dtEST4$locatietype[1], dtEST4$nummer[1],"_",dtEST4$locatietype[2],
                           dtEST4$nummer[2],"_",dtEST4$type2[1],"_",dtEST4$stland[1],".jpg"), full.names = TRUE)
 
-if(dtEST4$OWMIDENT.x %in% c('NL11_3_8')){
+if(dtEST4$OWMIDENT %in% c('NL11_3_8')){
  myimages<- "esticon/W6_O7_DM_L.jpg" 
 }
-if(dtEST4$OWMIDENT.x %in% c('NL11_5_1')){
+if(dtEST4$OWMIDENT %in% c('NL11_5_1')){
   myimages<- "esticon/W4_O6_OM_L.jpg" 
 }
 
@@ -404,7 +404,7 @@ ESFtab <- merge(ESFtab,ESFtab2, by = 'esf')
 if(outputF == "html"){
 ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'groennummer.jpg', ifelse(ESFtab[3] == '2','oranjenummer.jpg', ifelse(ESFtab[3] == '3', 'roodnummer.jpg', 'grijsnummer.jpg')))
 ESFtab$OORDEEL <- paste0(substr(ESFtab$esf, 4, 5),ESFtab$OORDEEL)
-ESFtab$OORDEEL = sprintf("![esficon](%s)", paste0("c:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/WaternetAnalyse/factsheets/esf/",ESFtab$OORDEEL, " "))
+ESFtab$OORDEEL = sprintf("![esficon](%s)", paste0("esf/",ESFtab$OORDEEL, " "))
 ESFtab <- ESFtab[,c(4,2)]
 }
 
@@ -499,7 +499,7 @@ ESFtab <- merge(ESFtab,ESFtab2, by = 'esf')
 if(outputF == "html"){
 ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'groennummer.jpg', ifelse(ESFtab[3] == '2','oranjenummer.jpg', ifelse(ESFtab[3] == '3', 'roodnummer.jpg', 'grijsnummer.jpg')))
 ESFtab$OORDEEL <- paste0(substr(ESFtab$esf, 4, 5),ESFtab$OORDEEL)
-ESFtab$OORDEEL = sprintf("![esficon](%s)", paste0("c:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/WaternetAnalyse/factsheets/esf/",ESFtab$OORDEEL, " "))
+ESFtab$OORDEEL = sprintf("![esficon](%s)", paste0("esf/",ESFtab$OORDEEL, " "))
 }
 if(outputF == "word"){
   ESFtab$OORDEEL <- ifelse(ESFtab[3] == '1', 'voldoet', ifelse(ESFtab[3] == '2','at risk',
@@ -520,7 +520,7 @@ maatregelen2 <- merge(ESFtab, maatregelen1[,c('Naam','Toelichting','SGBPPeriode'
 maatregelen2$ESFoordeel <- maatregelen2$OORDEEL
 maatregelen2 <- maatregelen2[,c(11,7,5,6,8,9,10)]
 if(outputF == "html"){
-maatregelen2$ESFoordeel[maatregelen2$ESFoordeel %in% c('NTB','NVT')|is.na(maatregelen2$ESFoordeel)] <- sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/","9grijsnummer.jpg", " "))
+maatregelen2$ESFoordeel[maatregelen2$ESFoordeel %in% c('NTB','NVT')|is.na(maatregelen2$ESFoordeel)] <- sprintf("![esficon](%s)", paste0("esf/","9grijsnummer.jpg", " "))
 }
 if(outputF == "word"){
   maatregelen2$ESFoordeel[maatregelen2$ESFoordeel %in% c('NTB','NVT')|is.na(maatregelen2$ESFoordeel)] <- "onbekend"
