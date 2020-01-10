@@ -60,6 +60,10 @@ ppr_ekr <- function(ekr1,ekr2){
             'FEWSFILTER_ACTUEEL','PROGRAMMA_HISTORIE','PROGRAMMA_ACTUEEL','.',
             'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer','Compartiment.code',
             'Begintijd','Eindtijd')
+  # ensure that cols are present in colnames db
+  cols[cols %in% colnames(db)]
+
+  # remove columns
   db[,c(cols):=NULL]
   
   # return updated database
