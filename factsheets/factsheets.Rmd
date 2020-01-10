@@ -70,11 +70,8 @@ waterpereag1 <- st_read("../data/WaterPerEAG20191205.gpkg") %>% st_transform(pro
 waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirGIS, proj4.rd)
 gKRW$GAFIDENT <- gsub("^NL11_","",gKRW$OWAIDENT)
 
-eag_wl    <- merge(gEAG %>% st_set_geometry(NULL), gKRW %>% st_set_geometry(NULL), by = 'GAFIDENT', all.x = T) 
 ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
-eag_extra    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-#eag_wl$watertype <- eag_extra$watertype[eag_extra$GAFIDENT %in% eag_wl$GAFIDENT]
-eag_wl <- merge(eag_extra[,c("GAFIDENT",'StedelijkLandelijk')],eag_wl, by = 'GAFIDENT')
+eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
 # inladen hydrobiologische gegevens ---watertype
   
@@ -137,7 +134,7 @@ pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram)
 EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
 EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
 EKRset <- smartbind(EKRset,EKRset2)
-doelen <- read.csv('../hydrobiologie/Doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+doelen <- fread('../hydrobiologie/Doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 # data voor EST tekening -----------------------
 EST <- read.csv('../hydrobiologie/EST.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
@@ -154,10 +151,10 @@ for (i in 1:nrow(ESFoordelen)){
     namewl <- dcast(EKRset, HoortBijGeoobject.identificatie+GeoObject.identificatie+EAGIDENT~.)
     wlname <- namewl$HoortBijGeoobject.identificatie[(namewl$GeoObject.identificatie %in% wl)|(namewl$EAGIDENT %in% wl)] 
    
-    if(nrow(eag_wl[eag_wl$OWMIDENT %in% wl,])>0){
-      eagwl <- eag_wl[eag_wl$OWMIDENT %in% wl,]} 
-    if(nrow(eag_wl[eag_wl$OWMIDENT %in% wl,])==0){
-      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]} 
+    if(nrow(eag_wl[eag_wl$OPMERKING %in% wl,])>0){
+      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,]} 
+    if(nrow(eag_wl[eag_wl$OPMERKING %in% wl,])==0){
+      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,]} 
                         
     my_title <- paste0(waterlichamenwl$OWMNAAM)
     pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|
@@ -242,7 +239,6 @@ Het waterlichaam `r waterlichamenwl$OWMNAAM` heeft de status `r waterlichamenwl$
 if(nrow(EST_sel)>0){
   ## merge 
 dtEST2 <- merge(EST_sel, eagwl, by.x = "EAG", by.y  = "GAFIDENT")
-dtEST2 <- dtEST2[,1:21]
 
 ## gather O en W 
 dtEST4 <- dtEST2 %>%
@@ -261,13 +257,13 @@ dtEST4$type2 <- ifelse(dtEST4$watertype == 'M20','DM',ifelse(dtEST4$watertype %i
 dtEST4$stland <- ifelse(dtEST4$StedelijkLandelijk == 'Stedelijk','St','L') #toch tabel stedelijklandelijkpereag toevoegen
 
 
-myimages<- list.files("esticon/", pattern = paste0(dtEST4$locatietype[1], dtEST4$nummer[1],"_",dtEST4$locatietype[2],
+myimages <- list.files("esticon/", pattern = paste0(dtEST4$locatietype[1], dtEST4$nummer[1],"_",dtEST4$locatietype[2],
                           dtEST4$nummer[2],"_",dtEST4$type2[1],"_",dtEST4$stland[1],".jpg"), full.names = TRUE)
 
-if(dtEST4$OWMIDENT.x %in% c('NL11_3_8')){
+if(dtEST4$OWMIDENT %in% c('NL11_3_8')){
  myimages<- "esticon/W6_O7_DM_L.jpg" 
 }
-if(dtEST4$OWMIDENT.x %in% c('NL11_5_1')){
+if(dtEST4$OWMIDENT %in% c('NL11_5_1')){
   myimages<- "esticon/W4_O6_OM_L.jpg" 
 }
 
