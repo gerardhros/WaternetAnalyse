@@ -65,7 +65,7 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
 gEAG<- importOGR("EAG20190523.shp", dirGIS, CRSobj = proj4.google)
 gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
-gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
+#gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
 
 # laden: Rdata file die meegestuurd is
 #dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
@@ -93,7 +93,7 @@ selb$klasseP <- NULL
 selb$klasseP <- as.factor(selb$klasseP)
 
 simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+locatie <- read.csv("toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
 wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
