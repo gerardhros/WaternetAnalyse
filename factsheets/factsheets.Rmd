@@ -178,27 +178,30 @@ for (i in 1:nrow(ESFoordelen)){
     EST_sel[,3:19] <- apply(EST_sel[,3:19], 2, as.numeric)}
     
     
-    pagedown::chrome_print(
-      input = "factsheets.Rmd",
-      output = "hoi.pdf",
-      wait = 10,
-      format = "pdf"
-    )
-    # outputF <- "html"
-    # rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
-    #                 output_format = "flexdashboard::flex_dashboard", #pdf_document
-    #                 output_file = paste("FS_", wlname, ".html", sep=''),
-    #                 output_dir = "output/")
-    # 
+    outputF <- "html"
+    rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
+                    output_format = "flexdashboard::flex_dashboard", #pdf_document
+                    output_file = paste("FS_", wlname, ".html", sep=''),
+                    output_dir = "output/")
+    
     # # Render preview
-    # webshot::webshot(
-    #   url = paste("output/FS_", wlname, ".html", sep=''),
-    #   file = paste("output/FS_", wlname, ".png", sep=''),
-    #   vwidth = 1200,
-    #   vheight = floor(1200 * sqrt(2)),          # Use A series aspect ratio
-    #   delay = 1,                                 # Wait to allow all element to load
-    #   zoom = 23.4 / (1200 / 300) )       # Adjust elements relative size
-    #   
+    #webshot::install_phantomjs()
+    webshot::webshot(
+      url = paste("output/FS_", wlname, ".html", sep=''),
+      file = paste("output/FS_", wlname, ".png", sep=''),
+      vwidth = 2480,
+      vheight = 3508,          # Use A series aspect ratio
+      delay = 1,                                 # Wait to allow all element to load
+      zoom = 2.5,       # Adjust elements relative size
+      debug = FALSE)
+    
+    hoi <- png::readPNG(paste("output/FS_", wlname, ".png", sep=''))
+    
+    pdf("hoi.pdf", paper="a4", width = 8.27, height = 11.64)
+    grid.raster(hoi, width = unit(8, "inches"), height = unit(11, "inches"))
+    dev.off()
+    
+    
     # outputF <- "word"
     # rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
     #                 output_format = "bookdown::word_document2", #pdf_document
@@ -206,8 +209,6 @@ for (i in 1:nrow(ESFoordelen)){
     #                 output_dir = "output/")
 
    
-    
-
 }
 
 # iterenen voor p plaatjes-------
