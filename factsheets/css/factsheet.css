@@ -71,6 +71,8 @@ body {
         background-color: #fff;
 }
 
-
-
 img[alt=esficon] { width: 50px; }
+
+.huge .remark-code { /*Change made here*/
+  font-size: 200% !important;
+}
