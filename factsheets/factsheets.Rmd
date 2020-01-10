@@ -69,8 +69,16 @@ gEAG<- st_read("../data/EAG_20191205.gpkg") %>% st_transform(proj4.rd)
 waterpereag1 <- st_read("../data/WaterPerEAG20191205.gpkg") %>% st_transform(proj4.rd)
 waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirGIS, proj4.rd)
 gKRW$GAFIDENT <- gsub("^NL11_","",gKRW$OWAIDENT)
+
+## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
+eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+# inladen hydrobiologische gegevens ---watertype
+  
+  # inladen gegevens hydrobiologie
+  hybi <- readRDS('../data/alles_reliable.rds')
     
-# water types
+    # water types
     watertypen <- fread('../data/KRWWatertype.csv')
     
     # locaties van alle metingen (water, biologie, en slootbodem)
@@ -127,7 +135,18 @@ gKRW$GAFIDENT <- gsub("^NL11_","",gKRW$OWAIDENT)
     # Pload and limits from PC Ditch
     Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
     
-    # data voor P belasting
+<<<<<<< HEAD
+    # merge with GAFIDENT from eag_wl
+    bod <- merge(bod,eag_wl[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all = FALSE)
+
+# data voor grafiek ----------------
+EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
+EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
+EKRset <- smartbind(EKRset,EKRset2)
+doelen <- fread('../hydrobiologie/Doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+# data voor EST tekening -----------------------
+
+# data voor P belasting
 dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
 dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
 Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
@@ -150,9 +169,11 @@ for (i in 1:nrow(ESFoordelen)){
     namewl <- dcast(EKRset, HoortBijGeoobject.identificatie+GeoObject.identificatie+EAGIDENT~.)
     wlname <- namewl$HoortBijGeoobject.identificatie[(namewl$GeoObject.identificatie %in% wl)|(namewl$EAGIDENT %in% wl)] 
    
-   
-      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,] 
-                        
+    if(nrow(eag_wl[eag_wl$OPMERKING %in% wl,])>0){
+      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,]} 
+    if(nrow(eag_wl[eag_wl$OPMERKING %in% wl,])==0){
+      eagwl <- eag_wl[eag_wl$OPMERKING %in% wl,]} 
+
     my_title <- paste0(waterlichamenwl$OWMNAAM)
     pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|
                         pvskp$GAF %in% substr(eagwl$GAFIDENT, 1, 4),] 
@@ -178,27 +199,30 @@ for (i in 1:nrow(ESFoordelen)){
     EST_sel[,3:19] <- apply(EST_sel[,3:19], 2, as.numeric)}
     
     
-    pagedown::chrome_print(
-      input = "factsheets.Rmd",
-      output = "hoi.pdf",
-      wait = 10,
-      format = "pdf"
-    )
-    # outputF <- "html"
-    # rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
-    #                 output_format = "flexdashboard::flex_dashboard", #pdf_document
-    #                 output_file = paste("FS_", wlname, ".html", sep=''),
-    #                 output_dir = "output/")
-    # 
+    outputF <- "html"
+    rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
+                    output_format = "flexdashboard::flex_dashboard", #pdf_document
+                    output_file = paste("FS_", wlname, ".html", sep=''),
+                    output_dir = "output/")
+    
     # # Render preview
-    # webshot::webshot(
-    #   url = paste("output/FS_", wlname, ".html", sep=''),
-    #   file = paste("output/FS_", wlname, ".png", sep=''),
-    #   vwidth = 1200,
-    #   vheight = floor(1200 * sqrt(2)),          # Use A series aspect ratio
-    #   delay = 1,                                 # Wait to allow all element to load
-    #   zoom = 23.4 / (1200 / 300) )       # Adjust elements relative size
-    #   
+    #webshot::install_phantomjs()
+    webshot::webshot(
+      url = paste("output/FS_", wlname, ".html", sep=''),
+      file = paste("output/FS_", wlname, ".png", sep=''),
+      vwidth = 2480,
+      vheight = 3508,          # Use A series aspect ratio
+      delay = 1,                                 # Wait to allow all element to load
+      zoom = 2.5,       # Adjust elements relative size
+      debug = FALSE)
+    
+    hoi <- png::readPNG(paste("output/FS_", wlname, ".png", sep=''))
+    
+    pdf("hoi.pdf", paper="a4", width = 8.27, height = 11.64)
+    grid.raster(hoi, width = unit(8, "inches"), height = unit(11, "inches"))
+    dev.off()
+    
+    
     # outputF <- "word"
     # rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
     #                 output_format = "bookdown::word_document2", #pdf_document
@@ -206,8 +230,6 @@ for (i in 1:nrow(ESFoordelen)){
     #                 output_dir = "output/")
 
    
-    
-
 }
 
 # iterenen voor p plaatjes-------
@@ -261,7 +283,7 @@ dtEST4$type2 <- ifelse(dtEST4$watertype == 'M20','DM',ifelse(dtEST4$watertype %i
 dtEST4$stland <- ifelse(dtEST4$StedelijkLandelijk == 'Stedelijk','St','L') #toch tabel stedelijklandelijkpereag toevoegen
 
 
-myimages<- list.files("esticon/", pattern = paste0(dtEST4$locatietype[1], dtEST4$nummer[1],"_",dtEST4$locatietype[2],
+myimages <- list.files("esticon/", pattern = paste0(dtEST4$locatietype[1], dtEST4$nummer[1],"_",dtEST4$locatietype[2],
                           dtEST4$nummer[2],"_",dtEST4$type2[1],"_",dtEST4$stland[1],".jpg"), full.names = TRUE)
 
 if(dtEST4$OWMIDENT %in% c('NL11_3_8')){
