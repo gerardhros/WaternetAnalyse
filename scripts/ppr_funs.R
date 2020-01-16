@@ -65,7 +65,7 @@ ppr_ekr <- function(ekr1,ekr2){
 
   # remove columns
   db[,c(cols):=NULL]
-  
+  hoi <- ""
   # return updated database
   return(db)
   
@@ -193,25 +193,52 @@ ppr_wbal <- function(db){
   
 }
 
-ppr_wbalfiles <- function(wdir){
+ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
+  
+  # this function select the relevant file names of the excel waterbalances.
+  # two checks are done: 
+  # are all files given in koppeltabel available
+  # are files missing given the most recent EAG shape (so those EAGs do not have a balance)
   
   # select file names in the directory where waterbalansen are stored
   files <- list.files(wdir)
   
-  # select only the xlsx files (all are renewed to xlsx) and those with a F00 code in the name
-  files <- files[grepl('xlsx$',files) & grepl('F00',files)]
-  
-  # remove some files manually
-  files <- files[!grepl('^Kock|^GAF|^deTol|Mande',files)]
+  # select only the xlsx files (all are renewed to xlsx)
+  files <- files[grepl('xlsx$',files)]
   
   # what are the unique file names before first underscore
   filesn <- unique(gsub("(.+?)(\\_.*)", "\\1", files))
   
   # use the files with the highest score in the name
-  files <- sapply(1:length(filesn),function(x) max(files[grep(filesn[x],files)])[1])
+  #files <- sapply(1:length(filesn),function(x) max(files[grep(filesn[x],files)])[1])
+  
+  # use files that are given in kopTab and print warning when files are missing
+  bal_mis <- kopTab[!balans %in% files,namen]
+  
+  # print warning 1
+  if(length(bal_mis)>1){
+    print(paste0('warning: the waterbalans is missing for ',length(bal_mis),' eags, as given in kopTab'))}
+  
+  # check missing files in EAG shape
+  eag.sf <- as.data.table(EAG.sf)
+  eag.sf <- eag.sf[,.(GAFIDENT,geom)]
+  eag.sf[,EAGIDENT := GAFIDENT]
+  eag.sf[,GAFIDENT := paste0(substr(GAFIDENT,1,4),'-GAF')]
+  
+  # what EAGs do not have a water balance already
+  bal_mis <- unique(eag.sf[!(EAGIDENT %in% kopTab$namen | GAFIDENT %in% kopTab$namen),EAGIDENT])
+  bal_mis <- as.character(bal_mis)
+  
+  # print warning 2
+  if(length(bal_mis)>1){
+    print(paste0('warning: the waterbalans is missing for ',length(bal_mis),' eags, as given in shape EAG'))}
+  
+  # select the files that can be read in
+  files <- files[files %in% kopTab$balans]
   
   # avoid duplicated names
   files <- unique(files)
   
+  # return file names of water balances that can be read in
   return(files)
 }
