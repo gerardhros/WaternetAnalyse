@@ -67,7 +67,7 @@ ppr_ekr <- function(ekr1,ekr2){
   
 }
 
-ppr_slootbodem <- function(db,wtype = NULL){
+ppr_slootbodem <- function(db, wtype = NULL,mlocs = NULL){
   
   # make a local copy
   db <- copy(db)
@@ -78,7 +78,8 @@ ppr_slootbodem <- function(db,wtype = NULL){
   db[limietsymbool == '<',meetwaarde := meetwaarde * 0.5] 
   
   # merge with GAFIDENT from eag_wl (be aware: EAG 3300 are few missing)
-  db <- merge(db,wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all = FALSE)
+  db <- merge(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
+  db <- merge(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
   
   # wijzig relevante namen van bodemfews database
   cols <- colnames(db)
@@ -89,19 +90,20 @@ ppr_slootbodem <- function(db,wtype = NULL){
   db[,parm.fews := gsub("/","_",parm.fews)]
   
   # select properties and dcast table
-  db <- dcast(db, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  bod_klasse <- dcast(db, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
   
   # adapt P measurement into one class, and NA gets class 8
-  db[,klasseP := cut(Ptot_gP_kg_dg_BS,breaks = c(0,0.5,1,1.5,2.5,5,10,1000),labels=1:7)]
-  db[,klasseP := factor(klasseP,levels=1:8)]
-  db[is.na(klasseP), klasseP := 8]
+  bod_klasse[,klasseP := cut(Ptot_gP_kg_dg_BS,breaks = c(0,0.5,1,1.5,2.5,5,10,1000),labels=1:7)]
+  bod_klasse[,klasseP := factor(klasseP,levels=1:8)]
+  bod_klasse[is.na(klasseP), klasseP := 8]
   
   # remove columns without information
-  cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
-  db[,c(cols):= NULL]
+  cols <- colnames(bod_klasse)[unlist(bod_klasse[,lapply(.SD,function(x) sum(is.na(x))==nrow(bod_klasse))])]
+  bod_klasse[,c(cols):= NULL]
   
   # return updated database
   return(db)
+  return(bod_klasse)
 }
 
 ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){

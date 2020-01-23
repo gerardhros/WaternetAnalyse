@@ -463,7 +463,8 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, doelen){
   tabset <- merge(d4, 
                   doelgeb, 
                   by.x = c('HoortBijGeoobject.identificatie', 'GHPR'),
-                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'))
+                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'),
+                  all.x = TRUE)
   
   tabset$oordeel <- ifelse(tabset$EKR < tabset$GEP/3, 'slecht',
                            ifelse(tabset$EKR < 2*(tabset$GEP/3), 'ontoereikend',
