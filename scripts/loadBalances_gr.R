@@ -15,14 +15,11 @@
   # read the koppeltabel
   kopTab <- readxl::read_xlsx(dir_kop) %>% as.data.table()
 
-  # add highest version number and filter koppeltabel
-  kopTab[, latest := max(versie2),by='namen']
-  kopTab <- kopTab[latest == versie2 & latest > 0]
+  # filter on latest versions of available water balances
+  kopTab <- kopTab[selectiefilter==1]
   
   # eag weg bij eerdere versies, 2500-eag-5 weg, 1balansen aan meerdere eags koppelen
-  files <- ppr_wbalfiles(dir_bal)
-  
- 
+  files <- ppr_wbalfiles(dir_bal,EAG.sf = gEAG,kopTab = kopTab)
   
   # data van G.Ros obv balansen M. Ouboter 201808
   init <- readRDS("pbelasting/input/init.rds") %>% as.data.table()

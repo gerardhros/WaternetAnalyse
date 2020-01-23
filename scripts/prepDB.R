@@ -22,7 +22,7 @@
     eag_wl <- fread('data/Oppervlaktes EAGs en Water.csv')
   
     # shape with EAG
-    gEAG <- st_read('data/EAG20180612.gpkg',quiet = TRUE)
+    gEAG <- st_read('data/EAG_20191205.gpkg',quiet = TRUE)
 
     # KRW doelen 
     doelen <- fread('hydrobiologie/doelen.csv')
