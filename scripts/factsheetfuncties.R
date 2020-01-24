@@ -333,31 +333,39 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   
 }
 plotbod <- function(bod1){
-  selb <- dcast(bod1, locatie.EAG+locatiecode+locatie.omschrijving+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
-  selb$FESPFWratio <-((selb$`Fe_mg/l_ng_BS`/55.845)-(selb$`Stot_mg/l_ng_BS`/32.065))/(selb$`Ptot_mgP/l_ng_BS`/30.974)
-  selb$FESPDWratio <-((selb$`Fe_mg/kg_dg_BS`/55.845)-(selb$`Stot_mg/kg_dg_BS`/32.065))/((selb$`Ptot_gP/kg_dg_BS`*1000)/30.974)
-  #selb$`Ptot_mgP/l_nf_PW`<- selb$`Ptot_mgP/l_PW`
   
-  if(is.null(selb$`Stot_mg/l_nf_PW`)){
-    if(!is.null(selb$`SO4_mg/l_PW`)){
-      selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`SO4_mg/l_PW`/96.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
-    }
-    if(!is.null(selb$`Stot_mg/l_PW`)){
-      selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_PW`/32.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
-    }}
-  if(!is.null(selb$`Stot_mg/l_nf_PW`)){  
-    selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_nf_PW`/32.065))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+  # dcast slootbodem 
+  selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  
+  # calculate relevant ratios
+  selb[,FESPFWratio := (Fe_mg_l_ng_BS/55.845 - Stot_mg_l_ng_BS/32065)/(Ptot_mgP_l_ng_BS/30.974)]
+  selb[,FESPDWratio := (Fe_mg_kg_dg_BS/55.845-Stot_mg_kg_dg_BS/32.065)/(Ptot_gP_kg_dg_BS*1000/30.974)]
+  
+  # add SP-ratio
+  if(is.null(selb$Stot_mg_l_PW & selb$Stot_mg_l_nf_PW)){
+  selb[!is.na(SO4_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - SO4_mg_l_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
-  selb$nlvrFW <- 0.0247*selb$`Ptot_mgP/l_ng_BS`-1.6035
-  selb$nlvrDW <- 0.0077*(selb$`Ptot_gP/kg_dg_BS`*1000)-4.7259
+  if(is.null(selb$Stot_mg_l_nf_PW)){
+  selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  if(!is.null(selb$Stot_mg_l_nf_PW)){
+  selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
   
-  selb <- selb[!is.na(selb$FESPFWratio) ,]
-  selb$FESPFWratio <-cut(selb$FESPFWratio, breaks= c((min(selb$FESPFWratio)-1), 1.4, 4, max(selb$FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))
-  selb <- selb[!is.na(selb$FESPDWratio) ,]
-  selb$FESPDWratio <-cut(selb$FESPDWratio, breaks= c((min(selb$FESPDWratio)-1), 1.4, 4, max(selb$FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))
+  # filter only op samples where FESPFWratio, FESPDWratio and FESPPWratio are present
+  selb <- selb[!(is.na(FESPFWratio)|is.na(FESPDWratio)|is.na(FESPPWratio))]
   
+  # calculate nalevering
+  selb[,nlvrFW := 0.0247 * Ptot_mgP_l_ng_BS - 1.6035]
+  selb[,nlvrDW := 0.0077 * Ptot_gP_kg_dg_BS * 1000 - 4.7259]
+  selb[,nlvrPW := 0.8095 * Ptot_mgP_l_nf_PW - 0.2905]
   
-  plotFW <- ggplot(selb, aes(x= reorder(locatie.EAG, -nlvrFW), y= nlvrFW, fill = FESPFWratio))+
+  # add categories
+  selb[,classFESPFWratio := cut(FESPFWratio, breaks = c((min(FESPFWratio)-1), 1.4, 4, max(FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPDWratio := cut(FESPDWratio, breaks = c((min(FESPDWratio)-1), 1.4, 4, max(FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPPWratio := cut(FESPPWratio, breaks = c((min(FESPPWratio)-1), 1.4, 4, max(FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  
+  plotFW <- ggplot(selb, aes(x= reorder(loc.eag, -nlvrFW), y= nlvrFW, fill = classFESPFWratio, group = classFESPFWratio))+
     geom_boxplot() +
     theme_minimal()+
     theme(
@@ -370,17 +378,12 @@ plotbod <- function(bod1){
       panel.background = element_blank(),
       plot.background = element_blank()
     )+
-    #coord_flip()+
+    scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
     ggtitle( "Potentiele nalevering") +
     labs(x="",y="P mg/m2/dag", fill = '')
   
   if(!is.null(selb$FESPPWratio)){
-    selb$nlvrPW <- 0.8095*selb$`Ptot_mgP/l_nf_PW`-0.2905
-    #write.table(selb, file = paste(getwd(),"baggernutQuickscan",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-    selb <- selb[!is.na(selb$FESPPWratio) ,]
-    selb$FESPPWratio <-cut(selb$FESPPWratio, breaks= c((min(selb$FESPPWratio)-1), 1.4, 4, max(selb$FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))
-    
-    qPW <- ggplot(selb, aes(x= reorder(locatie.EAG, -nlvrPW), y= nlvrPW, fill = FESPPWratio))+
+  qPW <- ggplot(selb, aes(x= reorder(loc.eag, -nlvrPW), y= nlvrPW, fill = classFESPPWratio))+
       geom_boxplot() +
       theme_minimal()+
       theme(
@@ -393,7 +396,7 @@ plotbod <- function(bod1){
         panel.background = element_blank(), 
         plot.background = element_blank()
       )+
-      #coord_flip()+
+      scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
       ggtitle( "Actuele nalevering uit de waterbodem obv poriewatermetingen") +
       labs(x="",y="P mg/m2/dag", fill = '')
   }
@@ -453,10 +456,9 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, doelen){
   d4$EKR <- d4$.; d4$. <- NULL
   d4$GHPR <- gsub(' $','',d4$GHPR)
   
-  doelen2 <- as.data.table(doelen)
-  doelgeb <- dcast(doelen2, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = c("Doel", "Doel_2022"), fun.aggregate = mean)
+  doelgeb <- dcast(doelen, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = c("Doel", "Doel_2022"), fun.aggregate = mean)
   # doelgeb <- dcast(doelen, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = "Doel", fun.aggregate = mean)
-  doelgeb <- as.data.frame(doelgeb)
+  # doelgeb <- as.data.frame(doelgeb)
   doelgeb$GEP <- doelgeb$Doel ; doelgeb$Doel <- NULL
   doelgeb$GEP_2022 <- doelgeb$Doel_2022 ; doelgeb$Doel_2022 <- NULL
   
