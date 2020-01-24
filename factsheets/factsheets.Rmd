@@ -61,7 +61,6 @@ ESFoordelen <- read.csv('../data/esfKRW_20200107.csv', header = TRUE, na.strings
 maatregelen <- fread('../data/maatregelenKRW_20200124.csv')# hier later ook eags of gafs aan toevoegen
 maatregelen <- maatregelen[,-c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021'), with=FALSE]
 maatregelen <- unique(maatregelen) # omdat er nu dubbelen in zitten bij splitsen van WL
-watertypen <- read.csv('../data/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
   
 ## data voor kaart ----------
 gKRW  <- st_read("../data/WBPKRW20191220.gpkg") %>% st_transform(proj4.rd) # projectie hoeft niet, maar staat er als voorbeeld
@@ -85,9 +84,6 @@ gKRW$GAFIDENT <- gsub("^NL11_","",gKRW$OWAIDENT)
     eag_wl <- fread('../data/EAG_Opp_kenmerken.csv')
     eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
   
-    # shape with EAG
-    gEAG <- st_read('../data/EAG20180612.gpkg',quiet = TRUE)
-
     # KRW doelen 
     doelen <- fread('../hydrobiologie/doelen.csv')
 
@@ -148,7 +144,7 @@ pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram)
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
 # waterlichamen weg, eags ipv waterlichamen op kaart, invoegen plaatje, maatregel gauge, doelen nieuw toevoegen, monitoringswensen tab 3
-for (i in 24:nrow(ESFoordelen)){
+for (i in 1:nrow(ESFoordelen)){
     #i=37 # Vinkeveenseplassen
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
     wl <- waterlichamenwl$OWL # of waterlichaam of eagcode
@@ -197,8 +193,8 @@ for (i in 24:nrow(ESFoordelen)){
     webshot::webshot(
       url = paste("output/FS_", wlname, ".html", sep=''),
       file = paste("output/FS_", wlname, ".png", sep=''),
-      vwidth = 2480,
-      vheight = 3508,   # Use A series aspect ratio
+      vwidth = 3508,
+      vheight = 2480,   # Use A series aspect ratio
       delay = 1,        # Wait to allow all element to load
       zoom = 2.5,       # Adjust elements relative size
       debug = FALSE)
@@ -345,17 +341,18 @@ map
 ## calculate score 
 ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, doelen = doelen)
 ekr_scores_sel <- ekr_scores #[grep("gewogen", ekr_scores$waterlichaam, ignore.case = T),]
-ekr_scores_sel2 <- ekr_scores_sel[!ekr_scores_sel$Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & ekr_scores_sel$level == 1,]
-ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
 ## make neat titles, alleen hoofdmaatlatten
-ekr_scores_sel2$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel2$Waardebepalingsmethode.code, 
+ekr_scores_sel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel$Waardebepalingsmethode.code, 
                                from = c("Maatlatten2012 Fytoplankton", "Maatlatten2012 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
                                to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))
+ekr_scores_sel2 <- ekr_scores_sel[!ekr_scores_sel$Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & ekr_scores_sel$level == 1,]
+ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
+
 d3 <-  ekr_scores_sel2  %>%
         dplyr::arrange(facet_wrap_code, desc(oordeelsort)) %>% 
         dplyr::top_n(-1, wt = oordeelsort) 
 
-ekr_scores_sel2_deel <- ekr_scores_sel[ekr_scores_sel$level == 2,]
+ekr_scores_sel2_deel <- ekr_scores_sel[ekr_scores_sel$facet_wrap_code %in% d3$facet_wrap_code & ekr_scores_sel$level == 2,]
 
 d3_deel <- ekr_scores_sel2_deel  %>%
         dplyr::arrange(GHPR, desc(EKR)) %>% 
@@ -383,21 +380,26 @@ d3_deelptn <-  ekr_scores_sel2_deel  %>%
 ### Ecologische analyse op hoofdlijnen {data-width=600}
 
 **De doelen**
-`r ifelse(is.na(waterlichamenwl$Doelen),"",waterlichamenwl$Doelen)` 
+<br>
+`r if(!is.na(waterlichamenwl$Doelen)){waterlichamenwl$Doelen}` 
 <br>
 
 **De huidige toestand vergeleken met de doelen –**`r d3$oordeel`
-De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast) is `r d3$oordeel`. Het slechts scorende biologische kwaliteitselement is `r as.character(d3$facet_wrap_code)`. `r if(!d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",d3_deel$GHPR,".")}` 
-`r if(d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", d3_deelptn$GHPR,".")}``r ifelse(is.na(waterlichamenwl$Toestand),"<br>",waterlichamenwl$Toestand)`
+<br>
+De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast) is `r d3$oordeel`. Het slechts scorende biologische kwaliteitselement is `r as.character(d3$facet_wrap_code)`. 
+`r if(!d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",d3_deel$GHPR,".")}` 
+`r if(!d3$facet_wrap_code %in% "Macrofauna"){if(d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", d3_deelptn$GHPR,".")}}`
+`r if(!is.na(waterlichamenwl$Toestand)){waterlichamenwl$Toestand}`
 <br>
 
 **Oorzaken op hoofdlijnen**
-`r ifelse(is.na(waterlichamenwl$Oorzaken),"<br>",waterlichamenwl$Oorzaken)` 
+<br>
+`r if(!is.na(waterlichamenwl$Oorzaken)){waterlichamenwl$Oorzaken}` 
 <br>
 
 **Maatregelen op hoofdlijnen**
-`r ifelse(is.na(waterlichamenwl$Maatregelen),"<br>",waterlichamenwl$Maatregelen)` 
 <br>
+`r if(!is.na(waterlichamenwl$Maatregelen)){waterlichamenwl$Maatregelen}` 
 
 ### Toestand {data-width=400}
 
@@ -433,11 +435,11 @@ if(outputF == "word"){
 
 
 if(outputF == "word"){
-print(kable(ESFtab, col.names = NULL) %>% 
+kable(ESFtab, col.names = NULL) %>% 
           kable_styling(full_width=FALSE) %>% 
           column_spec(1, border_right = F) %>%
           column_spec(2, width = "120em")%>%
-          collapse_rows(columns=1, valign="top"))}
+          collapse_rows(columns=1, valign="top")}
 if(outputF == "html"){
 kable(ESFtab, format = "html",col.names = NULL) %>% 
           kable_styling(full_width=FALSE) %>% 
@@ -497,8 +499,8 @@ gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.oms
 ### Nieuwe maatregelen voor SGBP3 tov totaal aantal maatregelen
 
 ```{r, echo = FALSE}
-rate <- length(maatregelen1[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027", "SGBP3 na 2026")])
-gauge(rate, min = 0, max = length(maatregelen1), symbol = '', gaugeSectors(
+rate <- length(maatregelen1$SGBPPeriode.omschrijving[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam), symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
@@ -555,12 +557,11 @@ maatregelen2 <- maatregelen2 %>%
   arrange(ESFoordeel, desc(ESFoordeel))
 
 if(outputF == "word"& nrow(maatregelen2)>0){
-print(
 knitr::kable(maatregelen2) %>% 
           kable_styling(full_width=FALSE) %>% 
           column_spec(1, border_right = F) %>%
           column_spec(2, width = "12em", border_right = F)%>%
-          collapse_rows(columns=1, valign="top"))}
+          collapse_rows(columns=1, valign="top")}
 if(outputF == "html"& nrow(maatregelen2)>0){
 knitr::kable(maatregelen2, format = "html") %>% 
           kable_styling(full_width=FALSE) %>% 
@@ -624,37 +625,59 @@ plotbod(bod1)
 **Waterlichaam**
 De waterlichamen vormen de basisrapportageeenheden van de KRW. Op basis van artikel 5 KRW zijn in 2004 Nederlandse oppervlaktewateren aangewezen als KRW-waterlichamen: natuurlijk, kunstmatig2 of sterk veranderd. Een oppervlaktewaterlichaam kan als kunstmatig of sterk veranderd worden aangewezen vanwege ingrepen in de hydromorfologie (art. 4 lid 3 KRW), die het bereiken van de Goede Ecologische Toe-stand verhinderen. In Nederland zijn vrijwel alle waterlichamen kunstmatig of sterk veranderd.
 <br>
+
 **Emerse vegetatie**
 Emerse waterplanten steken gedeeltelijk boven het wateroppervlak uit en wortelen in de (water)bodem.
 <br>
+
 **Submerse vegetatie**
 De term submers (ondergedoken) wordt gebruikt voor waterplanten die geheel onder water groeien. Alleen de bloeiwijze kan bij sommige soorten boven het water uitsteken.
 <br>
+
 **GAF**
 Een afvoergebied of een cluster van peilgebieden met als gemeenschappelijk kenmerk dat ze via een gemeenschappelijk punt hun water lozen op een hoofdsysteem.
 <br>
+
 **EAG**
 Ecologisch analysegebied
 <br>
+
 **KRW**
 Kaderrichtlijn water
 <br>
+
+**N2000**
+Natura 2000 De verzameling van Nederlandse natuurgebieden die in Europees verband een beschermde status genieten (Vogel- en habitatrichtlijngebieden).
+<br>
+
 **EKR score**
+Getal tussen 0 en 1 waarmee de kwaliteit van een ecologische parameter wordt aangegeven. 0 is zeer slecht, 1 is zeer goed. De grens voor het GEP wordt gewoonlijk bij een EKR van 0,6 gelegd.
 <br>
+
 **Biologisch kwaliteitselement**
+Een ecologische groep de waarmee de situatie van het waterlichaam wordt beoordeeld. Gebruikt worden: fytoplankton en diatomeeën (algen), waterplanten, macrofauna (waterdieren) en vissen.
 <br>
+
 **Maatlat**
+Een schaal die gebruikt wordt om de situatie van een ecologische parameter te beoordelen. De uitkomst is in een aantal gevallen een EKR-score. 
 <br>
+
 **Deelmaatlat**
+Voor elk biologisch kwaliteitselement zijn één of meerdere deelmaatlattenonderscheiden op basis van de soortsamenstelling en de (relatieve) aanwezigheidvan soorten, en voor vis de leeftijdsopbouw. 
 <br>
+
 **Indicator**
+Een verder opdeling van biologische deelmaatlatten.
 <br>
+
 **GEP of KRW doel**
 De KRW heeft voor natuurlijke waterlichamen als doel dat een goede toestand (zowel ecologisch als che-misch) moet worden gehaald (GET). Voor de kunstmatig of sterk veranderde oppervlaktewaterlichamen moet een goed ecologisch potentieel (GEP) en een goede chemische toestand worden bereikt. Het GEP voor rijkswateren wordt afgeleid door Rijkswaterstaat namens de Ministers van Infrastructuur en Waterstaat, Economische Zaken en Klimaat (en mogelijk Landbouw, Visserij en Voedselveiligheid) en gepresenteerd in het Beheerplan rijkswateren (BPRW, vastgesteld door de ministers). De provincies zijn verantwoordelijk voor het afleiden van het GEP voor regionale wateren. Dit gebeurt in regionale waterplannen. Hoewel de provincie formeel het GEP moet vaststellen in het regionaal waterplan, levert het waterschap vanwege de kennis over watersystemen meestal het GEP aan, als beheerder van het regionaal oppervlaktewaterlichaam. Beide kunnen hierbij de Handreiking KRW-doelen volgen. De KRW biedt uitzonderingsmogelijkheden waarbij het doel later (doelvertraging) of niet (minder streng doel) gehaald hoeft te worden. Alleen in het laatste geval is het GEP niet meer het doel. In deze handreiking is het GEP-synoniem voor het doel, tenzij anders aangegeven. In hoofdstuk 3 en 4 wordt het afleiden van de doelen technisch beschreven.
 <br>
+
 **SGBP**
 Naast het definiëren van waterlichamen en doelen schrijft de KRW voor dat er stroomgebiedbeheerplan-nen (SGBP) worden opgesteld (art. 13 KRW). De bouwstenen van de stroomgebiedbeheerplannen staan in de waterplannen van het Rijk en de provincies en in de beheerplannen van de waterbeheerders. De SGBP’s geven een overzicht van de toestand, de problemen, de doelen en de maatregelen voor het verbeteren van de waterkwaliteit voor de inliggende waterlichamen. Nederland kent vier stroomgebieden: Rijn, Maas, Schelde, en Eems. De beheerplannen voor de stroomgebie-den worden iedere zes jaar geactualiseerd. Volgens bijlage VII van de KRW bevatten de SGBP’s onder andere:de beschrijving van de kenmerken van het stroomgebieddistrict;de ligging, begrenzing en typering van waterlichamen (voor sterk veranderd en kunstmatig inclusief een motivering); de huidige toestand op basis van de resultaten van de monitoring over de afgelopen periode;de doelen voor waterlichamen en een eventueel beroep op uitzonderingsmogelijkheden inclusief motivering; een samenvatting van de te nemen maatregelen om de doelen te bereiken.
 <br>
+
 **Watersysteemanalyse**
 Om goede keuzes te maken voor doelen en maatregelen is het essentieel te weten hoe een waterlichaam werkt. De systeemanalyse heeft als doel inzicht te verschaffen in het systeemfunctioneren, wat via verschillende methoden bereikt kan worden. Dit vormt het vertrekpunt voor het antwoord op de vraag hoe (met welke maatregelen) kan worden gekomen tot een betere toestand. Zonder goed inzicht in het systeem-functioneren is het risico groot dat niet de juiste maatregelen in beeld zijn, of dat maatregelen uiteindelijk niet opleveren wat ervan wordt verwacht.
 <br>
