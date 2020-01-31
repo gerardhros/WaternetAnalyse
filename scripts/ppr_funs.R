@@ -35,7 +35,7 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   
   # remove columns with no data or non-relevant information (judgement gerard)
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
-  cols <- c(cols,'watertype','EAGIDENT','locatiecode','monsternemer','planvanaanpak','analist',
+  cols <- c(cols,'watertype','EAGIDENT','monsternemer','planvanaanpak','analist',
             'bron','bemonsteringsprotocol','analyseprotocol','analysecode','locatie.referentievlakzcoord',
             'locatie.meetprogrammahistorie','locatie.meetprogrammaactueel','locatie.meetnethistorie',
             'locatie.meetnetactueel','opmerkingmeting','externereferentie','veldapparaat')
@@ -61,11 +61,11 @@ ppr_ekr <- function(ekr1,ekr2){
             'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer','Compartiment.code',
             'Begintijd','Eindtijd')
   # ensure that cols are present in colnames db
-  cols[cols %in% colnames(db)]
+  cols <- cols[cols %in% colnames(db)]
 
   # remove columns
   db[,c(cols):=NULL]
-  hoi <- ""
+ 
   # return updated database
   return(db)
   
@@ -144,7 +144,7 @@ ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   
   # remove columns with no data or non-relevant information (judgement gerard)
   cols <- c('locatie.referentievlakzcoord','locatie.meetprogrammahistorie','locatie.meetprogrammaactueel',
-            'locatie.meetnethistorie','locatie.meetnetactueel','fewsparametereenheidequivalent',
+            'locatie.meetnethistorie','locatie.meetnetactueel',
             'fewsparametereenheidreferentie')
   db[,c(cols) := NULL]
   
