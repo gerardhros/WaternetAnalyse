@@ -59,6 +59,10 @@ check1 <-  function(EST, eag_wl){
   
   
 }
+
+# returns string w/o leading or trailing whitespace
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+
 # functies voor plot P belasting versus kP ---------------------
 # helper om voor alle balansdata P vs kP matrix te maken (deze niet in iteratie, maar als input vanuit preprocessing gebruiken)
 makePmaps <- function(dat, Overzicht_kp, hybi, nomogram){
@@ -314,9 +318,10 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   # diepte4licht <- log(25)/1.2
   hybi2 <- hybi1[hybi1$fewsparameter %in% parameter,]
   
-  p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = watertype))+
+  p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = hybi2$locatie.KRW.watertype))+
     geom_boxplot() +
     theme_minimal()+
+    guides(col=guide_legend(title="KRW watertype"))+
     theme(
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
@@ -406,7 +411,7 @@ plotbod <- function(bod1){
 
 # functie EKRplot -------------
 tabelPerWL3jaargemEAG <- function (EKRset1, doelen = doelen){
-  d1 <- dcast(EKRset1, HoortBijGeoobject.identificatie+KRWwatertype.code.y+
+  d1 <- dcast(EKRset1[EKRset$jaar > 2006,], HoortBijGeoobject.identificatie+KRWwatertype.code.y+
                 Waardebepalingsmethode.code+GHPR+level+jaar ~ .,
               value.var = "Numeriekewaarde", fun.aggregate = mean)
   
@@ -441,7 +446,7 @@ tabelPerWL3jaargemEAG <- function (EKRset1, doelen = doelen){
 }
 tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, doelen){
   
-  d1 <- dcast(EKRset, HoortBijGeoobject.identificatie+KRWwatertype.code.y+
+  d1 <- dcast(EKRset[EKRset$jaar > 2006,], HoortBijGeoobject.identificatie+KRWwatertype.code.y+
                 Waardebepalingsmethode.code+GHPR+level+jaar+Doel+bronddoel ~ .,
               value.var = "Numeriekewaarde", fun.aggregate = mean)
   
@@ -555,3 +560,35 @@ ekrplot <- function(ekr_scores_sel2){
           legend.position = "bottom")
   return(plot)
 }
+
+trend <- function(z, detail = "hoofd"){
+  #EKRset$jaar <- as.numeric(EKRset$jaar)
+  #z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
+  z<- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
+  
+  if(detail == "hoofd"){
+    z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
+  }
+  
+  tabset2 <- dcast(z, HoortBijGeoobject.identificatie+KRWwatertype.code.y+Waardebepalingsmethode.code+GHPR_level ~ jaar, 
+                   value.var = "Numeriekewaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
+    group_by(HoortBijGeoobject.identificatie, Waardebepalingsmethode.code, KRWwatertype.code.y, GHPR_level) %>% 
+    filter(length(unique(jaar)) > 1) %>% 
+    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
+  
+  COF <- fitted_models %>% tidy(model) 
+  R2 <- fitted_models %>% glance(model) 
+  trtabset <- merge(COF, tabset2, by =
+                      c('HoortBijGeoobject.identificatie','Waardebepalingsmethode.code','KRWwatertype.code.y','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData  <- merge(trtabset, R2, by = c('HoortBijGeoobject.identificatie','Waardebepalingsmethode.code','KRWwatertype.code.y','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
+  gebiedData$group <- 'grey'# 1 jaar data
+  return(gebiedData)
+} 
+# deze functie werkt alleen als alle 4 de maatlatten significante trend wordt berekend
+# trendkrw <- trend(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "deel") # juist trend per waterlichaam berekenen
+# write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
