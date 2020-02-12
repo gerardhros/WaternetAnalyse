@@ -16,8 +16,8 @@ output:
 options(repos = c(CRAN = "https://cran.rstudio.com"))
 
 # Load packages and functions-------------------------------------
-source('../scripts/loadPackages.R')
-source('../scripts/factsheetfuncties.R')
+#source('../scripts/loadPackages.R')
+#source('../scripts/factsheetfuncties.R')
 
 #  Directories and names------------------------------------------
 dirGIS <-"../data"
@@ -40,6 +40,7 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 # EAGS waar in EST naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
 # koppelingen naar EAGS en GAF waar in balansdata (dat) naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
 
+# this is replaced to factsheet_ppr
 
 
 ```
