@@ -280,7 +280,7 @@ extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   # ext20licht <- log(5)/2.4
   # percentagelicht <- 100*exp((diepteVoorjaarGem * vecVoorjaar)) 
   
-  hybi2 <- hybi1[hybi1$fewsparameter %in% parameter,]
+  hybi2 <- hybi[fewsparameter %in% parameter,]
   wq1<- wq[wq$fewsparameter %in% parameter,]
   wq1 <- wq1[!is.na(wq1$locatie.KRW.watertype) & !is.na(wq1$locatie.EAG) & !wq1$locatie.EAG == '',]
   wq1 <- wq1[wq1$jaar > 2015,]
@@ -316,7 +316,7 @@ extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
 }
 waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   # diepte4licht <- log(25)/1.2
-  hybi2 <- hybi1[hybi1$fewsparameter %in% parameter,]
+  hybi2 <- hybi[fewsparameter %in% parameter,]
   
   p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = hybi2$locatie.KRW.watertype))+
     geom_boxplot() +

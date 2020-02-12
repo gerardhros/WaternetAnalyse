@@ -1,0 +1,177 @@
+\documentclass[9pt]{article}
+\usepackage[a3paper]{geometry}
+\usepackage[poster]{tcolorbox}
+\usepackage{graphicx}
+\usepackage{graphbox}
+\usepackage[T1]{fontenc}
+\usepackage{color}
+\pagestyle{empty}
+\graphicspath{{figures/}} % Directory in which figures are stored
+
+\usepackage{listings} % om R code in te voeren als tekst (niet uitvoeren)
+\newcommand*{\Rcode}{\lstinline[{language=R, basicstyle=\normalsize\ttfamily}]}
+
+\lstset{ 
+	language=R,                     % the language of the code
+	basicstyle=\scriptsize\ttfamily, % the size of the fonts that are used for the code
+	numbers=left,                   % where to put the line-numbers
+	numberstyle=\tiny\color{Blue},  % the style that is used for the line-numbers
+	stepnumber=1,                   % the step between two line-numbers. 
+	numbersep=5pt,                  % how far the line-numbers are from the code
+	backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+	showspaces=false,               % show spaces adding particular underscores
+	showstringspaces=false,         % underline spaces within strings
+	showtabs=false,                 % show tabs within strings adding particular underscores
+	frame=single,                   % adds a frame around the code
+	rulecolor=\color{black},        % if not set, the frame-color may be changed on line-breaks 
+	tabsize=2,                      % sets default tabsize to 2 spaces
+	captionpos=t,                   % sets the caption-position to top
+	breaklines=true,                % sets automatic line breaking
+	breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+	%keywordstyle=\color[rgb]{0,0,1},
+  stringstyle=\color[rgb]{0.133,0.545,0.133},
+  commentstyle=\color[rgb]{0.45,0.45,0.45},
+	keywordstyle=\color{RoyalBlue},      % keyword style
+	% commentstyle=\color{YellowGreen},  % comment style
+	% stringstyle=\color{ForestGreen}    % string literal style
+} 
+
+\begin{document}
+  \SweaveOpts{concordance=TRUE}
+
+  \begin{tcbposter}[
+    coverage = {spread, interior style={top color=white, bottom color=white}},
+    poster = {showframe=false,columns=6,rows=6},
+    boxes = {
+    enhanced standard jigsaw,sharp corners=downhill,arc=3mm,boxrule=1mm,
+    colback=white,opacityback=1,colframe=blue,
+    title style={left color=blue,right color=cyan},
+    fonttitle=\bfseries\Large\scshape,
+  }
+  ]
+  
+% LOAD RELEVANT DATA AND SIMPLIFY REFERENCES
+ 
+<<setup,echo=FALSE>>=
+out = readRDS('routput/out.rds')
+
+lx_title <- out$my_title
+lx_wtype <- unique(out$eagwl$watertype)
+lx_wtypeoms <- unique(out$waterlichamenwl$typebesch)
+lx_naam <- out$waterlichamenwl$OWMNAAM
+lx_code <- gsub("_", "-",out$waterlichamenwl$OWL)
+lx_deelgebied <- paste0(out$deelgebieden$samen,collapse=', ')
+lx_karakterschets <- gsub('\r\n','',out$waterlichamenwl$Karakterschets)
+lx_prov <- out$waterlichamenwl$prov
+lx_gem <- out$waterlichamenwl$gem
+lx_status <- out$waterlichamenwl$Status
+lx_owner <- out$waterlichamenwl$Eigenaren
+
+# text for ecologische analyse op hoofdlijnen
+eah_doel <- if(!is.na(out$waterlichamenwl$Doelen)){out$waterlichamenwl$Doelen} else {'onbekend'}
+eah_oorz <- if(!is.na(out$waterlichamenwl$Oorzaken)){out$waterlichamenwl$Oorzaken} else {'onbekend'}
+eah_maat <- if(!is.na(out$waterlichamenwl$Maatregelen)){out$waterlichamenwl$Maatregelen} else {'onbekend'}
+eah_m1 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",out$d3_deel$GHPR,".")} else {NULL} 
+eah_m2 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,".")}} else {NULL}
+eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand} else {NULL}
+eah_message <- paste(eah_m1,eah_m2,eah_m3)
+
+# prepare ESF tabel
+pESFtab <- out$ESFtab[,-1]
+
+@
+
+% PREPARE PLOTS
+                
+<<plot_deelgebiedligging, include=F, fig=TRUE, echo=FALSE, height=4.5,width=7>>=
+		out$mapDEELGEBIED
+@
+          
+<<plot_wlligging, include=F, fig=TRUE, echo=FALSE, height=4.5,width=7>>=
+		out$mapEAG
+@
+               
+<<plot_ekrtoestand, include=F, fig=TRUE, echo=FALSE, height=4.5,width=7>>=
+		out$mapEKR
+@
+
+  % Add the top row with title
+  \posterbox[blankest,interior engine=path,height=3cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=6,below=top}{
+  \resizebox{26cm}{!}{\bfseries\Large Vinkeveense plassen }\\[3mm]
+  Laura.moria@waternet.nl}
+
+ % add frame for beschrijving gebied en watersysteem
+  \posterbox[adjusted title=Beschrijving van het gebied en watersysteem op hoofdlijnen]{
+    name=gebiedsberschrijving,column=1,span=6,below=title}{
+    
+Het gebied \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype \Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype}) en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets}\\ Onze gebiedspartners zijn provincie \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}.Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}. 
+  }
+  
+  % add frame for figuur Ecosysteem in beeld 
+  \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm]{name=fig1,column=1,span=2,below=gebiedsberschrijving}{
+      \centering
+      \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{out$ESTnaam}}
+  }
+
+ % add frame for figuur Ligging waterlichaam 
+  \posterbox[adjusted title=Ligging waterlichaam,halign=center,height = 6cm]{name=fig2,column=3,span=2,below=gebiedsberschrijving}{
+     \centering
+     \includegraphics[height = 4.5cm,keepaspectratio]{factsheets_pdf-plot_wlligging.pdf}
+  }
+  
+  % add frame for figuur Ligging deelgebieden 
+  \posterbox[adjusted title=Ligging deelgebieden,height = 6cm]{name=fig3,column=5,span=2,below=gebiedsberschrijving}{
+    \centering
+    \includegraphics[height = 4.5cm,keepaspectratio]{factsheets_pdf-plot_deelgebiedligging.pdf}
+  }
+
+  %add reference methodology information in the bottom
+    \posterbox[adjusted title=Referentie]{name=references,column=1,span=6,above=bottom}{
+    Deze factsheet is gebaseerd op de KRW toetsing aan maatlatten 2018 uit 2019, de begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3}
+  
+  % add frame for the ESF tabel plus explanation
+  \posterbox[adjusted title=Ecologische Sleutelfactoren]{name=esf,column=1,span=6,above=references}{
+  voeg hier een tabel in met alle ESF.\\
+  
+<<code, echo=FALSE, message=FALSE, warning=FALSE>>=
+require(dplyr);require(kableExtra)
+
+measures <- as.data.frame(out$maatregelen2)
+knitr::kable(measures, format = "latex") 
+@
+  
+  }
+
+    % add frame for Ecologische Analyse op hoofdlijnen
+  \posterbox[adjusted title=Ecologische Analyse of Hoofdlijnen]{name=analyse,column=1,span=4,between=fig1 and esf}{
+  
+    % add text voor de doelen
+    \textbf{De doelen: } \Sexpr{eah_doel} \\
+    
+    % huidige toestand vergeleken met doel
+    \textbf{De huidige toestand vergeleken met de doelen: } \Sexpr{out$d3$oordeel}\\
+    De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hiernaast) is \Sexpr{out$d3$oordeel}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. 
+\Sexpr{eah_message}\\
+
+    % add oorzaken
+    \textbf{Oorzaken op hoofdlijnen:} \Sexpr{eah_oorz}\\
+    
+    % add Maatregelen op hoofdlijnen
+    \textbf{Maatregelen op hoofdlijnen:} \Sexpr{eah_maat}\\
+  
+  }
+    
+   % add frame for figuur EKR score huidige toestand 
+  \posterbox[adjusted title=Huidige toestand,valign=center]{name=figtoestand,column=5,span=2,between=fig3 and esf}{
+
+    \centering
+    \includegraphics[height = 4.5cm,keepaspectratio]{factsheets_pdf-plot_ekrtoestand.pdf}
+     
+
+  }
+ 
+ 
+  
+  \end{tcbposter}
+  
+\end{document}

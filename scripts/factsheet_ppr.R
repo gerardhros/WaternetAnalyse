@@ -1,16 +1,13 @@
 # factsheet preprocess
 # authors: Laura Moria, Sven Verweij en Gerard Ros
 
-# clear environment
-rm(list=ls())  
-
 # source functions
 source('scripts/ppr_funs.R')
 source('scripts/loadPackages.R')
 source('scripts/factsheetfuncties.R')
 
 #  Directories and names------------------------------------------
-dirGIS <-"data"
+# dirGIS <-"data"
 
 # other settings ---------------------------
 proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
@@ -18,6 +15,9 @@ proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
 col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+
+# set progress bar
+pb <- txtProgressBar(max = 11, style=3);pbc <- 0
 
 # inladen basis bestanden ----
 
@@ -34,7 +34,9 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   cols <- colnames(maatregelen[,2:25])
   maatregelen[,(cols) := lapply(.SD, function(x) trim(x)),.SDcols = cols]
   
-
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
 ## data voor kaart ----------
 
   # shape met alle EAGs
@@ -46,10 +48,16 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   # shape met waterschapsgebied
   waterschappen  <- st_read("data/2019_gemeentegrenzen_kustlijn_simplified.shp",quiet = T) %>% st_transform(proj4.rd)
 
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
 # inladen hydrobiologische gegevens -----------
   
   # inladen gegevens hydrobiologie
   hybi <- readRDS('data/alles_reliable.rds')
+  
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # water types
   watertypen <- fread('data/KRWWatertype.csv')
@@ -71,6 +79,9 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   # waterbalans data (made by loadBalances)
   dat <- readRDS("pbelasting/dat.rds") 
   
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
   # EKR sets KRW en overig water
   EKRset1 <- readRDS('hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
@@ -78,6 +89,9 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   # slootbodem measurements
   bod  <- fread("data/bodemfews.csv")
 
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
   # waterquality measurements
   wq  <- readRDS("data/ImportWQ.rds") %>% as.data.table()
   
@@ -86,7 +100,10 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   
   # toxiciteitsdata simoni
   simoni <- readRDS('data/simoni.rds')
-
+  
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
 # update, filter and clean up databases -----------
 
   # EKR measurements
@@ -94,6 +111,9 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   
   # hybi measurements
   hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
+  
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # slootbodemdata, hier moeten 2 verschillende datatables uitkomen
   bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
@@ -104,35 +124,56 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   # Pload and limits from PC Ditch
   Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
 
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
 # data voor EST tekening ----------------------
 
   # dit bestand moet af en toe geupdate obv nieuwe hybi en EAG data
   EST <- fread('hydrobiologie/EST.csv')
 
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
   # data voor P belasting (override the existing ones, this need to be updated)
   dat <- readRDS("pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
   dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
   Overzicht_kP <- importCSV('pbelasting/input/Overzicht_kP.csv', path = getwd()) 
   nomogram <- importCSV('pbelasting/input/nomogram.csv', path = getwd())
+  
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
+  # data voor P belasting (override the existing ones, this need to be updated)
   pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
   pvskp <- as.data.table(pvskp)
+  
+  # show progress
+  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
 # make one object with bron data
   brondata <- list(ESFoordelen = ESFoordelen, 
                    EKRset = EKRset,
                    eag_wl = eag_wl,
-                   pvskp = pvskp,
-                   maatregelen = maatregelen, 
+                   Overzicht_kP = Overzicht_kP,
+                   nomogram = nomogram,
+                   pvskp = pvskp, 
+                   dat = dat,
                    wq = wq, 
                    hybi = hybi, 
                    bod = bod,
                    gEAG = gEAG, 
                    waterpereag1 = waterpereag1, 
+                   waterschappen = waterschappen,
+                   watertypen = watertypen,
                    EST = EST,
-                   doelen = doelen)
+                   doelen = doelen,
+                   maatregelen = maatregelen)
+ 
+   # send message to console
+  print('Thanks for waiting. all data is succesfully loaded and saved in object brondata')
   
-  
-# extractfunctie for relevant properties needed for factsheet
+# --- extractfunctie for relevant properties needed for factsheet ----
   factsheetExtract <- function(i,brondata){ with(brondata, {
     
     # subset ESFoordelen and get ESF
@@ -296,6 +337,7 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
     
     ## calculate score per deelmaatlat from EKRset2
     ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, doelen = doelen)
+    setDT(ekr_scores)
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores3 <- ekr_scores[Waardebepalingsmethode.code =="Maatlatten2018 Ov. waterflora" & 
@@ -326,38 +368,103 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
     ESFtab[,OORDEEL := sprintf("![esficon](%s){width=50px}", paste0("esf/",OORDEEL, " "))]
     
     # select relevant columns
-    ESFtab <- ESFtab[,.(OORDEEL,kleur)]
+    ESFtab <- ESFtab[,.(esf,OORDEEL,kleur,oms)]
     
     # --- uitgevoerde maatregelen ----------
     
     # uitgevoerd in SGBP 1 en 2, in planvorming of in fasering dan wel ingetrokken of vervangen
     maatregelen1[,Uitgevoerd1 := pmax(0,as.numeric(Uitgevoerd),na.rm=T)+pmax(0,as.numeric(Uitvoering),na.rm=T)]
-    maatregelen1[Plan := as.numeric(Plan)]
+    maatregelen1[,Plan := as.numeric(Plan)]
     maatregelen[,Gefaseerd := as.numeric(Gefaseerd)]
    
     # percentage per type
     periode <- c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")
-    rate_uit <- nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode & Uitgevoerd1 > 0,])
-    rate_plan <- nrow(maatregelen1[Plan > 0 & SGBPPeriode.omschrijving %in% periode,])
-    rate_fase <- nrow(maatregelen1[Gefaseerd > 0 & SGBPPeriode.omschrijving %in% periode,])
-    rate_del <- nrow(maatregelen1[Vervangen > 0 | Ingetrokken > 0  & SGBPPeriode.omschrijving %in% periode,])
-    rate_nieuw <- nrow(maatregelen1[SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027"),])
+    rates <- list(
+      rate_uit = nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode & Uitgevoerd1 > 0,]),
+      rate_max = nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode]),
+      rate_plan = nrow(maatregelen1[Plan > 0 & SGBPPeriode.omschrijving %in% periode,]),
+      rate_fase = nrow(maatregelen1[Gefaseerd > 0 & SGBPPeriode.omschrijving %in% periode,]),
+      rate_del = nrow(maatregelen1[Vervangen > 0 | Ingetrokken > 0  & SGBPPeriode.omschrijving %in% periode,]),
+      rate_nieuw = nrow(maatregelen1[SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027"),]))
 
+    # add nieuw information to maatregelen
+    maatregelen1[,Gebiedspartner := `gebiedspartner (gesprekspartner bij financiering, uitvoering of beleid)`]
+    maatregelen1[,SGBPPeriode := SGBPPeriode.omschrijving]
+    maatregelen1[,Initiatiefnemer := Initiatiefnemer.naam]
+    maatregelen1[,esffrst := substr(esf,1,4)]
+    maatregelen1[nchar(esffrst)==0, esffrst := NA]
+    
+    # join measures with ESF-tabel
+    cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','Gebiedspartner','UitvoeringIn',"afweging")
+    
+    maatregelen2 <- merge(ESFtab, maatregelen1[,mget(cols)],by.x = 'esf', by.y = 'esffrst', all.y = T) 
+    
+    # als meerdere esf aan een maatregel gekoppeld zijn dan wordt de eerste geselecteerd
+    maatregelen2[,ESFoordeel := OORDEEL]
+    cols <- c('ESFoordeel','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
+    maatregelen2 <- maatregelen2[,mget(cols)] 
+    setorder(maatregelen2,-SGBPPeriode)
+    
+    if(nrow(maatregelen2)>0){
+      maatregelen2 <- maatregelen2 %>% group_by(ESFoordeel) %>% arrange(ESFoordeel, desc(ESFoordeel))
+    }
+    
+    # --- plot ESF1: productiviteit ----
+    if(nrow(pvskpsel)>0){
+      if(sum(is.na(pvskpsel$naam))==0){
+      plotPwbal = pvskpplot(pvskpsel)
+      } else {
+        plotPwbal = NULL}
+      }
+    
+    # --- plot ESF 2: lichtklimaat
+    if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
+      plotLichtklimaat = extinctie1(wq = copy(wq1)[jaar > '2015'], 
+                                    hybi = copy(hybi1), 
+                                    parameter = c('VEC','WATDTE_m'))
+    } else {
+      plotLichtklimaat = NULL
+    }
+    
+    # --- plot ESF 4: waterdiepte
+    if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
+      hybi2 <- hybi1[!is.na(fewsparameter == 'WATDTE_m'),]
+      plotWaterdiepte = waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
+    } else {
+      plotWaterdiepte = NULL
+    }
+    
+    # --- plot ESF3 : waterbodem
+    if(nrow(bod1) > 0) {plotWaterbodem = plotbod(bod1)} else {plotWaterbodem = NULL}
     
     # make a list to store the output
     out <- list(waterlichamenwl = waterlichamenwl,
+                wlname = wlname,
+                my_title = my_title,
                 eagwl = eagwl,
+                doelen = doelen,
                 EST_sel = EST_sel,
                 gEAG = gEAG,
                 waterschappen = waterschappen,
                 waterpereag_sel = waterpereag_sel,
+                deelgebieden = deelgebieden,
                 gEAG_sel = gEAG_sel,
                 EKRset1 = EKRset1,
                 ESTnaam = ESTnaam,
                 mapEAG = mapEAG,
                 mapDEELGEBIED = mapDEELGEBIED,
                 mapEKR = mapEKR,
-                ESFtab = ESFtab
+                plotPwbal = plotPwbal,
+                plotLichtklimaat = plotLichtklimaat,
+                plotWaterdiepte = plotWaterdiepte,
+                plotWaterbodem = plotWaterbodem,
+                ESFtab = ESFtab,
+                maatregelen1 = maatregelen1,
+                maatregelen2 = maatregelen2,
+                rates = rates,
+                d3 = d3,
+                d3_deel = d3_deel,
+                d3_deelptn = d3_deelptn
                 )
     
     # return list with relevant properties
@@ -365,6 +472,6 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
   }
   
   
+  # remove all data except brondata en factsheetExtract
+  rm(list=setdiff(ls(), c("brondata","factsheetExtract")))
   
-# delete all files not needed any more
-rm(ESFoordelen,EKRset,eag_wl,pvskp,maatregelen, wq, hybi, bod, gEAG, waterpereag1, EST, doelen = doelen)
