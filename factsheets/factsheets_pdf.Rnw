@@ -5,11 +5,15 @@
 \usepackage{graphbox}
 \usepackage[T1]{fontenc}
 \usepackage{color}
+\usepackage{tabularx}
+\usepackage[export]{adjustbox}
+
 \pagestyle{empty}
 \graphicspath{{figures/}} % Directory in which figures are stored
 
 \usepackage{listings} % om R code in te voeren als tekst (niet uitvoeren)
 \newcommand*{\Rcode}{\lstinline[{language=R, basicstyle=\normalsize\ttfamily}]}
+
 
 \lstset{ 
 	language=R,                     % the language of the code
@@ -37,21 +41,21 @@
 } 
 
 \begin{document}
-  \SweaveOpts{concordance=TRUE}
 
   \begin{tcbposter}[
     coverage = {spread, interior style={top color=white, bottom color=white}},
-    poster = {showframe=false,columns=6,rows=6},
+    poster = {showframe=false,columns=8,rows=6},
     boxes = {
     enhanced standard jigsaw,sharp corners=downhill,arc=3mm,boxrule=1mm,
     colback=white,opacityback=1,colframe=blue,
     title style={left color=blue,right color=cyan},
-    fonttitle=\bfseries\Large\scshape,
+    fonttitle=\bfseries\scshape,
   }
   ]
   
 % LOAD RELEVANT DATA AND SIMPLIFY REFERENCES
- 
+% https://kbroman.org/knitr_knutshell/pages/latex.html
+
 <<setup,echo=FALSE>>=
 out = readRDS('routput/out.rds')
 
@@ -77,101 +81,111 @@ eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand}
 eah_message <- paste(eah_m1,eah_m2,eah_m3)
 
 # prepare ESF tabel
-pESFtab <- out$ESFtab[,-1]
-
+pESFtab <- out$ESFtab[,c('OORDEEL','oms')]
+pESFtab$piclatex <- paste0('esf/',gsub(".*[/]([^.]+)[.].*", "\\1", pESFtab$OORDEEL),'.jpg')
 @
 
-% PREPARE PLOTS
+% PREPARE PLOTS (https://yihui.org/knitr/options/#plots)
                 
-<<plot_deelgebiedligging, include=F, fig=TRUE, echo=FALSE, height=4.5,width=7>>=
+<<plot_deelgebiedligging, fig.keep='first',fig.show = 'hide', out.height=10, out.width=10>>=
 		out$mapDEELGEBIED
 @
           
-<<plot_wlligging, include=F, fig=TRUE, echo=FALSE, height=4.5,width=7>>=
+<<plot_wlligging, fig.keep='first',fig.show = 'hide', out.height=10, out.width=10>>=
 		out$mapEAG
 @
                
-<<plot_ekrtoestand, include=F, fig=TRUE, echo=FALSE, height=4.5,width=7>>=
+<<plot_ekrtoestand, fig.keep='first',fig.show = 'hide', out.height=8, out.width=13>>=
 		out$mapEKR
 @
 
   % Add the top row with title
-  \posterbox[blankest,interior engine=path,height=3cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=6,below=top}{
-  \resizebox{26cm}{!}{\bfseries\Large Vinkeveense plassen }\\[3mm]
-  Laura.moria@waternet.nl}
+  \posterbox[blankest,interior engine=path,height=2.5cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=8,below=top}{
+  \resizebox{26cm}{!}{\bfseries \Sexpr{lx_naam}}}
 
  % add frame for beschrijving gebied en watersysteem
   \posterbox[adjusted title=Beschrijving van het gebied en watersysteem op hoofdlijnen]{
-    name=gebiedsberschrijving,column=1,span=6,below=title}{
+    name=gebiedsbeschrijving,column=1,span=8,below=title}{
     
-Het gebied \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype \Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype}) en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets}\\ Onze gebiedspartners zijn provincie \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}.Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}. 
+Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Onze gebiedspartners zijn provincie \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}. 
   }
   
   % add frame for figuur Ecosysteem in beeld 
-  \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm]{name=fig1,column=1,span=2,below=gebiedsberschrijving}{
+  \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gebiedsbeschrijving}{
       \centering
-      \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{out$ESTnaam}}
+      \includegraphics[height = 5.5cm,keepaspectratio]{\Sexpr{out$ESTnaam}}
   }
 
  % add frame for figuur Ligging waterlichaam 
-  \posterbox[adjusted title=Ligging waterlichaam,halign=center,height = 6cm]{name=fig2,column=3,span=2,below=gebiedsberschrijving}{
+  \posterbox[adjusted title=Ligging waterlichaam,height = 6cm,valign=center]{name=fig2,column=3,span=2,below=gebiedsbeschrijving}{
      \centering
-     \includegraphics[height = 4.5cm,keepaspectratio]{factsheets_pdf-plot_wlligging.pdf}
+     \includegraphics[height = 5.5cm,keepaspectratio]{factsheets_pdf-plot_wlligging.pdf}
   }
   
   % add frame for figuur Ligging deelgebieden 
-  \posterbox[adjusted title=Ligging deelgebieden,height = 6cm]{name=fig3,column=5,span=2,below=gebiedsberschrijving}{
+  \posterbox[adjusted title=Ligging deelgebieden,height = 6cm,valign=center]{name=fig3,column=5,span=2,below=gebiedsbeschrijving}{
     \centering
-    \includegraphics[height = 4.5cm,keepaspectratio]{factsheets_pdf-plot_deelgebiedligging.pdf}
+    \includegraphics[height = 5.5cm,keepaspectratio]{factsheets_pdf-plot_deelgebiedligging.pdf}
   }
 
+  % add frame for figuur EKR score huidige toestand 
+  \posterbox[adjusted title=Huidige toestand,height = 6cm,valign=center]{name=figtoestand,column=7,span=2,below=gebiedsbeschrijving}{
+    \centering
+    \includegraphics[height = 6cm,keepaspectratio]{factsheets_pdf-plot_ekrtoestand.pdf}
+  }
+  
   %add reference methodology information in the bottom
-    \posterbox[adjusted title=Referentie]{name=references,column=1,span=6,above=bottom}{
-    Deze factsheet is gebaseerd op de KRW toetsing aan maatlatten 2018 uit 2019, de begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3}
+  \posterbox[blankest,interior engine=path,height=0.8cm,fontupper=\small,colupper=black]{name=references,column=1,span=8,above=bottom}{
+    \small Auteur: laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}.
+    
+    }
   
-  % add frame for the ESF tabel plus explanation
-  \posterbox[adjusted title=Ecologische Sleutelfactoren]{name=esf,column=1,span=6,above=references}{
-  voeg hier een tabel in met alle ESF.\\
-  
-<<code, echo=FALSE, message=FALSE, warning=FALSE>>=
-require(dplyr);require(kableExtra)
+  % add vertical spaces (https://tex.stackexchange.com/questions/50352/inserting-a-small-vertical-space-in-a-table)
+  %\newcommand\T{\rule{0pt}{2.6ex}}       % Top strut
+  %\newcommand\B{\rule[-1.2ex]{0pt}{0pt}} % Bottom strut
 
-measures <- as.data.frame(out$maatregelen2)
-knitr::kable(measures, format = "latex") 
-@
+  % add frame for the ESF tabel plus explanation
+  \posterbox[adjusted title=Ecologische Sleutelfactoren]{name=esf,column=1,span=8,above=references}{
   
+  \small
+
+  \begin{tabular}{p{0.05\textwidth}m{0.9\textwidth}}
+  
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[1]}} & \Sexpr{as.character(pESFtab$oms[1])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[2]}} & \Sexpr{as.character(pESFtab$oms[2])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[3]}} & \Sexpr{as.character(pESFtab$oms[3])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[4]}} & \Sexpr{as.character(pESFtab$oms[4])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[5]}} & \Sexpr{as.character(pESFtab$oms[5])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[6]}} & \Sexpr{as.character(pESFtab$oms[6])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[7]}} & \Sexpr{as.character(pESFtab$oms[7])}\\
+   \rule{0pt}{0.5cm} \includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[8]}} & \Sexpr{as.character(pESFtab$oms[8])}\\
+  
+  \end{tabular}
+
   }
 
     % add frame for Ecologische Analyse op hoofdlijnen
-  \posterbox[adjusted title=Ecologische Analyse of Hoofdlijnen]{name=analyse,column=1,span=4,between=fig1 and esf}{
+  \posterbox[adjusted title=Ecologische Analyse of Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
+  
+  % adjust font size, for specfic font sizes use: %\fontsize{5}{7}\selectfont
+  %\small
   
     % add text voor de doelen
-    \textbf{De doelen: } \Sexpr{eah_doel} \\
+    \textbf{Doel: } \Sexpr{eah_doel} \\
     
     % huidige toestand vergeleken met doel
-    \textbf{De huidige toestand vergeleken met de doelen: } \Sexpr{out$d3$oordeel}\\
-    De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hiernaast) is \Sexpr{out$d3$oordeel}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. 
+    \textbf{De huidige toestand: } \Sexpr{out$d3$oordeel}\\
+    De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hierboven) is \Sexpr{out$d3$oordeel}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. 
 \Sexpr{eah_message}\\
 
     % add oorzaken
-    \textbf{Oorzaken op hoofdlijnen:} \Sexpr{eah_oorz}\\
+    \textbf{Oorzaken:} \Sexpr{eah_oorz}\\
     
     % add Maatregelen op hoofdlijnen
-    \textbf{Maatregelen op hoofdlijnen:} \Sexpr{eah_maat}\\
+    \textbf{Maatregelen:} \Sexpr{eah_maat}\\
   
   }
-    
-   % add frame for figuur EKR score huidige toestand 
-  \posterbox[adjusted title=Huidige toestand,valign=center]{name=figtoestand,column=5,span=2,between=fig3 and esf}{
 
-    \centering
-    \includegraphics[height = 4.5cm,keepaspectratio]{factsheets_pdf-plot_ekrtoestand.pdf}
-     
-
-  }
- 
- 
-  
   \end{tcbposter}
   
 \end{document}

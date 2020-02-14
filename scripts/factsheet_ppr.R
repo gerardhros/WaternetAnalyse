@@ -174,7 +174,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   print('Thanks for waiting. all data is succesfully loaded and saved in object brondata')
   
 # --- extractfunctie for relevant properties needed for factsheet ----
-  factsheetExtract <- function(i,brondata){ with(brondata, {
+  factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
     
     # subset ESFoordelen and get ESF
     waterlichamenwl <- ESFoordelen[i,] 
@@ -286,9 +286,18 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
             axis.title.y=element_blank(),
             axis.text.y=element_blank(),
             axis.ticks.y=element_blank(),
-            panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
+            #panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
             legend.position="none") +
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
+    
+    # create dir to save plots
+    if(!wlname %in% list.files('factsheets/routput')){dir.create(paste0('factsheets/routput/',wlname))}
+    
+    if(splot){
+      # save plot
+      mapEAG + ggsave(paste0('factsheets/routput/',wlname,'/mapEAG.png'),width = 10,height = 10,units='cm',dpi=500)
+      mapEAG <- paste0('factsheets/routput/',wlname,'/mapEAG.png')
+    }
     
     ## plot locatie deelgebieden binnen EAG
     
@@ -310,9 +319,14 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
             axis.title.y=element_blank(),
             axis.text.y=element_blank(),
             axis.ticks.y=element_blank(),
-            panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
+            #panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
             legend.position="none") +
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
+    
+    if(splot){
+      ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',wlname,'/mapDEELGEBIED.png'),width = 10,height = 10,units='cm',dpi=500)
+      mapDEELGEBIED <- paste0('factsheets/routput/',wlname,'/mapDEELGEBIED.png')
+    }
     
     
     # --- make EKR plot ------------
@@ -352,6 +366,12 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     # create map
     mapEKR <- ekrplot(ekr_scores1)
     
+    if(splot){
+      ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',wlname,'/mapEKR.png'),width = 13,height = 8,
+                      units='cm',dpi=500)
+      mapEKR <- paste0('factsheets/routput/',wlname,'/mapEKR.png')
+    }
+    
     # --- Ecologische SleutelFactoren ----- (ESF tabel) ------
     ESFtab = data.table(esf = paste0('ESF',1:8),
                         kleur = as.factor(as.numeric(ESF[,3:10])),
@@ -363,19 +383,21 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     ESFtab[kleur==3,OORDEEL := 'roodnummer.jpg']
     ESFtab[!kleur %in% 1:3,OORDEEL := 'grijsnummer.jpg']
     
-    # add link to figuur
+    # add link to figuur for html as well as latex
     ESFtab[,OORDEEL := paste0(substr(esf, 4, 5),OORDEEL)]
+    ESFtab[,piclatex := paste0('esf/',OORDEEL)]
     ESFtab[,OORDEEL := sprintf("![esficon](%s){width=50px}", paste0("esf/",OORDEEL, " "))]
     
     # select relevant columns
-    ESFtab <- ESFtab[,.(esf,OORDEEL,kleur,oms)]
+    ESFtab <- ESFtab[,.(esf,OORDEEL,kleur,oms,piclatex)]
+    
     
     # --- uitgevoerde maatregelen ----------
     
     # uitgevoerd in SGBP 1 en 2, in planvorming of in fasering dan wel ingetrokken of vervangen
     maatregelen1[,Uitgevoerd1 := pmax(0,as.numeric(Uitgevoerd),na.rm=T)+pmax(0,as.numeric(Uitvoering),na.rm=T)]
     maatregelen1[,Plan := as.numeric(Plan)]
-    maatregelen[,Gefaseerd := as.numeric(Gefaseerd)]
+    maatregelen1[,Gefaseerd := as.numeric(Gefaseerd)]
    
     # percentage per type
     periode <- c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")
@@ -411,8 +433,13 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     
     # --- plot ESF1: productiviteit ----
     if(nrow(pvskpsel)>0){
-      if(sum(is.na(pvskpsel$naam))==0){
-      plotPwbal = pvskpplot(pvskpsel)
+      if(sum(is.na(pvskpsel$naam))==0){plotPwbal = pvskpplot(pvskpsel)
+      
+      if(splot){
+        ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',wlname,'/plotPwbal.png'),width = 13,height = 8,
+                        units='cm',dpi=500)
+        plotPwbal <- paste0('factsheets/routput/',wlname,'/plotPwbal.png')
+      }
       } else {
         plotPwbal = NULL}
       }
@@ -422,6 +449,12 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       plotLichtklimaat = extinctie1(wq = copy(wq1)[jaar > '2015'], 
                                     hybi = copy(hybi1), 
                                     parameter = c('VEC','WATDTE_m'))
+      if(splot){
+        ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',wlname,'/plotLichtklimaat.png'),width = 13,height = 8,
+                        units='cm',dpi=500)
+        plotLichtklimaat <- paste0('factsheets/routput/',wlname,'/plotLichtklimaat.png')
+      }
+      
     } else {
       plotLichtklimaat = NULL
     }
@@ -430,26 +463,34 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
       hybi2 <- hybi1[!is.na(fewsparameter == 'WATDTE_m'),]
       plotWaterdiepte = waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
+      
+      if(splot){
+        ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',wlname,'/plotWaterdiepte.png'),width = 13,height = 8,
+                        units='cm',dpi=500)
+        plotWaterdiepte <- paste0('factsheets/routput/',wlname,'/plotWaterdiepte.png')
+      }
+      
     } else {
       plotWaterdiepte = NULL
     }
     
     # --- plot ESF3 : waterbodem
-    if(nrow(bod1) > 0) {plotWaterbodem = plotbod(bod1)} else {plotWaterbodem = NULL}
+    if(nrow(bod1) > 0) {plotWaterbodem = plotbod(bod1)
+    
+    if(splot){
+      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem.png'),width = 13,height = 8,
+                      units='cm',dpi=500)
+      plotWaterbodem <- paste0('factsheets/routput/',wlname,'/plotWaterbodem.png')
+    }
+    
+    } else {plotWaterbodem = NULL}
     
     # make a list to store the output
     out <- list(waterlichamenwl = waterlichamenwl,
                 wlname = wlname,
                 my_title = my_title,
                 eagwl = eagwl,
-                doelen = doelen,
-                EST_sel = EST_sel,
-                gEAG = gEAG,
-                waterschappen = waterschappen,
-                waterpereag_sel = waterpereag_sel,
                 deelgebieden = deelgebieden,
-                gEAG_sel = gEAG_sel,
-                EKRset1 = EKRset1,
                 ESTnaam = ESTnaam,
                 mapEAG = mapEAG,
                 mapDEELGEBIED = mapDEELGEBIED,

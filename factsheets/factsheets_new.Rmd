@@ -31,7 +31,7 @@ Het waterlichaam `r out$waterlichamenwl$OWMNAAM` heeft de status `r out$waterlic
 
 ```{r chartT, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
 # plot picture of aquatic ecoystem
-if(nrow(out$EST_sel)>0){include_graphics(out$ESTnaam)}
+if(length(out$ESTnaam)>0){include_graphics(out$ESTnaam)}
 
 ```
 
@@ -92,7 +92,7 @@ print(out$mapEKR)
 
 ```{r esf, echo= FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
 
-pESFtab <- out$ESFtab[,-1]
+pESFtab <- out$ESFtab[,c('OORDEEL','oms')]
 
 options(knitr.table.format = "markdown")
 options(kableExtra.auto_format = FALSE)
