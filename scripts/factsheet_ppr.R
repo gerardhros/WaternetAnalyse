@@ -174,6 +174,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   print('Thanks for waiting. all data is succesfully loaded and saved in object brondata')
   
 # --- extractfunctie for relevant properties needed for factsheet ----
+  
   factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
     
     # subset ESFoordelen and get ESF
@@ -211,7 +212,12 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     hybi1 <- hybi[locatie.EAG %in% eagwl$GAFIDENT,]
     
     # get soil ditch properties
-    bod1 <- bod[EAGIDENT %in% eagwl$GAFIDENT,]
+    if('EAGIDENT' %in% colnames(bod)){
+      bod1 <- bod[EAGIDENT %in% eagwl$GAFIDENT,]
+    } else {
+      bod1 <- bod[loc.eag %in% eagwl$GAFIDENT,]
+    }
+   
     
     # get values from EKR
     if (wlname %in% EKRset$HoortBijGeoobject.identificatie){
