@@ -4,3 +4,8 @@
 .Ruserdata
 
 /development/*
+/factsheets/figure/*
+/factsheets/output/*
+/factsheets/routput/*
+/figure/*
+/output/*
