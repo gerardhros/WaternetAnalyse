@@ -6,7 +6,7 @@ tabelPerWL3jaargemEAG <- function (EKRset,gEAG,doelen){
   doelen <- copy(doelen)
   
   # calculate mean per groep
-  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code.y',
+  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT',
                'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
   d1 <- EKRset[,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
   
@@ -83,7 +83,7 @@ calcMeanHybi <- function(dbhybi){
   b <- b[!is.na(DTEZICHTfac) & !is.na(jaar) &!is.na(locatie.EAG),]
   setorder(b,jaar)
   
-  # rename relevant columns
+  # rename relevant columns # toevoegen kroos
   cols <- c('PTN_BEDKG_%_SUBMSPTN_','PTN_BEDKG_%_FLAB_SUBMS','PTN_BEDKG_%_FLAB_DRIJVD','PTN_BEDKG_%_EMSPTN_',
             'TALBVWTR_graad_TALBVWTR_','ZICHT_m_ZICHT_','WATDTE_m_WATDTE_','DTEZICHT','DTEZICHTfac')
   colsn <- c('bedsubmers','draadwieren','FLAB','bedemers','taludhoek','doorzicht',
@@ -210,15 +210,15 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
     # mean water depth per EAG
     mdPtb <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='EAG']
     mdPtb[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
+    
+    # mean water depth per KRW waterlichaam, die bestaat uit 1 of meerdere EAGs
+    mdPtbK <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='KRW']
+    mdPtbK[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
   
     # mean water depth per GAF
     mdPtbG <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='GAF']
     mdPtbG[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
     
-    # mean water depth per waterkwaliteitspunt
-    mdPtbK <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='KRW']
-    mdPtbK[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
-
   # merge water balance data with water depth ----
   
     # koppel waterdiepte per eag en afvoergebied aan water en stoffenbalans

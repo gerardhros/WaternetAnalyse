@@ -7,6 +7,18 @@
 .gz
 
 /development/*
+/atlasKRW/*
+/atlasESF/output/*
+factsheets/**/*.docx
+factsheets/output/*.html
+factsheets/output/*.png
+/rsconnect/*
+/toxiciteit/docs/*
+/matrix/_book/*
+/atlasToestand/*
+/KRW overzicht/*
+/templateSysteemAnalyse/*
+/pbelasting/input/uitvoer PCDitch tbv serious game HDSR.csv
 /factsheets/figure/*
 /factsheets/output/*
 /factsheets/routput/*

@@ -1,0 +1,13 @@
+/* Whole document: */
+.book .book-body .page-wrapper .page-inner {
+  max-width: 90%;
+}
+body{
+  font-family: FontAwesome;
+  font-size: 14pt;
+}
+/* Headers */
+h1,h2,h3,h4,h5,h6{
+  font-family: FontAwesome;
+  font-size: 20pt;
+}

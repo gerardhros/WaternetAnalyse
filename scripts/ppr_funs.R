@@ -26,12 +26,13 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   sel <- unique(db$locatiecode)[grepl('meter$',unique(db$locatiecode))]
   
   # merge with locaties and watertypes (a few samples in 3300-EAG are also removed)
-  db <- merge(db[!locatiecode %in% sel,],mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
+  db <- merge(db[!locatiecode %in% sel,],mlocs[,c('CODE','EAGIDENT',"OWMIDENT")],by.x ='locatiecode', by.y = 'CODE')
   db <- merge(db,wtype[,c('watertype','GAFIDENT')],by.x ='EAGIDENT', by.y = 'GAFIDENT')
   
   # add codes (is this really needed?)
   db[,locatie.EAG := EAGIDENT]
   db[,locatie.KRW.watertype := watertype]
+  db[,locatie.KRWmeetpuntlocatie := OWMIDENT]
   
   # remove columns with no data or non-relevant information (judgement gerard)
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
@@ -71,7 +72,7 @@ ppr_ekr <- function(ekr1,ekr2){
   
 }
 
-ppr_slootbodem <- function(db, wtype = NULL,mlocs = NULL){
+ppr_slootbodem_kl <- function(db, wtype = NULL,mlocs = NULL){
   
   # make a local copy
   db <- copy(db)
@@ -106,7 +107,34 @@ ppr_slootbodem <- function(db, wtype = NULL,mlocs = NULL){
   bod_klasse[,c(cols):= NULL]
   
   # return updated database
+
   return(bod_klasse)
+}
+
+ppr_slootbodem <- function(db, wtype = NULL,mlocs = NULL){
+  
+  # make a local copy
+  db <- copy(db)
+  
+  # adapt few properties
+  db[,datum := as.Date(datum, format = "%Y-%m-%d %H:%M")]
+  db[,jaar := year(datum)]
+  db[limietsymbool == '<',meetwaarde := meetwaarde * 0.5] 
+  
+  # merge with GAFIDENT from eag_wl (be aware: EAG 3300 are few missing)
+  db <- merge(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
+  db <- merge(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
+  
+  # wijzig relevante namen van bodemfews database
+  cols <- colnames(db)
+  setnames(db,c('locatie EAG','locatiecode','locatie omschrijving','locatie x','locatie y','locatie z','fewsparameter','compartiment'),
+           c('loc.eag','loc.code','loc.oms','loc.x','loc.y','loc.z','parm.fews','parm.compartiment'))
+  
+  # adapt unit sign in parm.fews to simply reference
+  db[,parm.fews := gsub("/","_",parm.fews)]
+  
+  # return updated database
+  return(db)
 }
 
 ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
@@ -124,12 +152,13 @@ ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   
   # merge with locaties, remove older EAGIDENT and older watertype with new one
   db[,c('EAGIDENT','watertype') := NULL]
-  db <- merge(db,mlocs[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE',all.x = T)
+  db <- merge(db,mlocs[,c('CODE','EAGIDENT','OWMIDENT')], by.x ='locatiecode', by.y = 'CODE',all.x = T)
   db <- merge(db,wtype[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all =FALSE)
   
   # replace other column with same info (is that needed Laura?)
   db[,locatie.EAG := EAGIDENT]
   db[,locatie.KRW.watertype := watertype]
+  db[,locatie.KRWmeetpuntlocatie := OWMIDENT]
   
   # select relevant data
   srow <- c("IONEN","NUTRI","ALG","VELD","ALGEN","LICHT")

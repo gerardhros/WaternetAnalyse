@@ -10,7 +10,9 @@ packages <- function(x){
     install.packages(pkgs=x,dependencies = T)
     require(x,character.only=TRUE)
   } }
+
 # Load packages
+
 packages(tint)
 packages(ggpubr)
 packages(ggplotify)
@@ -66,3 +68,4 @@ packages(RColorBrewer)
 packages(corrplot)
 packages(raster)
 packages(flexdashboard)
+packages(flextable)

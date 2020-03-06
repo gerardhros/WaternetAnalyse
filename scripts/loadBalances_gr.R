@@ -4,11 +4,11 @@
 # 1. Directories and names -----------------------------------------------
 
   # file directory koppeltabel. NB: zorg dat sheetname='AGV', kolommen= 'CODE', 'balansnaam', 'agrarisch'
-  dir_kop <- 'pbelasting/input/190324_koppeltabel.xlsx' 
+  dir_kop <- 'pbelasting/input/200218_koppeltabel.xlsx' 
 
-  # folder directory waterbalansen NB: zorg dat alle foute balansen niet in deze dir staan
-  dir_bal <- "../../balansen/" 
-  dir_bal <- "F:/AGV data/"
+  #folder directory waterbalansen NB: zorg dat alle foute balansen niet in deze dir staan
+  dir_bal <- "../../../balansen/" 
+  #dir_bal <- "F:/AGV data/"
   
 # 2. input-----------------------
 
@@ -16,11 +16,11 @@
   kopTab <- readxl::read_xlsx(dir_kop) %>% as.data.table()
 
   # filter on latest versions of available water balances
-  kopTab <- kopTab[selectiefilter==1]
+  kopTab <- kopTab[selectiefilter==1] # wel voor matrix een selectie maken, niet voor overzicht
   
-  # eag weg bij eerdere versies, 2500-eag-5 weg, 1balansen aan meerdere eags koppelen
-  files <- ppr_wbalfiles(dir_bal,EAG.sf = gEAG,kopTab = kopTab)
-  
+  # eag weg bij eerdere versies, 2500-eag-5 weg, 1balansen aan meerdere eags koppelen werkt niet in deze functie
+  files <- ppr_wbalfiles(dir_bal,EAG.sf = gEAG,kopTab = kopTab) # wel voor matrix een selectie maken, niet voor overzicht
+  #files  <- list.files(dir_bal)
   # data van G.Ros obv balansen M. Ouboter 201808
   init <- readRDS("pbelasting/input/init.rds") %>% as.data.table()
   meanSoil <- readRDS("pbelasting/input/meanSoil.rds")
@@ -36,10 +36,12 @@ loadAlgemeen = function(x,wdir){
   fname <- paste0(wdir,x)
   
   # print progress
-  print(paste0('algemene data from ',basename(fname),' worden ingelezen'))
+  print(paste0('algemene data van ',basename(fname),' worden ingelezen'))
         
   # read the tab uitangspunten
-  alg = suppressMessages(readxl::read_xlsx(fname, sheet = 'uitgangspunten', col_names = F, skip = 2)[1:34,1:9])
+  tabbladen <-    excel_sheets(fname)
+  n2 <- tabbladen[grepl("uitg", tolower(tabbladen))]
+  alg = suppressMessages(readxl::read_xlsx(fname, sheet = n2, col_names = F, skip = 2)[1:34,1:9])
   
   # make data.table to store results
   out <- data.table(pol = basename(fname))
@@ -83,7 +85,7 @@ loadBalance2 = function(x,wdir){
   balans[,date := as.Date(as.numeric(p1),origin = "1900-01-01")]
   balans[,maand := month(date)]
   balans[,jaar := year(date)]
-  balans[,seiz := fifelse(maand %in% 4:9,'zomer','winter')]
+  balans[,seiz := ifelse(maand %in% 4:9,'zomer','winter')]
    
   # peil [m NAP], volume [m3], debiet[mm/dag], berging [m3/dag] en sluitfout [m3/dag]
   cols <- paste0('p',c(2:4,28:30))
@@ -135,10 +137,10 @@ loadBalance2 = function(x,wdir){
 }
 
 # Wrapper function -------------------------------------------------------------
-loadBalances_lm <- function(dir_bal,kopTab,sfile = FALSE){
+loadBalances_lm <- function(dir_bal,kopTab, sfile = T){
   
   # file names
-  files <- ppr_wbalfiles(dir_bal)
+  #files <- ppr_wbalfiles(dir_bal) #waarom nog een keer?
   
   # read excel data from sheet 'uitgangspunten' and combine all output in one data.table
   alg <- lapply(files,function(x) loadAlgemeen(x,wdir = dir_bal))
@@ -150,10 +152,11 @@ loadBalances_lm <- function(dir_bal,kopTab,sfile = FALSE){
   
   # Koppel EAG, GAF en KRW waterlichamen
   dat <- merge(bal,alg,by='pol',all.x = TRUE)
-  dat <- merge(dat,kopTab,by.x = 'pol',by.y = 'balans',all.x = TRUE)
+  dat <- full_join(dat, kopTab, by = c("pol"='balans'))%>% as.data.table()
     
-  # koppel data initiator
-  dat <- merge(dat,init,by.x = 'GAF', by.y = 'i_pol')
+  # koppel data initiator, alleen koppeling via GAF werkt niet als deze niet eerst wordt ingevuld obv EAG
+  dat$GAF <- as.character(dat$GAF)
+  dat <- merge(dat,init, by.x = 'GAF', by.y = 'i_pol',all.x =T)
   
   # do some extra calculations (defined by Laura)
   
@@ -174,5 +177,7 @@ loadBalances_lm <- function(dir_bal,kopTab,sfile = FALSE){
   return(dat)
 }
 
+dat <- loadBalances_lm(dir_bal,kopTab,sfile = T)
+write.table(dat, file = paste(getwd(),"/pbelasting/output/gemMaandBalansen",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
 

@@ -12,6 +12,7 @@ output:
 ```{r preprocessing, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
 # Deze chunck runnen in console of als apart script met iteratie: data staat nu niveau hoger dan script
 
+
 # Settings-------------------------------------------------------
 options(repos = c(CRAN = "https://cran.rstudio.com"))
 
@@ -38,7 +39,7 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 # bij update EAGs, moet ook EAG kenmerken (opp_kenmerken_EAG.csv), doelen en location worden geupdate en EKRset
 # EAGS en WL waar in maatregelen naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
 # EAGS waar in EST naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
-# koppelingen naar EAGS en GAF waar in balansdata (dat) naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
+# koppelingen naar EAGS en GAF waar in balansdata (dat) naar verwezen worden moeten bestaan in koppeltabel
 
 # er wordt veel te veel data (meer jaren, gebieden en parameters dan nodig) geladen omdat ik lui ben
 rm(list=ls())  
@@ -59,11 +60,11 @@ col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
 # inladen basis bestanden ----
-ESFoordelen <- fread('../data/esfKRW_20200107.csv') # hier later ook eags of gafs aan toevoegen
+ESFoordelen <- fread('../data/esfKRW_20200228.csv') # hier later ook eags of gafs aan toevoegen
 ESFoordelen[,11:25] <- ESFoordelen[,lapply(.SD, function(x) trim(x)),.SDcols = 11:25]
-maatregelen <- fread('../data/maatregelenKRW_20200124.csv')# hier later ook eags of gafs aan toevoegen
-maatregelen <- maatregelen[,-c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021'), with=FALSE]
-maatregelen <- unique(maatregelen) # omdat er nu dubbelen in zitten bij splitsen van WL
+maatregelen <- fread('../data/maatregelenKRW_20200228.csv')# hier later ook eags of gafs aan toevoegen
+#maatregelen <- maatregelen[,-c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021'), with=FALSE]
+#maatregelen <- unique(maatregelen) # omdat er nu dubbelen in zitten bij splitsen van WL
 maatregelen[,2:25] <- maatregelen[,lapply(.SD, function(x) trim(x)),.SDcols = 2:25]
 
 ## data voor kaart ----------
@@ -74,6 +75,7 @@ waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirG
 # inladen hydrobiologische gegevens -----------
     # inladen gegevens hydrobiologie
     hybi <- readRDS('../data/alles_reliable.rds')
+    hybi$meetwaarde <- as.numeric(hybi$meetwaarde)
     
     # water types
     watertypen <- fread('../data/KRWWatertype.csv')
@@ -83,11 +85,12 @@ waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirG
     
     ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
     ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-    eag_wl <- fread('../data/EAG_Opp_kenmerken.csv')
+    eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
     #eag_wl <- eag_wl[is.na(eag_wl$Einddatum),] # sommige EAGs bestaan niet meer in EAGs, maar wel in krw dataset.       Deze opnieuw maken. vaarten ronde hoep, westeramstel, ronde venen en zevenhoven en vecht waterlichaam koppeling en watertype aangepast in         eag_opp-kenmerken aangepast omdat er anders geen kaart wordt weergegeven en geen ekrset data wordt geselecteerd.
   
     # KRW doelen 
-    doelen <- fread('../hydrobiologie/doelen.csv')
+    doelen <- fread('../hydrobiologie/Doelen.csv')
+    doelen$Doel_2022 <- as.numeric(doelen$Doel_2022)
 
     # nonogram
     nomogram <- fread('../data/nomogram.csv')
@@ -117,7 +120,7 @@ waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirG
     EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2)
  
     # hybi measurements
-    hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
+    hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)
     
     # slootbodemdata, hier moeten 2 verschillende datatables uitkomen
     bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
@@ -137,33 +140,44 @@ dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d'
 Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
 nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
 pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
-
+#write.table(pvskp, file = paste("PvskPditchlakeALL",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+ 
 ```
 
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
-for (i in 1:nrow(ESFoordelen)){
-    #i=37 # Vinkeveenseplassen
-    #i=35 # Vecht
-    # ronde hoep cerror-pandoc-document-conversion-failed-with-error-1033-execution-halted
-    waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
-    wl <- waterlichamenwl$OWL # of waterlichaam of eagcode
+for (i in 11:17){
+  #nrow(ESFoordelen)
+     #i=10 amstelland loopt vast pandoc error 99
+    # i=8 loopt vast 
     
-    #hier een koppeltabel nodig voor selectie toetsgebied
-    namewl <- dcast(EKRset, HoortBijGeoobject.identificatie+GeoObject.identificatie+EAGIDENT~.)
-    wlname <- namewl$HoortBijGeoobject.identificatie[(namewl$GeoObject.identificatie %in% wl)|
-                                                       (namewl$EAGIDENT %in% wl)] 
-   
-    if(nrow(eag_wl[eag_wl$KRWWaterlichaamcode %in% wl,])>0){
-      eagwl <- eag_wl[eag_wl$KRWWaterlichaamcode %in% wl,]} 
-    if(nrow(eag_wl[eag_wl$KRWWaterlichaamcode %in% wl,])==0){
-      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]} 
+    waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
+    wl <- waterlichamenwl$OWL_SGBP3 # of waterlichaam of eagcode of gafcode
+    # als eenheid factsheet KRW wl of GAF of meerdere EAGs
+    
+    if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])>0){ 
+      eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl|substr(eag_wl$GAFIDENT,1,4) %in% wl,]
+      wlname <- unique(eagwl$KRWmonitoringslocatie_SGBP3[(eagwl$KRW_SGBP3 %in% wl)])
+      wlname <- sapply(strsplit(wlname, '_'), `[`, 2) # hoortbijgeo zonder namespace oor selectie van totaalscores per waterlichaam
+    } 
+    # als eenheid factsheet is eag
+    if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])==0){
+      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]
+      wlname <- unique(EKRset$HoortBijGeoobject.identificatie[EKRset$EAGIDENT %in% wl])
+      wlname <- gsub("NL11_","",wlname)
+      } 
 
-    my_title <- paste0(waterlichamenwl$OWMNAAM)
-    pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|
-                        pvskp$GAF %in% substr(eagwl$GAFIDENT, 1, 4),] 
+    my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
+    # als wl is waterlichaam dan worden balansen die bij wl horen volgens koppeltabel, ook eagbalansen worden geslecteerd
+    # als wl is GAF dan wordt de GAF balans geselecteerd en eags die erbij horen
+    # als er geen balans voor wl of eag zijn dan wordt gaf balans geslecteerd
+    pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|pvskp$GAF %in% wl,] 
+    # als geen balans dan gaf balans
+    if(nrow(pvskpsel)== 0){
+      pvskpsel <- pvskp[pvskp$GAF %in% substr(eagwl$GAFIDENT, 1, 4),]
+    }
     ESF <- waterlichamenwl
-    maatregelen1 <- maatregelen[maatregelen$HoortbijKRWWaterlichaam %in% wl,]
+    maatregelen1 <- maatregelen[maatregelen$HoortbijKRWWaterlichaam2021 %in% wl,]
     waterlichamenwl$motstat <- waterlichamenwl$MotiveringBegrenzing
     waterlichamenwl$prov <- waterlichamenwl$Provincies
     waterlichamenwl$gem <- waterlichamenwl$Gemeenten
@@ -171,7 +185,9 @@ for (i in 1:nrow(ESFoordelen)){
     wq1 <- wq[wq$EAGIDENT %in% eagwl$GAFIDENT,]
     hybi1 <- hybi[hybi$locatie.EAG %in% eagwl$GAFIDENT,]
     bod1 <- bod[bod$EAGIDENT %in% eagwl$GAFIDENT,]
+    # alleen gewogen scores
     EKRset1 <- EKRset[EKRset$HoortBijGeoobject.identificatie %in% wlname,] 
+    # ongewogen scores obv koppeling locatie en EAG
     EKRset2 <- EKRset[EKRset$EAGIDENT %in% eagwl$GAFIDENT,]
     if(nrow(EKRset1) == 0){
      EKRset1 <- EKRset2 } # ingewikkeld, nu niet voor EAG
@@ -264,6 +280,9 @@ if(dtEST2$KRWWaterlichaamcode %in% c('NL11_3_8')){
 if(dtEST2$KRWWaterlichaamcode %in% c('NL11_5_1')){
   myimages<- "esticon/W4_O6_OM_L.jpg" 
 }
+if(dtEST2$KRWWaterlichaamcode %in% c('NL11_1_2')){
+  myimages<- "esticon/W5_O1_K_L.jpg" 
+}
 
 include_graphics(myimages)
 }
@@ -339,32 +358,40 @@ map
 
 ```{r, echo = FALSE, message = FALSE, warning= FALSE}
 ## calculate score 
-ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, doelen = doelen)
-ekr_scores_sel <- ekr_scores #[grep("gewogen", ekr_scores$waterlichaam, ignore.case = T),]
+ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, eag_wl = eag_wl, doelen = doelen)
+ekr_scores_sel <- ekr_scores[is.na(ekr_scores$EAGIDENT) & !is.na(ekr_scores$id),]
 ## make neat titles, alleen hoofdmaatlatten
-ekr_scores_sel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel$Waardebepalingsmethode.code, 
-                               from = c("Maatlatten2012 Fytoplankton", "Maatlatten2012 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
+ekr_scores_sel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel$wbmethode, 
+                               from = c("Maatlatten2018 Fytoplankton", "Maatlatten2018 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
                                to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))
-ekr_scores_sel2 <- ekr_scores_sel[!ekr_scores_sel$Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & ekr_scores_sel$level == 1,]
+ekr_scores_sel2 <- ekr_scores_sel[!ekr_scores_sel$wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & ekr_scores_sel$level == 1,]
 ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
 
+if(nrow(ekr_scores_sel2)>1){
 d3 <-  ekr_scores_sel2  %>%
         dplyr::arrange(facet_wrap_code, desc(oordeelsort)) %>% 
         dplyr::top_n(-1, wt = oordeelsort) 
+}
+
+if(nrow(ekr_scores_sel2)<=1){
+d3 <-  ekr_scores_sel2  %>%
+        dplyr::arrange(facet_wrap_code, desc(oordeelsort))
+}
 
 ekr_scores_sel2_deel <- ekr_scores_sel[ekr_scores_sel$facet_wrap_code %in% d3$facet_wrap_code & ekr_scores_sel$level == 2,]
 
+if(nrow(ekr_scores_sel2_deel)>1){
 d3_deel <- ekr_scores_sel2_deel  %>%
         dplyr::arrange(GHPR, desc(EKR)) %>% 
         dplyr::top_n(-1, wt = EKR) 
+}
 
-## calculate score per deelmaatlat
-ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, doelen = doelen)
-ekr_scores_sel_deel <- ekr_scores #[grep("gewogen", ekr_scores$waterlichaam, ignore.case = T),]
-ekr_scores_sel2_deel <- ekr_scores_sel_deel[ekr_scores_sel_deel$Waardebepalingsmethode.code == 
+## calculate score per indicator voor planten
+ekr_scores_sel_deel <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, eag_wl = eag_wl, doelen = doelen)
+ekr_scores_sel2_deel <- ekr_scores_sel_deel[ekr_scores_sel_deel$wbmethode == 
                                               "Maatlatten2018 Ov. waterflora" & ekr_scores_sel_deel$level == 3 & !(ekr_scores_sel_deel$GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),]
 ## make neat titles, alleen hoofdmaatlatten
-ekr_scores_sel2_deel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel2_deel$Waardebepalingsmethode.code, 
+ekr_scores_sel2_deel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel2_deel$wbmethode, 
                                from = c("Maatlatten2018 Ov. waterflora"),
                                to = c("Ov. waterflora")))
 ekr_scores_sel2_deel$GHPR <- as.factor(mapvalues(ekr_scores_sel2_deel$GHPR, 
@@ -467,8 +494,8 @@ Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, b
 0 -> maatregelen1$Uitgevoerd[is.na(maatregelen1$Uitgevoerd)]
 maatregelen1$Uitgevoerd1 <- as.numeric(maatregelen1$Uitgevoerd)+as.numeric(maatregelen1$Uitvoering)
 
-rate <- length(maatregelen1$Uitgevoerd1[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015") & maatregelen1$Uitgevoerd1 >0])
-gauge(rate, min = 0, max = (length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])), symbol = '', gaugeSectors(
+rate <- length(maatregelen1$Uitgevoerd1[(!maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")) & maatregelen1$Uitgevoerd1 > 0])
+gauge(rate, min = 0, max = (length(maatregelen1$Naam[!maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")])), symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 
 # in uitvoering toevoegen
@@ -479,8 +506,8 @@ gauge(rate, min = 0, max = (length(maatregelen1$Naam[maatregelen1$SGBPPeriode.om
 0 -> maatregelen1$Plan[is.na(maatregelen1$Plan)]
 maatregelen1$Plan <- as.numeric(maatregelen1$Plan)
 
-rate <- length(maatregelen1$Plan[maatregelen1$Plan > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])
-gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]), symbol = '', gaugeSectors(
+rate <- length(maatregelen1$Plan[maatregelen1$Plan > 0 & !maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam[!maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")]), symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
@@ -488,8 +515,8 @@ gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.oms
 ```{r, echo=FALSE}
 0 -> maatregelen1$Gefaseerd[is.na(maatregelen1$Gefaseerd)]
 maatregelen1$Gefaseerd <- as.numeric(maatregelen1$Gefaseerd)
-rate <- length(maatregelen1$Gefaseerd[maatregelen1$Gefaseerd > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])
-gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]), symbol = '', gaugeSectors(
+rate <- length(maatregelen1$Gefaseerd[maatregelen1$Gefaseerd > 0 & !maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam[!maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")]), symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
@@ -497,8 +524,8 @@ gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.oms
 ```{r, echo=FALSE}
 0 -> maatregelen1$Ingetrokken[is.na(maatregelen1$Ingetrokken)]
 0 -> maatregelen1$Vervangen[is.na(maatregelen1$Vervangen)]
-rate <- length(maatregelen1$Vervangen[maatregelen1$Vervangen > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]+ maatregelen1$Ingetrokken[maatregelen1$Ingetrokken > 0 & maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")])
-gauge(rate, min = 0, max = length(maatregelen1$Naam[maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")]), symbol = '', gaugeSectors(
+rate <- length(maatregelen1$Vervangen[maatregelen1$Vervangen > 0 & !maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")]+ maatregelen1$Ingetrokken[maatregelen1$Ingetrokken > 0 & !maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")])
+gauge(rate, min = 0, max = length(maatregelen1$Naam[!maatregelen1$SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027")]), symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
@@ -583,6 +610,7 @@ Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen no
 ## Indicatoren ESF {data-height=500}
 ### ESF 1: Productiviteit
 ```{r chartP, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = 'Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).'}
+# selectie waterlichaam en EAGs en niet GAF
 if(nrow(pvskpsel)>0){
   if(!is.na(pvskpsel$naam)){
 pvskpplot(pvskpsel)}}
