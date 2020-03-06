@@ -83,8 +83,8 @@ ppr_slootbodem_kl <- function(db, wtype = NULL,mlocs = NULL){
   db[limietsymbool == '<',meetwaarde := meetwaarde * 0.5] 
   
   # merge with GAFIDENT from eag_wl (be aware: EAG 3300 are few missing)
-  db <- merge(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
-  db <- merge(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
+  db <- data.table::merge.data.table(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
+  db <- data.table::merge.data.table(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
   
   # wijzig relevante namen van bodemfews database
   cols <- colnames(db)
@@ -95,7 +95,7 @@ ppr_slootbodem_kl <- function(db, wtype = NULL,mlocs = NULL){
   db[,parm.fews := gsub("/","_",parm.fews)]
   
   # select properties and dcast table
-  bod_klasse <- dcast(db, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  bod_klasse <- data.table::dcast(db, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
   
   # adapt P measurement into one class, and NA gets class 8
   bod_klasse[,klasseP := cut(Ptot_gP_kg_dg_BS,breaks = c(0,0.5,1,1.5,2.5,5,10,1000),labels=1:7)]
