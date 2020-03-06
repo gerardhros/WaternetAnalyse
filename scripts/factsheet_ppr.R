@@ -21,18 +21,11 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
 
 # inladen basis bestanden ----
 
-  # ESF oordelen
-  ESFoordelen <- fread('data/esfKRW_20200107.csv') # hier later ook eags of gafs aan toevoegen
-  cols <- colnames(ESFoordelen[,11:25])
-  ESFoordelen[,(cols) := lapply(.SD, function(x) trim(x)),.SDcols = cols]
+  # read in the latest version of ESFoordelen from 'data'
+  ESFoordelen <- ppr_esf_oordeel() 
 
   # maatregelen
-  maatregelen <- fread('data/maatregelenKRW_20200124.csv')# hier later ook eags of gafs aan toevoegen
-  cols <- c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021')
-  maatregelen[,(cols):=NULL]
-  maatregelen <- unique(maatregelen) 
-  cols <- colnames(maatregelen[,2:25])
-  maatregelen[,(cols) := lapply(.SD, function(x) trim(x)),.SDcols = cols]
+  maatregelen <- ppr_maatregelen()
   
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
@@ -67,11 +60,11 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
 
   ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
   ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-  eag_wl <- fread('data/EAG_Opp_kenmerken.csv')
+  eag_wl <- fread('data/EAG_Opp_kenmerken_20200218.csv')
   #eag_wl <- eag_wl[is.na(eag_wl$Einddatum),] # sommige EAGs bestaan niet meer in EAGs, maar wel in krw dataset.       Deze opnieuw maken. vaarten ronde hoep, westeramstel, ronde venen en zevenhoven en vecht waterlichaam koppeling en watertype aangepast in         eag_opp-kenmerken aangepast omdat er anders geen kaart wordt weergegeven en geen ekrset data wordt geselecteerd.
   
   # KRW doelen 
-  doelen <- fread('hydrobiologie/doelen.csv')
+  doelen <- ppr_doelen()
   
   # nonogram
   nomogram <- fread('data/nomogram.csv')
@@ -182,14 +175,28 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     ESF <- ESFoordelen[i,] 
     
     # waterlichaam of eagcode
-    wl <- waterlichamenwl$OWL
+    wl <- waterlichamenwl$OWL_SGBP3
     
-    # what is the name of the waterbody?
-    wlname <- unique(EKRset[GeoObject.identificatie %in% wl | EAGIDENT %in% wl,HoortBijGeoobject.identificatie])[1]
-    
-    # select data
-    eagwl <- eag_wl[KRWWaterlichaamcode %in% wl | GAFIDENT %in% wl,]
+    # select data for water body and extract name
+    if(wl %in% eag_wl$KRW_SGBP3){
       
+      # als eenheid factsheet KRW wl of GAF of meerdere EAGs
+      eagwl <- eag_wl[KRW_SGBP3 %in% wl|substr(GAFIDENT,1,4) %in% wl,]
+      
+      # extract the name as text after the first underscore
+      wlname <- sub('.*_', '',eagwl[,KRWmonitoringslocatie_SGBP3])
+      
+    } else {
+      
+      # als eenheid factsheet is eag
+      eagwl <- eag_wl[GAFIDENT %in% wl,]
+      
+      # extract the name and remove prefix 'NL11_'
+      wlname <- unique(EKRset[EAGIDENT %in% wl,HoortBijGeoobject.identificatie])
+      wlname <- gsub("NL11_","",wlname)
+      
+    }
+    
     # get title
     my_title <- paste0(waterlichamenwl$OWMNAAM)
     
