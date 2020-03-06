@@ -1,0 +1,214 @@
+---
+title: "Ecologische sleutelfactoren vs Toestand"
+subtitle: "Versie 2019-04"
+author: "Laura Moria"
+always_allow_html: yes
+delete_merged_file: TRUE
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output:
+  bookdown::html_book:
+    theme: sandstone
+    split_by: none
+documentclass: book
+---
+
+```{r global, include = FALSE}
+#  Settings-------------------------------------------------------
+rm(list=ls())                               #maakt geheugen leeg voor aanvang
+chooseCRANmirror(graphics=FALSE, ind=1)
+knitr::opts_chunk$set(echo = TRUE)
+dirGIS <-"../GIS"
+
+# Load packages and functions-------------------------------------
+source('../scripts/loadPackages.R')
+source('../scripts/createOutput.R')
+source('scripts/postProces.R')
+source('../scripts/makePmaps.R')
+
+# other settings
+proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+
+# run for pdf and word
+# bookdown::render_book("index.Rmd", "bookdown::word_document2")
+# bookdown::render_book("index.Rmd", "bookdown::pdf_book")
+```
+
+```{r data, include = FALSE}
+# watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+# locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
+# eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen
+# 
+# 
+# hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
+#                  stringsAsFactors = F)
+# hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
+# hybi$jaar <- format(hybi$datum, '%Y')
+# hybi$jaar <- as.numeric(hybi$jaar)
+# hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
+# hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
+#  hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10
+# hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
+# hybi$locatie.EAG <- hybi$EAGIDENT
+# hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+# hybi$locatie.KRW.watertype <- hybi$watertype
+
+# EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
+# EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
+# EKRset <- smartbind(EKRset,EKRset2)
+# EKRset$XCOORD <- as.integer(EKRset$XCOORD)
+# EKRset$YCOORD <- as.integer(EKRset$YCOORD)
+# doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+gEAG<- importOGR("EAG20190523.shp", dirGIS, CRSobj = proj4.google)
+gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
+#gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
+
+# laden: Rdata file die meegestuurd is
+#dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
+#Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+#vol <- importCSV('input/vollenweider.csv', path = getwd()) 
+#nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
+
+bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")
+bod$jaar <- format(bod$datum, '%Y')
+bod$jaar <- as.numeric(bod$jaar)
+bod$meetwaarde[bod$limietsymbool == '<'] <- bod$meetwaarde[bod$limietsymbool == '<']/2 # meetwaarden detectiegrens/ halve detectiegrens meenemen
+bod <- merge(bod, eag_wl[,c('watertype','GAFIDENT')], by.x ='locatie.EAG', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+bod$locatie.KRW.watertype <- bod$watertype
+selb <- dcast(bod, locatie.EAG+locatiecode+locatie.omschrijving+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+selb$klasseP <- NULL
+'8' -> selb$klasseP[is.na(selb$`Ptot_gP/kg_dg_BS`)]
+'7' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` > 10]
+'6' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 10 & selb$`Ptot_gP/kg_dg_BS` > 5 ] 
+'5' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 5 & selb$`Ptot_gP/kg_dg_BS` > 2.5]
+'4' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 2.5 & selb$`Ptot_gP/kg_dg_BS` > 1.5]
+'3' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1.5 & selb$`Ptot_gP/kg_dg_BS` > 1]
+'2' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1 & selb$`Ptot_gP/kg_dg_BS` > 0.5]
+'1' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 0.5]
+selb$klasseP <- as.factor(selb$klasseP)
+
+simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+locatie <- read.csv("toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
+wq$jaar <- format(wq$datum, '%Y')
+wq$maand <- format(wq$datum, '%m')
+wq$jaar <- as.numeric(wq$jaar)
+wq$maand <- as.numeric(wq$maand)
+wq$meetwaarde[wq$limietsymbool == '<'] <- wq$meetwaarde[wq$limietsymbool == '<']/2 
+wq <- merge(wq, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =TRUE, all.y=FALSE)
+wq$locatie.EAG <- wq$EAGIDENT
+wq <- merge(wq, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+wq$locatie.KRW.watertype <- wq$watertype
+
+```
+
+# ESF versus toestand
+
+In onderstaande figuren zijn verschillende relaties in beeld gebracht door de parameters te kiezen die op de x en y as tegen elkaar worden uitgezet.
+Er wordt gekeken naar:
+
+- KRW toetsresultaten waarbij een gemiddelde is genomen van de laatste 3 meetjaren tussen 2006 en 2018
+- Gegevens hydrobiologie waarbij een mediaan is genomen van meetlocaties binnen een EAG en een gemiddelde van de laatste 3 meetjaren tussen 2006 en 2018
+- Fysisch chemische data waarbij een gemiddelde is genomen van de laatste 3 meetjaren
+- Bodemchemische data waarvan een mediaan is genomen van meetlocaties binnen een EAG. Er zijn in verschillende EAG`s monsters beschikbaar uit 2013-2018 gedurende 1 meetjaar.
+- Gegevens uit de water- en stoffenbalansen. Gemiddelde van de 96 tot einde balans.
+
+```{r matrix, include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+#matrix5 <- makeMatrix(EKRset, bod, wq, hybi, dat)
+
+# load data
+matrix5 <- readRDS('./matrix.rds')
+```
+
+
+```{r subwatdte,echo = FALSE, fig.cap='Relatie submerse bedekking en waterdiepte.', message=FALSE, warning=FALSE}
+diepteVegetatie(hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE'))
+```
+
+```{r m8, fig.cap= "relatie tussen ESF1 variablen in EAGs met watertype M8", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora","bedsubmers","CHLFA_ug/l", "PvskPDitch","wp_min_sum","nlvrFW","P_P_mg/l")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF2 variablen in EAGs met watertype M8",  message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora","bedsubmers","PO4_nf_P_mg/l","dieptedoorzicht")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF3 variablen in EAGs met watertype M8", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora","bedsubmers","Ptot_gP/kg_dg_BS")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF4 variablen in EAGs met watertype M8", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Bedekking Emerse planten_Maatlatten2018 Ov. waterflora","bedemers","taludhoek","CA-1_nf_mg/l","HCO3-1_nf_HCO3_mg/l","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF4 variablen in EAGs met watertype M1a", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Bedekking Emerse planten_Maatlatten2018 Ov. waterflora","bedemers","taludhoek","CA-1_nf_mg/l","HCO3-1_nf_HCO3_mg/l","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M1a',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF1 variablen in EAGs met watertype M27", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten _Maatlatten2018 Ov. waterflora","bedsubmers","CHLFA_ug/l", "PvskPDitch","wp_min_sum","nlvrFW")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M27',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF4 variablen in EAGs met watertype M27", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Bedekking Emerse planten_Maatlatten2018 Ov. waterflora","bedemers","taludhoek","CA-1_nf_mg/l","HCO3-1_nf_HCO3_mg/l","Soortensamenstelling macrofyten _Maatlatten2018 Ov. waterflora")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M27',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+*Relatie submerse bedekking en voedselrijkdom waterbodem: Er is te zien dat we een te lage grenswaarde hanteren voor totaal P in de waterbodem. Bij Pmg/kgdg > 1300 worden nog steeds hoge EKRs gemeten (dit is wel op het niveau van EAG, aangenomen dat er geen grote heterogeniteit binnen een EAG bestaat in bodem en vegetatie), er wel een relatie tussen totaal fosfor en sulfide (een maat voor veel zuurstofvraag en afbraak) in de waterbodem en EKR scores. Vooral in wateren met watertype M10.*
+
+*Relatie submerse bedekking en lichtklimaat, er is te zien dat scores pas groter worden dan 0.4 in lijnvormig water bij een doorzicht/diepte- ratio > 0.6 *
+
+*Relatie soortenrijkdom en bedekking en P belasting. Er is te zien dat er in sloten ekr scores op de soortenmaatlat vegetatie > 0.6 worden berekend bij PvskP <2,  dat er in meren ekr scores op de soortenmaatlat vegetatie > 0.6 worden berekend bij PvskP <1, dat er geen relatie bestaat tussen berekende nalevering per EAG en EKR scores per EAG. Alleen in sloten is wel een relatie te zien *
+
+*Relatie emerse bedekking en beschoeiing. Er is te zien dat er hogere EKR scores worden gemeten bij oevers zonder beschoeiing (14), dan met beschoeiing. Behalve in watertype M20*
+
+*Relatie slibdikte en soortensamenstelling vegetatie: Er is te zien dat er bij een slibdikte > 20 cm nooit hoge scores (>0.5) worden bepaald*
+
+*relatie bicarbonaat, calcium en ecologische toestand is opvallend in sloten.*
+
+```{r, echo = FALSE, fig.cap='In dit figuur kan de relatie tussen indicatoren van bepalende processen en de ecologische toestand in beeld worden gebracht.', message= FALSE, warning= FALSE, out.width= "100%", height = "9000px"}
+rpivotTable(
+    matrix5,
+    rows = c("PvskPDitch", "Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora"),
+    cols = c("KRWwatertype.code.y","EAG"),
+    inclusions = list(KRWwatertype.code.y = list("M8")),
+    aggregatorName = "Average",
+    rendererName = "Scatter Chart",
+    width = 900,
+    height = 9000
+)
+```

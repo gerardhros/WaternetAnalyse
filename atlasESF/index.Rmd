@@ -1,0 +1,625 @@
+---
+title: "Ecologische sleutelfactoren in beeld"
+subtitle: "Versie 2019-04"
+author: "Laura Moria"
+always_allow_html: yes
+delete_merged_file: TRUE
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output:
+  bookdown::gitbook:
+    split_by: none
+    download: yes
+    link-citations: yes
+    config:
+      toolbar:
+        position: static
+bibliography: [referenties.bib]
+biblio-style: apalike
+documentclass: book
+---
+
+```{r global, include = FALSE}
+#  Settings-------------------------------------------------------
+rm(list=ls())                               #maakt geheugen leeg voor aanvang
+chooseCRANmirror(graphics=FALSE, ind=1)
+knitr::opts_chunk$set(echo = TRUE)
+dirGIS <-"../GIS"
+
+# Load packages and functions-------------------------------------
+source('../scripts/loadPackages.R')
+source('../scripts/createOutput.R')
+source('../scripts/postProces.R')
+source('../scripts/makePmaps.R')
+
+# other settings
+proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+
+# run for pdf and word
+# bookdown::render_book("index.Rmd", "bookdown::word_document2")
+# bookdown::render_book("index.Rmd", "bookdown::pdf_book")
+```
+
+```{r data, include = FALSE}
+ESFoordelen <- read.csv('../factsheets/esfKRW_20191008.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
+maatregelen <- read.csv('../factsheets/maatregelenKRW_20191022.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
+watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
+eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen
+
+
+hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
+                 stringsAsFactors = F)
+hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
+hybi$jaar <- format(hybi$datum, '%Y')
+hybi$jaar <- as.numeric(hybi$jaar)
+hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
+hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
+ hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10
+hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
+hybi$locatie.EAG <- hybi$EAGIDENT
+hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+hybi$locatie.KRW.watertype <- hybi$watertype
+
+EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
+EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
+EKRset <- smartbind(EKRset,EKRset2)
+EKRset$XCOORD <- as.integer(EKRset$XCOORD)
+EKRset$YCOORD <- as.integer(EKRset$YCOORD)
+doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+gEAG<- importOGR("EAG20190523.shp", dirGIS, CRSobj = proj4.google)
+gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
+gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
+
+# laden: Rdata file die meegestuurd is
+dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
+Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+#vol <- importCSV('input/vollenweider.csv', path = getwd()) 
+nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
+
+bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")
+bod$jaar <- format(bod$datum, '%Y')
+bod$jaar <- as.numeric(bod$jaar)
+bod$meetwaarde[bod$limietsymbool == '<'] <- bod$meetwaarde[bod$limietsymbool == '<']/2 # meetwaarden detectiegrens/ halve detectiegrens meenemen
+bod <- merge(bod, eag_wl[,c('watertype','GAFIDENT')], by.x ='locatie.EAG', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+bod$locatie.KRW.watertype <- bod$watertype
+selb <- dcast(bod, locatie.EAG+locatiecode+locatie.omschrijving+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+selb$klasseP <- NULL
+'8' -> selb$klasseP[is.na(selb$`Ptot_gP/kg_dg_BS`)]
+'7' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` > 10]
+'6' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 10 & selb$`Ptot_gP/kg_dg_BS` > 5 ] 
+'5' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 5 & selb$`Ptot_gP/kg_dg_BS` > 2.5]
+'4' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 2.5 & selb$`Ptot_gP/kg_dg_BS` > 1.5]
+'3' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1.5 & selb$`Ptot_gP/kg_dg_BS` > 1]
+'2' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1 & selb$`Ptot_gP/kg_dg_BS` > 0.5]
+'1' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 0.5]
+selb$klasseP <- as.factor(selb$klasseP)
+
+simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+
+wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
+wq$jaar <- format(wq$datum, '%Y')
+wq$maand <- format(wq$datum, '%m')
+wq$jaar <- as.numeric(wq$jaar)
+wq$maand <- as.numeric(wq$maand)
+wq$meetwaarde[wq$limietsymbool == '<'] <- wq$meetwaarde[wq$limietsymbool == '<']/2 
+wq <- wq[!wq$meetwaarde < -998,] 
+wq <- merge(wq, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =TRUE, all.y=FALSE)
+wq$locatie.EAG <- wq$EAGIDENT
+wq <- merge(wq, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
+wq$locatie.KRW.watertype <- wq$watertype
+
+```
+
+# Inleiding
+In deze rapportage is informatie over ontwikkeling van de ecologische toestand van het aquatisch ecosysteem in de regio Amstel, Gooi en Vechtstreek gebundeld in een atlas met thema kaarten. 
+
+Hiermee wordt verbeeld welke processen de ecologische toestand bepalen en worden belangrijke omgevingswaarden in beeld gebracht. De ecologische sleutelfactoren (ESFen) helpen om deze waarden en de potentie van een watersysteem gestructureerd in beeld te brengen. Een sleutelfactor vormt een belangrijke voorwaarde voor een goed functionerend ecologisch watersysteem. De ecologische sleutelfactoren kennen een logische volgorde: pas als een vorige sleutelfactor op orde is, heeft het zin om te werken aan het op orde krijgen van volgende sleutelfactoren. De ESFen helpen daarom bij het definiëren van effectieve waterkwaliteitsmaatregelen. 
+
+Op een andere pagina (Waterkwaliteit in beeld) staan kaarten van verschillende indicatoren van ecologische kwaliteit voor de Habitatrichtlijn (Natura2000) en de Kaderrichtlijn water. 
+
+# Ecologische sleutelfactoren in beeld
+
+Met behulp van ecologische sleutelfactoren kan inzichtelijk worden gemaakt wat de huidige ecologische staat van een watersysteem is en waarom die zo is. De sleutelfactoren geven aan waar belangrijke ‘stuurknoppen’ zitten voor het bereiken van de ecologische doelen van een watersysteem. In de paragrafen hieronder wordt de stand van zake per sleutelfactor weergegeven.
+In [dit filmpje](https://youtu.be/rit0Ryph23I) wordt uitgelegd wat de sleutelfactoren zijn en waar ze belangrijk voor zijn.
+
+## Waterdiepte
+De ecologie heeft een minimale waterdiepte nodig om zich te kunnen ontwikkelen. Te ondiep water wordt te warm, zuurstofloos en krijgt snel een slechte waterkwaliteit. In sloten en andere lijnvormige wateren is dat op veel plaatsen een probleem, in meren niet. Figuur \@ref(fig:diepte) geeft een indruk van de gemiddelde waterdiepte in Ecologische analysegebieden. Vooral in de roodgekleurde gebieden kan de ecologische kwaliteit verbeteren als watergangen worden verdiept. Bovendien zal er minder vissterfte optreden in deze gebieden en zal de uitstoot van broeikasgassen verminderen wanneer watergangen worden verdiept. 
+
+```{r diepte1, fig.cap = 'Waterdiepte per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+diepte1(hybi[hybi$jaar > '2013',])
+#saveWidget(krw, "diepte.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "diepte.png")
+```
+
+```{r diepte, fig.cap = 'Waterdiepte per EAG en per meetlocatie', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw <-
+combineWidgets(
+    ncol = 4, colsize = c(1,1),
+    diepte(hybi[hybi$jaar >= '2006' & hybi$jaar < '2009',]),
+    diepte(hybi[hybi$jaar >= '2009' & hybi$jaar < '2012',]),
+    diepte(hybi[hybi$jaar >= '2012' & hybi$jaar < '2015',]),
+    diepte(hybi[hybi$jaar >= '2015' & hybi$jaar < '2019',])
+)
+#saveWidget(krw, "dieptemeerderejaren_0608_0911_1214_1518.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "PvskP.png")
+```
+
+```{r slibdikte, fig.cap = 'Slibdikte per EAG en per meetlocatie. Links metingen tussen 2010 en 2015, rechts metingen tussen 2015 en 2019.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw <-
+if(nrow(hybi[hybi$fewsparameter == 'SLIBDTE_m',])>0){
+combineWidgets(
+    ncol = 2, colsize = c(1,1),
+    #diepte(hybi[hybi$jaar >= '2006' & hybi$jaar < '2009',]),
+    #slibdikte(hybi[hybi$jaar >= '2009' & hybi$jaar < '2012',]),
+    slibdikte(hybi[hybi$jaar >= '2010' & hybi$jaar < '2015',]),
+    slibdikte(hybi[hybi$jaar >= '2015' & hybi$jaar < '2019',])
+)}
+#saveWidget(krw, "dieptemeerderejaren_0608_0911_1214_1518.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "PvskP.png")
+```
+
+De geringe waterdiepte is de oorzaak van de slechte ecologische toestand in veel lijnvormig water. In de Waardassacker, de Nieuwe Keverdijkse polder, Hollands Ankeveense polder, De Eerste Bedijking, Hilversumse ondermeent, Veldhuisweg, Breukelewaard west, 2380eag1, polder Mijnden west, Groene Jonker en polder Blokland is de waterdiepte gering (< 35 cm) en vegetatiebedekking laag.
+
+## ESF 1 Productiviteit
+De productiviteit van een water wordt bepaald door de beschikbaarheid van fosfaat, een van de belangrijkste voedingsstoffen voor de groei van planten en algen. Te veel fosfaat leidt tot (veel) te veel algen en kroos. De fosforbelasting is dan te hoog. Bepalend voor het functioneren van het watersysteem is de toevoer van fosfaat (de belasting) en niet de concentraties. De concentraties zijn een gevolg van de systeemkenmerken en de biologie die zich in het water bevindt. De beschikbaarheid van fosfaat wordt in beeld gebracht door de toevoer van buitenaf te bepalen (externe belasting), bijvoorbeeld via toestromend water en af- en uitspoeling van het land. 
+
+```{r Pbel, fig.cap = 'Fosforbelasting per EAG of afvoergebied', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+PvskP <- makePmaps(dat)
+# min belasting, hoge grens, max belasting lage grens
+#krw<-
+makePmaps2(PvskP)
+# waarom geen Pbel in naardermeer en loosdrecht?
+# krw3 <- makePmaps3(sel, sel2)#obv KRW wl
+#saveWidget(krw, "Pbel_eag.html", selfcontained = FALSE)
+#webshot("Pbel_eag.html", file = "Pbel_eag.png")
+```
+
+We beschouwen de productiviteit in relatie tot de draagkracht, uitgedrukt als kritische belasting. Een minimale vereiste voor een goede waterkwaliteit is dat de fosforbelasting onder de kritische belasting ligt. Onder de kritische belasting levert elke verlaging een potentie tot verbetering van de ecologie. Die potentie komt tot uitdrukking bij een goede waterkwaliteit, inrichting en beheer. 
+
+```{r PvskP, fig.cap = 'Fosforbelasting ten opzichte van de berekende kritische fosforbelasting', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+PvskP <- makePmaps(dat)
+# bij ditch een grens, min belasting
+# bij lake (obv watertype in P tabel) hoge grens en min belasting
+# P belasting uit P tabel gebruikt
+
+# ronde hoep belasting P te laag, heintjesrak te hoog klopt niet
+# BKP (2120-EAG-3) p> kp: geen planten, kroos, algen, brede watergangen: kP is veel lager dan ditch
+# bijlmer (2210-EAG-1): geen planten, slecht doorzicht veel algen, meer lake-ig dus kP omlaag
+# venserpolder (2280-EAG-1): veel flab en kroos: of grens te hoog of p te laag (p belasting max overnemen)
+# middelpolder west ('2110-EAG-6','2110-EAG-1','2110-EAG-3','2110-EAG-4'): te ondiep in west en zeer voedselrijk, bijna geen planten
+
+#PvskP$PvskPDitch[PvskP$EAG %in% c('2400-EAG-4','2400-EAG-3','2130-EAG-2')] <- '1.3' # belasting niet goed
+PvskP$PvskPDitch[PvskP$GAF %in% c('8050','2110')] <- '1.2' # belasting niet goed
+
+sel2 <- PvskP$EAG %in% c('2210-EAG-1','2120-EAG-3','2280-EAG-1','2110-EAG-6','2110-EAG-1','2110-EAG-3','2110-EAG-4','2500-EAG-6') # max belasting realistischer dan min
+sel <- PvskP$GAF %in% c('6550','2280','2120','6110','2010','2310','6530','2270','2250','8070','8060','8080','8030') # max belasting realistischer dan min
+PvskP$PvskPDitch[sel|sel2] <- PvskP$wp_tot_sum[sel|sel2]/PvskP$kP[sel|sel2]
+PvskP$PvskPDitch[PvskP$EAG %in% c('4200-EAG-2','4200-EAG-3')] <- '0.9'# belasting niet goed
+PvskP$PvskPDitch <- as.numeric(PvskP$PvskPDitch)
+
+
+# watergraafsmeer ('6400'), middelpolder stedelijk('2110-EAG-5','2110-EAG-2'): is bodemzicht, wel voedselrijk maar geen kroos en flab af en toe algen: verwijdering? epifyten: er zit veel orthoP in het water.
+
+# gaasperpolder(2220-EAG-2), BKP (2120-EAG-1, 2120-EAG-2), holenderchter en bullenwijkerpolder(2250-EAG-4): er staan planten, wel voedselrijke soorten en veel algen
+# ster en zodden, bereken kP voor plassen, heel veel algen en voedselrijke soorten waterplanten (cabomba); vergelijkbaar met bovenste blik Naardermeer
+
+# kp HAP, Molenpolder, Loosdrecht zijn troebel dus lage grens: doet het niet
+sel <- PvskP$EAG %in% c('2330-EAG-3','2330-EAG-5','2330-EAG-3','4210-EAG-3','4210-EAG-1','4210-EAG-2','4210-EAG-5','3360-EAG-16','2550-EAG-1')
+sel2 <- PvskP$GAF %in% c('3300','2330')# >1 is te veel
+PvskP$PvskPLake[sel | sel2] <- PvskP$wp_min_sum[sel | sel2]/PvskP$Troebel.naar.helder..mg.P.m2.d.[sel | sel2] 
+
+
+#krw<-
+makePmaps1(PvskP)
+#saveWidget(krw, "PvskP_eag.html", selfcontained = FALSE)
+#webshot("PvskP.html", file = "PvskP.png")
+```
+
+Door verschillende processen kan fosfor vanuit de waterbodem beschikbaar komen in het oppervlaktewater. Dit wordt P-nalevering genoemd. De actuele P-nalevering (datgene wat momenteel vrijkomt) kan worden geschat op basis van metingen van de totaalgehalten van fosfor, ijzer en zwavel in het poriewater van de toplaag van de waterbodem. Een inschatting van de potentiële P-nalevering (datgene wat kan vrijkomen) kan worden gemaakt op basis van metingen van de totaalgehalten van fosfor, ijzer en zwavel in verse bodem (in mg/l natgewicht).  
+
+```{r nalevering, fig.cap = 'Nalevering waterbodem berekend op basis van de in BaggerNut gevonden relaties tussen poriewater, waterbodem en nalevering.', message = FALSE, echo = FALSE, out.width= '100%', fig.align = 'left', fig.show='hold'}
+plotbod(bod)
+```
+
+```{r nalevering2, fig.cap = 'Nalevering waterbodem berekend op basis van de in BaggerNut gevonden relaties tussen poriewater, waterbodem en nalevering.', message = FALSE, echo = FALSE, out.width= '100%', fig.align = 'left', fig.show='hold'}
+bodmap2(bod)
+```
+
+### Belangrijke knelpunten ESF 1 
+
+In veel gebieden is de belasting met fosfor te hoog, bijvoorbeeld omdat ze belast worden met doorstroomwater dat niet nodig is om het water op peil te houden (HAP, SAP), het water dat via percelen in de plassen terecht komt (`t Hol, Botshol, Ster en Zodden) te voedselrijk is of het inlaatwater van onvoldoende kwaliteit is (Spiegelplas, Loosdrecht).
+
+De belangrijkste knelpunten tav fosforbelasting in het beheergebied van AGV zijn:
+
+* veenafbraak door peilverlaging, 
+* lanbouwpraktijk & bemesting,
+* vernatting, 
+* glastuinbouw, 
+* particuliere inlaten en hoogwatervoorzieningen, 
+* foutaansluitingen en falen rioolgemalen in stedelijk gebied, 
+* klimaatdruk (meer neerslag in winter, en veenafbraak door droogte), 
+* regenwater dat van verhard oppervlak afstroomt.
+
+### Maatregelen die ingrijpen op ESF 1
+
+```{r, eval= FALSE, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
+maatregelen$Gebiedspartner <- maatregelen$gebiedspartner..gesprekspartner.bij.financiering..uitvoering.of.beleid.
+maatregelen$SGBPPeriode <- maatregelen$SGBPPeriode.omschrijving
+maatregelen$Initiatiefnemer <- maatregelen$Initiatiefnemer.naam
+
+maatregelen$UitvoeringIn <- ifelse(maatregelen$Plan > 0,'2019-2021', ifelse(maatregelen$Uitvoering+maatregelen$Uitgevoerd > 0,'2006-2019',ifelse(maatregelen$Ingetrokken+maatregelen$Gefaseerd > 0,"niet uitgevoerd",'in voorbereiding')))
+maatregelen$esffrst <- substr(maatregelen$esf,1,4)
+
+# als meerdere esf dan gaat het niet goed: nu eerste de rest in tekst oplossen
+maatregelen2 <- maatregelen[maatregelen$esffrst %in% 'ESF1',]
+maatregelen2 <- maatregelen2[maatregelen2$SGBPPeriode %in% c('SGBP3 2021-2027',"SGBP3 na 2026"),] 
+maatregelen2 <- maatregelen2[,c("WL_naam","Naam","Toelichting")]
+
+maatregelen2%>%
+  group_by(WL_naam)%>%
+  kable(format="html") %>% 
+          kable_styling(full_width = TRUE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "12em", border_right = F) %>%
+          column_spec(3, width = "48em", border_right = F) %>%
+          collapse_rows(columns=1, valign="top")
+```
+
+## ESF 2 Lichtklimaat
+De belangrijkste voorwaarde voor het voorkomen van waterplanten is voldoende licht op de bodem. Door zwevende deeltjes vermindert het doorzicht en de diepte tot waar  licht in het water kan doordringen. Zwevende deeltjes komen in het water door opwerveling van slib (door vis, scheepvaart of wind), algen en kroos, perifyton, afkalvende oevers, afgestorven algen en afbraak van de waterbodem en humuszuren. 
+
+In \@ref(fig:licht) is in rood aangegeven in welke gebieden onvoldoende licht in het water doordringt. In de Loosdrechtse Plassen komt dit door algen en opwerveling van slib door wind, in de Hollands Ankeveense Plas door de aanwezigheid van veel (bodemwoelende) vis en algen en in de grachten van Amsterdam door opwerveling van slib door de scheepvaart. In de Zuiderlegmeerpolder, Molenpolder, Amstel, Ouderkerkerplas, Kortenhoef, Bijlmer, de Zanderijvaarten, IJburg, de Noorder IJplas en Botshol zweven er vooral veel algen in het water. 
+
+```{r licht, fig.cap = 'Lichtklimaat per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+diepteZicht(hybi[hybi$jaar > '2013',])
+#saveWidget(krw, "dieptezicht.html", selfcontained = FALSE)
+#webshot("simoni.html", file = "simoni2.png")
+```
+
+```{r licht2, fig.cap = 'Lichtklimaat obv verticale extinctie per EAG.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+extinctie1(wq[wq$jaar > '2017',], parameter = c('VEC'))
+#saveWidget(krw, "dieptezicht.html", selfcontained = FALSE)
+#webshot("simoni.html", file = "simoni2.png")
+```
+
+### Belangrijke knelpunten ESF 2 
+
+* te veel algen door een te hoge voedselrijkdom (P> kP)
+* te veel korstvormige algen (perifyton). Vaak gaat dit gepaard met hoge concentraties PO4 en een hoge belasting (maar soms korte verblijftijd of hoge bedekking met mossels).
+* opwoeling van de waterbodem door vis en scheepvaart
+* veenafbraak en uitspoeling van humuszuren
+
+### Maatregelen die ingrijpen op ESF 2
+
+```{r, eval= FALSE, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
+maatregelen$Gebiedspartner <- maatregelen$gebiedspartner..gesprekspartner.bij.financiering..uitvoering.of.beleid.
+maatregelen$SGBPPeriode <- maatregelen$SGBPPeriode.omschrijving
+maatregelen$Initiatiefnemer <- maatregelen$Initiatiefnemer.naam
+
+maatregelen$UitvoeringIn <- ifelse(maatregelen$Plan > 0,'2019-2021', ifelse(maatregelen$Uitvoering+maatregelen$Uitgevoerd > 0,'2006-2019',ifelse(maatregelen$Ingetrokken+maatregelen$Gefaseerd > 0,"niet uitgevoerd",'in voorbereiding')))
+maatregelen$esffrst <- substr(maatregelen$esf,1,4)
+
+# als meerdere esf dan gaat het niet goed: nu eerste de rest in tekst oplossen
+maatregelen2 <- maatregelen[maatregelen$esffrst %in% 'ESF2',]
+maatregelen2 <- maatregelen2[,c("WL_naam","SGBPPeriode","Naam","Toelichting","Initiatiefnemer",
+                                "Gebiedspartner","UitvoeringIn")]
+maatregelen2$ESFoordeel <- sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/","2blauw_nummer.jpg", " "))
+
+
+if(nrow(maatregelen2)>0){
+print(
+maatregelen2 %>%
+  group_by(WL_naam)%>%
+  arrange(SGBPPeriode, desc(SGBPPeriode))%>%
+  kable(format="html") %>% 
+          kable_styling(full_width = TRUE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "12em", border_right = F) %>%
+          column_spec(4, width = "24em", border_right = F) %>%
+          collapse_rows(columns=1, valign="top"))
+}
+```
+
+
+
+## ESF 3 Voedselrijkdom waterbodem
+
+Een hoge voedselrijkdom van de waterbodem kan zorgen voor het ontstaan van een woekerende waterplantenvegetatie, bestaande uit algemeen voorkomende soorten. De grenswaarde voor het totaal-P-gehalte van de waterbodem die hiervoor wordt aangehouden bedraagt 500 mgP/kg drooggewicht [@esf123].
+
+```{r Pbodem, fig.cap = 'Totaal fosfor in de waterbodem', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+bodmap(selb)
+```
+
+### Belangrijke knelpunten ESF 3
+In een aantal gebieden vormt een voedselrijk waterbodem een probleem voor ecologisch herstel. In de Vuntus, de Bovenlanden van de kromme Mijdrecht, de Kortenhoefse plassen, de Middelpolder, de Hilversumse Bovenmeent en de Nieuwe Keverdijkse polder vormt de bodem een risico voor woekerende waterplanten.
+
+### Maatregelen die ingrijpen op ESF 3
+
+```{r, eval= FALSE, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
+maatregelen$Gebiedspartner <- maatregelen$gebiedspartner..gesprekspartner.bij.financiering..uitvoering.of.beleid.
+maatregelen$SGBPPeriode <- maatregelen$SGBPPeriode.omschrijving
+maatregelen$Initiatiefnemer <- maatregelen$Initiatiefnemer.naam
+
+maatregelen$UitvoeringIn <- ifelse(maatregelen$Plan > 0,'2019-2021', ifelse(maatregelen$Uitvoering+maatregelen$Uitgevoerd > 0,'2006-2019',ifelse(maatregelen$Ingetrokken+maatregelen$Gefaseerd > 0,"niet uitgevoerd",'in voorbereiding')))
+maatregelen$esffrst <- substr(maatregelen$esf,1,4)
+
+# als meerdere esf dan gaat het niet goed: nu eerste de rest in tekst oplossen
+maatregelen2 <- maatregelen[maatregelen$esffrst %in% 'ESF3',]
+maatregelen2 <- maatregelen2[,c("WL_naam","SGBPPeriode","Naam","Toelichting","Initiatiefnemer",
+                                "Gebiedspartner","UitvoeringIn")]
+maatregelen2$ESFoordeel <- sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/","3blauw_nummer.jpg", " "))
+
+
+if(nrow(maatregelen2)>0){
+print(
+maatregelen2 %>%
+  group_by(WL_naam)%>%
+  arrange(SGBPPeriode, desc(SGBPPeriode))%>%
+  kable(format="html") %>% 
+          kable_styling(full_width = TRUE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "12em", border_right = F) %>%
+          column_spec(4, width = "24em", border_right = F) %>%
+          collapse_rows(columns=1, valign="top"))
+}
+```
+
+## ESF 4 Habitatgeschiktheid
+Of er voldoende geschikt habitat aanwezig is voor een goede ecologische toestand is een zeer breed begrip en kan nooit in zijn geheel worden geanalyseerd. In dit rapport wordt alleen gezocht naar evident beperkende factoren voor de hoeveelheid en samenstelling van de belangrijkste soortgroepen voor de KRW en Natura2000: algen, onderwaterplanten, emerse vegetatie, macrofauna en vis. 
+
+Om de vegetatie te begrijpen is het nodig om naar zowel water als de waterbodem te kijken. Dit geldt niet alleen voor de nutriënten fosfor en stikstof maar vooral ook voor anorganisch koolstof (CO2 en HCO3-) en basen of macroionen. Koolstof wordt daar zelfs de “vergeten nutriënt” genoemd. De beschikbaarheid van koolstof hangt in belangrijke mate samen met de zuurgraad (koolzuur-bicarbonaat evenwicht) en daarmee met de mate van buffering van het water. Productie (groei van algen en waterplanten) en afbraak beïnvloeden de zuurgraad en met de aanvoer van water kunnen koolstof en bufferende stoffen worden aangevoerd. 
+
+Onderwaterplanten en/of algen, consumeren koolstof in de vorm van koolzuur en/of bicarbonaat en produceren hydroxide. Een pH hoger dan acht duidt er op dat alle koolzuur (CO2) door algen en/of planten is geconsumeerd. Een pH die in de zomer hoger is dan in de winter versterkt dat beeld. In figuur \@ref(fig:phEAG) staat de pH op verschillende meetlocaties weergegeven. Over het gehele traject van pH circa 6.5 – 10.5 is bicarbonaat de dominante koolstofvorm. Echter bij een pH hoger dan 8 is kooldioxide (CO2) vrijwel geheel verdwenen en komt koolstof naast bicarbonaat (HCO3-) ook voor in de vorm van carbonaat (CO32-). Dit is van belang voor de vegetatie, bepaalde soorten kunnen alleen CO2 gebruiken (o.a. waterviolier) en planten die goed in staat zijn om bicarbonaat te consumeren (vaak soorten van voedselrijk water) kunnen daardoor beter groeien dan indifferente soorten (zoals de kranswieren).
+
+```{r, phEAG, echo = FALSE, message = FALSE, fig.height=3, fig.width=10.5}
+ph <- wq[wq$fewsparameter %in% c("PH") & wq$datum > "2000-01-01" & wq$meetwaarde < 14 & wq$meetwaarde > 2, ]
+esf4ph(ph, parameter = c('PH'), grens = 8)
+```
+
+Als ook de hoeveelheid bicarbonaat (HCO3) lager is dan de drempelwaarde van 122 mg/l, wijst dat zeker op een hoge productie door onderwaterplanten en/of algen. Dit betekent dat er ook voor de bicarbonaatgebruikers maar weinig koolstof beschikbaar is. In hoeverre dit limiterend is valt lastig te zeggen, planten kunnen ook koolstof uit de bodem halen. Mogelijk speelt koolstof een rol in de beperkte productiviteit van waterplanten. In figuur \@ref(fig:bicarbonaatEAG) staat gemeten bicarbonaat weergegeven. 
+
+```{r, bicarbonaatEAG, echo = FALSE, message = FALSE, fig.height=3, fig.width=7.5}
+hco3 <- wq[wq$fewsparameter %in% c("HCO3-1") & wq$datum > "2000-01-01", ]
+esf4ph(hco3, parameter = c('HCO3-1'), grens = 122)
+```
+
+De aanvoer van basen is in laagveengebieden belangrijk voor de vorming en behoud van goed ontwikkelde verlandingsvegetaties zoals trilvenen. Kwel en perceelswater is in potentie een belangrijke bron van basen, omdat hier calcium- en bicarbonaatrijk water opkwelt. Calciumconcentratie bij de kenmerkende kranswieren voor het habitattype H3140 Kranswierwateren en een hoge biodiversiteit (en EKR score) zijn meestal net iets hoger dan 40 mg/l.  
+
+```{r, calciumEAG, echo = FALSE, message = FALSE, fig.height=3, fig.width=7.5}
+ca <- wq[wq$fewsparameter %in% c("CA-1"), ]
+esf4ph(ca, parameter = c('CA-1'), grens = 40)
+```
+
+#### Maatregelen die ingrijpen op ESF 4
+
+```{r, eval= FALSE, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
+maatregelen$Gebiedspartner <- maatregelen$gebiedspartner..gesprekspartner.bij.financiering..uitvoering.of.beleid.
+maatregelen$SGBPPeriode <- maatregelen$SGBPPeriode.omschrijving
+maatregelen$Initiatiefnemer <- maatregelen$Initiatiefnemer.naam
+
+maatregelen$UitvoeringIn <- ifelse(maatregelen$Plan > 0,'2019-2021', ifelse(maatregelen$Uitvoering+maatregelen$Uitgevoerd > 0,'2006-2019',ifelse(maatregelen$Ingetrokken+maatregelen$Gefaseerd > 0,"niet uitgevoerd",'in voorbereiding')))
+maatregelen$esffrst <- substr(maatregelen$esf,1,4)
+
+# als meerdere esf dan gaat het niet goed: nu eerste de rest in tekst oplossen
+maatregelen2 <- maatregelen[maatregelen$esffrst %in% 'ESF4',]
+maatregelen2 <- maatregelen2[,c("WL_naam","SGBPPeriode","Naam","Toelichting","Initiatiefnemer",
+                                "Gebiedspartner","UitvoeringIn")]
+maatregelen2$ESFoordeel <- sprintf("![esficon](%s)", paste0("C:/Users/moria02/Waternet Amsterdam/Schoon water - Intern/Stand van zake waterkwaliteit/R/factsheets/esf/","4blauw_nummer.jpg", " "))
+
+
+if(nrow(maatregelen2)>0){
+print(
+maatregelen2 %>%
+  group_by(ESFoordeel)%>%
+  arrange(SGBPPeriode, desc(SGBPPeriode))%>%
+  arrange(ESFoordeel, desc(ESFoordeel))%>%
+  kable(format="html") %>% 
+          kable_styling(full_width=FALSE) %>% 
+          column_spec(1, border_right = F) %>%
+          column_spec(2, width = "12em", border_right = F)%>%
+          collapse_rows(columns=1, valign="top"))
+}
+```
+
+## ESF 8 Toxiciteit
+Bepaalde stoffen in het watersysteem kunnen een giftig effect hebben op de aanwezige planten en dieren. Het gaat hierbij om zware metalen, pesticiden, herbiciden, medicijnresten en andere microverontreinigingen. Het effect van deze verontreinigingen hangt onder meer af van de plaats waar de stoffen zich in het systeem bevinden en van de vorm waarin ze voorkomen. De gevoeligheid van soorten voor verontreiniging verschilt.
+
+In het beheergebied van AGV zijn risicogebieden voor toxische druk aangewezen op basis van grondgebruik (glastuinbouw en akkerbouw), aanwezigheid van (oude) havens, (oude) gasfabrieken, (oude) grote industrieën, vuilstorten, begraafplaatsen en bodemsaneringslocaties. In deze gebieden wordt gemeten of er een risico van toxische druk voor de ecologie kan zijn. Dit risico wordt bepaald op basis van een combinatie van snelwerkende (acute) toxiciteit en de effecten na langdurige blootstelling (chronische toxiciteit). 
+
+```{r toxiciteit, fig.cap = 'Simoni score op meetpunten gemeten in 2016 t/m 2018. Locaties nabij RWZI`s zijn met grotere symbolen weergegeven.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#simoni1<-
+toxiciteit(simoni)
+#saveWidget(simoni1, "simoni.html", selfcontained = FALSE)
+#webshot("simoni.html", file = "simoni.png")
+```
+
+In \@ref(fig:toxiciteit) is te zien dat de hoogste risico’s aanwezig zijn in de glastuinbouwgebieden van de Noorder en Zuider Legmeerpolder, in de oude haven van Hilversum, een haven in Loosdrecht, langs de A2, bij bodemsaneringslocaties in Amsterdam en de bij riooloverstorten in Bussum, Breukelen, Amstelveen en Huizen. In de Amstel en de Vecht zijn in de droge zomer van 2018 geen hoge toxicische risico`s voor het watermilieu gevonden. 
+
+```{r toxiciteit2, fig.cap = 'Simoni score op meetpunten gemeten in 2016 t/m 2018', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#simoni2 <-
+toxiciteit2(simoni)
+#saveWidget(simoni2, "simoni2.html", selfcontained = FALSE)
+#webshot("simoni.html", file = "simoni2.png")
+```
+
+Er is bekend dat macrofauna gevoelig is voor veel toxische stoffen, zoals gewasbeschermingsmiddelen. Bij een analyse van de relatie tussen macrofauna en drukken in het systeem blijkt macrofauna vooral te worden beinvloed door de aanwezigheid van vegetatie en scoort macrofauna in geen enkel waterlichaam onvoldoende op verdenking van een toxische druk alleen.
+
+# ESF versus toestand
+
+In \@ref(fig:ESFvsT) kunnen verschillende relaties in beeld worden gebracht door de parameters te kiezen die op de x en y as tegen elkaar worden uitgezet.
+Er wordt gekeken naar:
+
+- KRW toetsresultaten waarbij een gemiddelde is genomen van de laatste 3 meetjaren tussen 2006 en 2018
+- Gegevens hydrobiologie waarbij een mediaan is genomen van meetlocaties binnen een EAG en een gemiddelde van de laatste 3 meetjaren tussen 2006 en 2018
+- Fysisch chemische data waarbij een gemiddelde is genomen van de laatste 3 meetjaren
+- Bodemchemische data waarvan een mediaan is genomen van meetlocaties binnen een EAG. Er zijn in verschillende EAG`s monsters beschikbaar uit 2013-2018 gedurende 1 meetjaar.
+- Gegevens uit de water- en stoffenbalansen. Gemiddelde van de 96 tot einde balans.
+
+```{r matrix, include=FALSE, message=FALSE, warning=FALSE, echo = FALSE}
+# matrix5 <- makeMatrix(EKRset, bod, wq, hybi, dat)
+# load data
+matrix5 <- readRDS('../matrix/matrix.rds')
+```
+
+```{r subwatdte,echo = FALSE, fig.cap='Relatie submerse bedekking en waterdiepte.', message=FALSE, warning=FALSE}
+diepteVegetatie(hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE'))
+```
+
+```{r m8, fig.cap= "relatie tussen ESF1 variablen in EAGs met watertype M8", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora","bedsubmers","CHLFA_ug/l", "PvskPDitch","wp_min_sum","nlvrFW","P_P_mg/l")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF2 variablen in EAGs met watertype M8",  message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora","bedsubmers","PO4_nf_P_mg/l","dieptedoorzicht")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF3 variablen in EAGs met watertype M8", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora","bedsubmers","Ptot_gP/kg_dg_BS")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF4 variablen in EAGs met watertype M8", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Bedekking Emerse planten_Maatlatten2018 Ov. waterflora","bedemers","taludhoek","CA-1_nf_mg/l","HCO3-1_nf_HCO3_mg/l","Soortensamenstelling macrofyten Hydrofyten_Maatlatten2018 Ov. waterflora")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M8',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen ESF1 variablen in EAGs met watertype M27", message=FALSE, warning=FALSE, echo = FALSE}
+matrixset <- matrix5[,c("EAG","KRWwatertype.code.y","Soortensamenstelling macrofyten _Maatlatten2018 Ov. waterflora","bedsubmers","CHLFA_ug/l", "PvskPDitch","wp_min_sum","nlvrFW")]
+matrixM8 <- matrixset[matrixset$KRWwatertype.code.y %in% 'M27',]
+nums <- unlist(lapply(matrixM8, is.numeric))  
+matrixM8 <- matrixM8[ , nums]
+pairs(matrixM8)
+```
+
+```{r, fig.cap= "relatie tussen submerse bedekking en waterbodem", message=FALSE, warning=FALSE, echo = FALSE}
+ p<- ggplot(matrix5, aes(x= `Ptot_gP/kg_dg_BS`, y= bedsubmers, col = KRWwatertype.code.y, 
+                        text = sprintf(EAG)))+
+    geom_jitter() +
+    scale_x_continuous(breaks = c(0,0.1,0.2,0.3,0.4,0.5,1,1.5,2.0,2.5,3.0))+
+    #facet_grid(~jaar, scales = 'free')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 5, angle=90,hjust=1),
+      axis.text.y = element_text(size= 5, hjust=2),
+      axis.ticks =  element_line(colour = "black"), 
+      panel.background = element_blank(), 
+      plot.background = element_blank()
+    )+
+    ggtitle(paste0("Gemiddeld fosfor versus bedekking onderwaterplanten")) +
+    labs(x= 'totaal-fosfor waterbodem' , y= 'submerse bedekking')
+  
+  ggplotly(p=p)
+  
+```
+
+* Relatie submerse bedekking en voedselrijkdom waterbodem: Er is te zien dat we een te lage grenswaarde hanteren voor totaal P in de waterbodem. Bij Pmg/kgdg > 1300 worden nog steeds hoge EKRs gemeten (dit is wel op het niveau van EAG, aangenomen dat er geen grote heterogeniteit binnen een EAG bestaat in bodem en vegetatie), er wel een relatie tussen totaal fosfor en sulfide (een maat voor veel zuurstofvraag en afbraak) in de waterbodem en EKR scores. Vooral in wateren met watertype M10.
+* Relatie submerse bedekking en lichtklimaat: Er is te zien dat scores pas groter worden dan 0.4 in lijnvormig water bij een doorzicht/diepte- ratio > 0.6
+* Relatie soortenrijkdom en bedekking en P belasting: Er is te zien dat er in sloten ekr scores op de soortenmaatlat vegetatie > 0.6 worden berekend bij PvskP <2,  dat er in meren ekr scores op de soortenmaatlat vegetatie > 0.6 worden berekend bij PvskP <1, dat er geen relatie bestaat tussen berekende nalevering per EAG en EKR scores per EAG. Alleen in sloten is wel een relatie te zien 
+* Relatie emerse bedekking en beschoeiing: Er is te zien dat er hogere EKR scores worden gemeten bij oevers zonder beschoeiing (14), dan met beschoeiing. Behalve in watertype M20
+* Relatie slibdikte en soortensamenstelling vegetatie: Er is te zien dat er bij een slibdikte > 20 cm nooit hoge scores (>0.5) worden bepaald
+
+# Wat is er nodig om doelen te halen en de achteruitgang te stoppen?
+
+In het document waterkwaliteit in beeld staan de gebieden benoemd waar sprake is van van achteruitgang of waar we onze doelen niet halen. In een behoorlijk aantal van deze gebieden zijn maatregelen gepland of in uitvoering. 
+
+In veel waterlichamen waar we onze doelen niet halen zijn nu nog maatregelen in uitvoering of net uitgevoerd. Hiervan wordt in de nabije toekomst een positief effect verwacht. Hiermee zal de ecologische kwaliteit in de Loosdrechtse plassen, de Amstel en de Molenpolder en tienhoven verbeteren. Ook zijn er in de komende planperiode een aantal maatregelen gepland, waarmee de ecologische kwaliteit in de Amstellandboezem, Vecht, het Stergebied bij Loosdrecht, de Loosdrechtse plassen, Hollands en Stichts Ankeveense plassen, de Spiegelplas, Molenpolder en Tienhoven, het Naardermeer en de Kortenhoefse plassen (verder) zal verbeteren.
+
+In een aantal gebieden is dit niet genoeg, zijn er ontwikkelingen die gemitigeerd moeten worden (denk aan vernatting en vaarrecreatie) of zijn er geen gerichte maatregelen gepland. Er is dus noodzaak om instumenten als agrarisch waterbeheer, subsidies, handhaving, keurregels en omgevingsvisies effectiever in te zetten en aanvullende (KRW)maatregelen te nemen.
+
+Hieronder staan verschillende potentieel effectieve maatregelen verder uitgewerkt:
+
+*	‘Goede waterbeheerpraktijk’. Dit is in feite een uitwerking van de strategische uitgangspunten: 
+    *	bij watertekort water van goede kwaliteit op de goede plek krijgen, zodat de wateraanvoer strookt met daar geldende      doelen; Dit is opnieuw van groot belang bij droogte 2019.
+    *	de integrale aanpak bij het uitvoeren van onderhoud (dijkreconstructie en baggerwerk). ; 
+    * vernattingsgebieden: van groot belang dat we regie houden op peilen, effecten monitoren, evalueren en bijsturen waar nodig.
+    * recreatievaart
+    * Gezamelijke fact finding: Studieclub Noorderpark, BKP, BBO? 
+    * Geen nieuwe prive inlaten meer en afsluiters plaatsen op bestaande inlaten. Communicatiecampagne?
+    * Verbeteren opsporen lozingen vanuit glastuinbouw
+    * Voorkomen dat verduisterende objecten het lichtklimaat voor waterplanten beperken.
+    * grondwaterontrekkingen in en rond gebieden die afhankelijk zijn van kwel minimaliseren
+    * Handhaven op waterdiepte
+
+* Goede zuiveringsbeheerpraktijk
+    * Verbeterde operationele sturing op rendement en efficientie objecten, een frequentere evaluatie van defos Naardermeer, Vinkeveen en Botshol. 
+    * het aantal uitwisselingspunten tussen de waterketen en gevoelige wateren minimaliseren
+    
+*	‘Goede landbouwpraktijk’. Dit is gericht op het zo effectief mogelijk beperken van meststofverliezen door een goede bedrijfsvoering in de landbouw.
+    * glastuinbouw: versterken samenwerking met sector en intern met handhaving bij het opsporen lozingen en handhaving
+    * watergangen op diepte brengen is in het landelijk gebied een van de belangrijkste stuurknoppen. Bijkomend voordeel is dat BKG emissies lager worden: verstereken samenwerking met de omgeving 
+    
+*	‘Goede praktijk van stedelijk waterbeheer’. Dit is gericht op het zo effectief mogelijk beperken van verliezen v an stedelijk afvalwater naar het oppervlaktewater. Samenwerking tussen waterschap en gemeenten is hierbij van groot belang;    
+    * foutaansluitingen: versterken samenwerking met gemeente bij het opsporen lozingen en handhaving
+    * Afvoer van regenwaterstelsels
+
+# Methoden
+
+## ESF-en
+Om realistische doelen en maatregelen in beeld te brengen is inzicht nodig in de factoren die de ontwikkelingen in de huidige ecologische toestand bepalen. Dit kan met behulp van ecologische sleutelfactoren op een gestructureerde, eenduidige en navolgbare wijze. Het doel van de systeemanalyse aan de hand van sleutelfactoren is om te begrijpen waardoor de ecologische toestand, die we in het veld waarnemen, veroorzaakt wordt [@esf]. 
+
+Het raamwerk van de ecologische Sleutelfactoren helpt om inzicht te krijgen in het ecologisch functioneren van een watersysteem en biedt een kapstok voor het uitvoeren van een gestructureerde watersysteemanalyse. De methodiek bestaat uit acht ecologische sleutelfactoren; iedere sleutelfactor beschrijft een voorwaarde voor een goede kwaliteit. Hierbij geldt een toestand met helder plantenrijk water, met een hoge biodiversiteit als streefbeeld.
+
+Voor een goede waterkwaliteit is het allereerst noodzakelijk dat ondergedoken waterplanten tot ontwikkeling kunnen komen. Hier gaan de eerste 3 sleutelfactoren over. Het belangrijkste is dat de externe nutriëntenbelasting niet zo hoog is dat algen of kroos dominant worden (ESF 1). Ten tweede is het belangrijk dat er geen andere factoren zijn die het lichtklimaat negatief beïnvloeden, zoals veel kleideeltjes of humuszuren (ESF 2). Ten derde is het voor de ontwikkeling van een soortenrijke submerse vegetatie van belang dat de bodem niet teveel nutriënten bevat (ESF 3). De ecologische sleutelfactoren 4, 5 en 6 zijn bepalend voor de aanwezigheid van specifieke soorten of levensgemeenschappen. ESF 7 en 8 zijn alleen belangrijk in specifieke situaties. ESF 9 gaat over de belangenafweging op een hoger niveau. Dit is geen onderdeel van deze waterkwaliteitsanalyse.
+
+In de komende paragrafen staan analyses van hoe de acht verschillende ESF`s invloed kunnen hebben op de Overige Waterflora. Deze analyse leveren de nodige ecologische kennis in de vorm van ESF-indicatoren, rekenregels voor de doelafleiding plus bijbehorende grenswaarden. 
+
+### Waterdiepte
+
+*Relatie submerse bedekking en waterdiepte; bij 35 cm waterdiepte worden de hoogste EKR scores zijn gevonden in sloten.*
+
+### ESF 1
+
+*grafiek toevoegen met de relatie p-totaal en waterplanten*
+Deze worden gebruikt voor rekenregel doelafleiding: EKR-score is onafhankelijke variabele. Afhankelijk is PO4 log getransformeerd en de bedekking submers.
+
+### ESF 2
+Indicatie van veel perifyton: *grafiek toevoegen met PO4 en soortensamenstelling* 
+
+### ESF 3
+
+### ESF 4
+
+```{r koolstof, fig.cap = 'Relatie koolstof en Krabbenscheer', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+plotkoolstoftax(hybi, taxa = 'Stratiotes aloides')
+```
+
+```{r koolstof2, fig.cap = 'Relatie koolstof en Waterviolier', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+plotkoolstoftax(hybi, taxa = 'Hottonia palustris')
+```
+
+```{r taxabase, fig.cap = 'Relatie basenhuishouding en taxa vegetatie', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#c('HCO3','HCO3-1','CA-1','CL','SO4')
+plotbasen(hybi, wq, param = 'CA-1', grens = 40)
+plotbasen(hybi, wq, param = 'SO4', grens = 100)
+plotbasen(hybi, wq, param = 'HCO3-1', grens = 120)
+plotbasen(hybi, wq, param = 'CL', grens = 100)
+```
+
