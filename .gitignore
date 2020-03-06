@@ -6,7 +6,7 @@
 /development/*
 /atlasKRW/*
 /atlasESF/output/*
-factsheets/output/*.docx
+factsheets/**/*.docx
 factsheets/output/*.html
 factsheets/output/*.png
 /rsconnect/*
