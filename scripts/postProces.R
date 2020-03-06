@@ -66,26 +66,20 @@ dfGAF <- function(x){
 
 #x = meetpuntenAquo; y = meetpuntenGebied; z = EKRlijst
 kopDat <- function(x , y , z){
-  x$locatie<- substr(x$Identificatie,1,6)
+  x <- x%>%as.data.table()
+  x[,locatie := sapply(strsplit(Identificatie, '_'), `[`, 1)]
   #checkloc <- x[!(x$locatie %in% y$CODE),] # check locaties die niet gekoppeld zijn aan EAG
   x$locatie[!(x$locatie %in% y$CODE)] <- x$Identificatie[!(x$locatie %in% y$CODE)]
-  x <- unique(x[ ,c('Identificatie','KRWwatertype.code','HoortBijGeoobject.identificatie','Wegingsfactor','locatie')])
+  x <- unique(x[ ,c('Identificatie','HoortBijGeoobject.identificatie','Wegingsfactor','locatie')])
   x<- x[!is.na(x$Identificatie),]
   # check <- table(x$Identificatie)
   # check <- as.data.frame(check)
-  loc <- merge(y, x, by.x = 'CODE', by.y='locatie', all.x = FALSE, all.y = TRUE) 
+  loc <- merge(y[,c('CODE','EAGIDENT','OWMIDENT')], x, by.x = 'CODE', by.y='locatie', all.x = FALSE, all.y = TRUE) 
   loc <- loc[!is.na(loc$Identificatie),]
-  z <- merge(loc, z, by.x = 'Identificatie', by.y = 'Meetobject.lokaalID', all.x = FALSE, all.y = TRUE)
-  
+  z <- merge(loc[,c('CODE','EAGIDENT','OWMIDENT','Identificatie','HoortBijGeoobject.identificatie')], z, by.x = 'Identificatie', by.y = 'Meetobject.lokaalID', all.x = FALSE, all.y = TRUE)
+  z <- z%>%as.data.table()
+  #toevoegen unieke ID voor geaggregeerde toetsing
   z$HoortBijGeoobject.identificatie[is.na(z$HoortBijGeoobject.identificatie)] <- z$Identificatie[is.na(z$HoortBijGeoobject.identificatie)]
-  return(z)
-}
-
-#x = doelen; z = EKRlijst
-kopDat2 <- function(x ,z){
-  z$GebiedMaatlat <- paste0(z$HoortBijGeoobject.identificatie,z$Grootheid.code)
-  x <- unique(x[ ,c('GebiedMaatlat','Doel','bronddoel','HandelingsperspectiefWBP')])
-  z <- merge(x, z, by = 'GebiedMaatlat', all.x = FALSE, all.y = TRUE)
   return(z)
 }
 
