@@ -1,0 +1,172 @@
+\documentclass[12pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage[a3paper]{geometry}
+\usepackage[poster]{tcolorbox}
+\usepackage{graphicx}
+\usepackage{graphbox}
+\usepackage[export]{adjustbox}
+\usepackage{array}
+\pagestyle{empty}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+% LOAD RELEVANT DATA AND SIMPLIFY REFERENCES
+% https://kbroman.org/knitr_knutshell/pages/latex.html
+
+
+ 
+% PREPARE PLOTS (https://yihui.org/knitr/options/#plots)
+ 
+
+
+
+               
+
+
+  \begin{tcbposter}[
+    coverage = {spread, interior style={top color=white, bottom color=white}},
+    poster = {showframe=false,columns=8,rows=6},
+    boxes = {
+    enhanced standard jigsaw,sharp corners=downhill,arc=3mm,boxrule=1mm,
+    colback=white,opacityback=1,colframe=blue,
+    title style={left color=blue,right color=cyan},
+    fonttitle=\bfseries\scshape,
+  }
+  ]
+  
+  % Add the top row with title
+  \posterbox[blankest,interior engine=path,height=2cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=8,below=top}{\resizebox{26cm}{!}{\bfseries Vinkeveense plassen}}
+
+ % add frame for beschrijving gebied en watersysteem
+  \posterbox[adjusted title=Beschrijving van het gebied en watersysteem op hoofdlijnen]{
+    name=gb,column=1,span=8,below=title}{
+    
+  % reduce size of the font
+  \fontsize{9}{10.8}\selectfont
+  
+  % add descriptive text for this water body
+Het waterlichaam Vinkeveense plassen NL11-3-4 heeft watertype "Matig grote diepe gebufferde meren (M20)" en bestaat uit de deelgebieden: 2500-EAG-3 (Polder Groot Wilnis Vinkeveen, Kleine plas), 2500-EAG-4 (Polder Groot Wilnis Vinkeveen, Zuidplas), 2500-EAG-5 (Polder Groot Wilnis Vinkeveen, Noordplas). \\  De Vinkeveense plassen is een gebied met sloten en legakkers die overlopen in plassen, in een karakteristieke waaiervorm, in de gemeente De Ronde Venen. Ze zijn ontstaan door veenwinning, in de periode 1950-1975. De Vinkeveense plassen bestaan uit een noordelijke en een zuidelijke plas, gescheiden door de Baambrugse Zuwe. De provinciale weg N201 scheidt de zuidelijke plas in twee delen (Zuidplas en Kleine plas). De drie plassen vormen één oppervlaktewater-systeem en zijn onderling op meerdere plekken verbonden. De plassen grenzen aan Botshol. Soms wordt water ingelaten vanuit de Vinkeveense plassen naar Botshol.Na de oorlog was er grote behoefte aan zand en is in de Noordplas zand gewonnen tot ca. 50 meter diep. Om het omliggende land te beschermen tegen de golfslag werden zandeilanden aangelegd. Deze worden (nog steeds) gebruikt voor (dag)recreatie. Het Recreatieschap de Vinkeveense plassen beheert de plassen.De Vinkeveense plassen liggen in de polder Groot-Wilnis Vinkeveen Noord en maken onderdeel uit van de Vinkeveenboezem, die als tussenboezem functioneert in het gehele gebied de Ronde Venen. De relatief hooggelegen boezem en de gebieden met min of meer het tussenboezempeil (de bovenlanden, veenweiden en petgaten/plassen) hebben een sterk infiltrerend karakter. De plassen liggen ca. 4 meter hoger dan de naastliggende polder Groot Mijdrecht. De laaggelegen droogmakerijen zijn overwegend kwelgebieden. Door de lage weerstand van de bodem is de omvang van infiltratie uit de Vinkeveense plassen naar Groot Mijdrecht  aanzienlijk. Behalve water uit de direct omringende gebieden kwelt in polder Groot Mijdrecht ook water op dat op de Utrechtse Heuvelrug is geïnfiltreerd. Als gevolg van de infiltratie hebben de hoger gelegen gebieden (waaronder de plassen) vaak een watertekort, vooral in de zomerperiode, waardoor de toevoer van water noodzakelijk is. Het toegevoerde water is veelal afkomstig van het Amsterdam-Rijnkanaal. Het wateroverschot uit polder Wilnis-Veldzijde stroomt in perioden van waterbehoefte ook naar de Vinkeveense plassen. Het inlaatwater dat nodig is voor peilbeheer van de Vinkeveense plassen wordt gedefosfateerd. Onze gebiedspartners zijn provincie Utrecht en gemeente(n) De Ronde Venen. Het waterlichaam Vinkeveense plassen heeft de status Natuur Netwerk Nederland (NNN) en is in eigendom van Recreatie Midden Nederland.}
+   
+  % add frame for figuur Ecosysteem in beeld 
+  \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gb}{
+  %\centering \includegraphics[height = 4cm,keepaspectratio]{as.character(out$ESTnaam)}
+  }
+
+ % add frame for figuur Ligging waterlichaam (if not saved earlier, use: routput/figure/plot_wlligging-1.pdf)
+  \posterbox[adjusted title=Ligging waterlichaam,height = 6cm,valign=center]{name=fig2,column=3,span=2,below=gb}{
+     \centering \includegraphics[height = 4cm,keepaspectratio]{routput/Vinkeveenseplassen/mapEAG.png}
+  }
+  
+  % add frame plot Ligging deelgebieden (if not saved earlier, use: routput/figure/plot_deelgebiedligging-1.pdf)
+  \posterbox[adjusted title=Ligging deelgebieden,height = 6cm,valign=center]{name=fig3,column=5,span=2,below=gb}{
+    \centering \includegraphics[height = 4cm,keepaspectratio]{routput/Vinkeveenseplassen/mapDEELGEBIED.png}
+  }
+
+  % add frame for figuur EKR score huidige toestand (routput/figure/plot_ekrtoestand-1.pdf)
+  \posterbox[adjusted title=Huidige toestand,height = 6cm,valign=center]{name=fig4,column=7,span=2,below=gb}{
+    \centering
+    \includegraphics[height = 3.5cm,keepaspectratio]{routput/Vinkeveenseplassen/mapEKR.png}
+  }
+
+ %add reference methodology information in the bottom
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=8,above=bottom}{
+  
+   % reduce size of the font
+  \fontsize{8}{9.6}\selectfont Auteur: laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en Evaluatie maatregelen tussenboezem Vinkeveen (2017), MER-rapport Plassengebied gemeente De Ronde Venen (2017).
+    }  
+  
+  % add frame for the ESF tabel plus explanation
+  \posterbox[adjusted title=Ecologische Sleutelfactoren]{name=esf,column=1,span=8,above=ref}{
+  
+  % reduce size of the font
+  \fontsize{9}{10.8}\selectfont
+  
+  % top strut
+  \newcommand\T{\rule{0pt}{0.5cm}}
+  
+  % start table over the widt of the page
+  \noindent\begin{tabular}{p{0.05\textwidth}m{0.9\textwidth}}
+  
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/1oranjenummer.jpg} & Productiviteit water is nu goed, maar staat onder druk. Chlorofyl-A concentraties  (algen) liggen praktisch altijd onder de detectiegrens. Alleen in de kleine plas zijn nog algenbloeien te meten. In 2018 zijn dit blauwalgen. In de jaren hiervoor lijken het vooral minder schadelijke diatomeeën. In de kleine plas is de fosforbelasting nog te hoog, vanwege de grote hoeveelheid ""doorstroomwater"" dat via de kleine plas wordt afgevoerd naar gemaal de Ruiter. De Vinkeveense plassen zijn erg gevoelig voor een kleine verhoging in de fosforbelasting, dus (illegale) lozing van ongezuiverd afvalwater zijn een risico voor de waterkwaliteit in de plas. \\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/2groennummer.jpg} & Lichtklimaat vormt geen probleem. Er valt in een groot deel van het areaal tot 7 meter diep voldoende licht op de bodem. In de kleine plas is er lokaal onvoldoende licht door algen in combinatie met grote waterdiepte.\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/3groennummer.jpg} & Productiviteit bodem vormt geen probleem. Lokaal is er wel hoge bedekking van bronmos. Het grootste areaal van de plassen heeft een matig voedselrijke waterbodem (800 mg/kgdg). Alleen lokaal in het westen is er sprake van een mogelijk voedselrijke waterbodem.\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/4roodnummer.jpg} & Habitatgeschiktheid vormt een probleem. De bedekking met oever- en emerse planten is laag in de Zuid- en Kleine plas en de plassen hebben slechts een klein areaal tussen 0 en 1 meter waterdiepte, waar emerse vegetatie zich goed kan ontwikkelen. Schaduw door bomen, het type beschoeiing en afkalving van oevers in combinatie met een zeer beperkt ondiep areaal beperkt de ontwikkeling van emerse vegetatie (riet, egelskop). Het dumpen van tuinafval en makkelijk afbreekbare soorten hout in de oevers van de legakkers vormt een risico. Soms gebeurt dit met de bedoeling om afslag tegen te gaan.\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/5roodnummer.jpg} & Verspreiding vormt een probleem. Kwabaal komt voor in Vinkeveen. Voor kwabaal is het van belang dat er voldoende verbinding is tussen ondiep water in de tussenboezem en het diepe water van de plas. Voor de paling vormt gemaal de Ruijter een migratieknelpunt.\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/6oranjenummer.jpg} & Verwijdering vormt mogelijk een probleem. Vraat door ganzen kan een mogelijk knelpunt vormen voor de ontwikkeling van oevervegetatie.\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/7oranjenummer.jpg} & Organische belasting vormt mogelijk lokaal een probleem. Er zijn geen overstorten, maar wel illegale lozingen, lozingen vanuit vaarrecreatie en er wordt organisch materiaal (aarde, snoeiafval en bomen) gebruikt voor legakker- en oeverherstel. Ook staan er veel bomen rond de plas waarvan het blad in het water valt. Er is wel voldoende zuurstof nabij de waterbodem.\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{esf/8groennummer.jpg} & Toxiciteit vormt geen probleem.\\
+  \end{tabular}
+  }
+
+   % add frame for Ecologische Analyse op hoofdlijnen
+  \posterbox[adjusted title=Ecologische Analyse of Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
+  
+  % reduce size of the font
+  \fontsize{9}{10.8}\selectfont
+  
+  % add text voor de doelen
+    \textbf{Doel: } Het KRW-doel is het realiseren van een goede ecologische toestand voor Matig grote diepe gebufferde meren (M20), met scores voor fytoplankton, macrofauna, waterflora en vis in het groen. \\
+    
+    % huidige toestand vergeleken met doel
+    \textbf{De huidige toestand: } matig\\
+    De toestand in Vinkeveense plassen (zwarte lijnen in de figuur hierboven) is matig. Het slechts scorende biologische kwaliteitselement is Ov. waterflora. De slechts scorende deelmaatlat van dit kwaliteitselement is Soortensamenstelling macrofyten.  De waterkwaliteit van de Vinkeveense plassen is sterk vooruitgegaan sinds de dorpen Vinkeveen en Wilnis vanaf 1979 niet meer hun afvalwater ongezuiverd lozen op de plassen en er een defosfateringsinstallatie is gebouwd. Zowel in de Noord- als Zuidplas is dat te merken aan de sterke toename van kranswieren, fonteinkruiden, bronmos en twee zeldzame licht brakwatersoorten: gesteelde zannichellia en snavelruppia. Ook de macrofauna neemt toe in soortenrijkdom. In de Kleine plas zijn bloeien er minder vaak blauwalgen. De bijzondere natuurwaarden zijn met name gebonden aan het water en niet zozeer aan het land. De waterkwaliteit is de bepalende factor voor de natuurwaarden. De omstandigheden op de plassen zijn dusdanig goed (goed doorzicht, lage nutriënten belasting) dat karakteristieke kranswiersoorten tot ontwikkeling kunnen komen. Op enkele plaatsen is ook moerasvegetatie aanwezig. Het heldere, vrij voedselarme water maakt ook dat enkele bijzondere vissoorten voorkomen in de Vinkeveense plassen, zoals de kwabaal. Daarnaast foerageren er in de winter diverse soorten duikeenden en broeden er Krooneenden. Beide foerageren met name op de kranswieren.\\
+
+    % add oorzaken
+    \textbf{Oorzaken:} De waterkwaliteit van de Vinkeveense plassen is over het geheel genomen goed. De kwaliteit wordt beïnvloed door inlaat van gebiedsvreemd water (water afkomstig vanuit het Amsterdam-Rijnkanaal), lozingen op de plas en belasting vanuit omliggende (landbouw)gebieden. De plassen liggen ca. 4 meter hoger dan de naastliggende polder Groot Mijdrecht. Als gevolg van de sterke wegzijging naar de polder Groot Mijdrecht zouden in een droge periode de plassen verdrogen indien er geen water van extern wordt aangevoerd. Deze extra aanvoer zorgt ook voor een extra fosfaatbelasting van de plassen. Defosfatering van dit inlaatwater is een effectieve maatregel om de extra fosfaatbelasting als gevolg van de wegzijging naar de Polder Groot Mijdrecht te compenseren. Medio 2008 is een defosfateringsinstallatie gerealiseerd achter de Demmerik om de fosfaatbelasting van de plassen terug te dringen. De fosfaatbelasting gaat de goede kant op, maar extra belasting kan dit evenwicht eenvoudig verstoren. Intensiever recreatief gebruik (los van eventuele ontwikkelmogelijkheden) brengt ook het risico van extra lozingen op de plassen met zich mee.\\
+    
+    % add Maatregelen op hoofdlijnen
+    \textbf{Maatregelen:} De maatregelen zijn gericht op het verder verminderen van de fosforbelasting, bijvoorbeeld door het optimaliseren van waterstromen en de defosfateringsinstallatie. Daarnaast zijn er maatregelen gericht op verbeteren van de habitatomstandigheden, zoals aanleg van natuurvriendelijke oevers, en maatregelen gericht op het verminderen van de impact van recreatie.\\
+  }
+  
+  \end{tcbposter}
+  
+\end{document}
