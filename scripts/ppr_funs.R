@@ -37,7 +37,6 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   # remove columns with no data or non-relevant information (judgement gerard)
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
   cols <- c(cols,'watertype','EAGIDENT','monsternemer','planvanaanpak','analist',
-
             'bron','bemonsteringsprotocol','analyseprotocol','analysecode','locatie.referentievlakzcoord',
             'locatie.meetprogrammahistorie','locatie.meetprogrammaactueel','locatie.meetnethistorie',
             'locatie.meetnetactueel','opmerkingmeting','externereferentie','veldapparaat')
