@@ -6,9 +6,9 @@
 /development/*
 /atlasKRW/*
 /atlasESF/output/*
-/factsheets/output/*.docx
-/factsheets/output/*.html
-/factsheets/output/*.png
+factsheets/output/*.docx
+factsheets/output/*.html
+factsheets/output/*.png
 /rsconnect/*
 /toxiciteit/docs/*
 /matrix/_book/*
