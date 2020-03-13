@@ -87,7 +87,7 @@ eval_EKR <- function(id,GHPR,EKR,doelen) {
 }
 
 # estimate waterbalans fluxes per EAG
-calc_mean_wb <- function(db,){
+calc_mean_wb <- function(db){
   
   
   

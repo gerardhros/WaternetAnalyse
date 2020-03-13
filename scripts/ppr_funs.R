@@ -16,6 +16,7 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   # adapt few properties
   db[, datum := as.Date(datum, format = "%Y-%m-%d %H:%M")]
   db[, jaar := year(datum)]
+  db[,meetwaarde := as.numeric(meetwaarde)]
   db[limietsymbool == '<', meetwaarde := meetwaarde * 0.5]
   db[fewsparameter == 'WATDTE_m' & jaar == 2006 & planvanaanpak == 'PVA MAFY LIJN 2006 WP', meetwaarde := meetwaarde * 0.1]
   
@@ -272,3 +273,71 @@ ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
   # return file names of water balances that can be read in
   return(files)
 }
+
+# read in the lastest data from ESF oordelen
+ppr_esf_oordeel <- function(){
+  
+  # select the latest file with ESF oordelen
+  fname <- list.files('data')
+  fname <- sort(fname[grepl('^esfKRW',fname)],decreasing = TRUE)[1]
+  
+  # read ESF oordelen
+  d1 <- fread(paste0('data/',fname)) 
+  
+  # which colnames are character
+  cols <- colnames(d1)[sapply(d1, is.character)]
+  
+  # trim character columns from starting and ending space
+  d1[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
+  
+  # hier later ook eags of gafs aan toevoegen
+  
+  # return ESF oordelen
+  return(d1)
+  
+}
+
+# read in the lastest data from maatregelen
+ppr_maatregelen <- function(){
+  
+  # select the latest file with maatregelen
+  fname <- list.files('data')
+  fname <- sort(fname[grepl('^maatregelenKRW',fname)],decreasing = TRUE)[1]
+  
+  # read maatregelen
+  d1 <- fread(paste0('data/',fname)) 
+  
+  # remove two columns selected by Laura
+  d1[,c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021') := NULL]
+  
+  # which colnames are character
+  cols <- colnames(d1)[sapply(d1, is.character)]
+  
+  # trim character columns from starting and ending space
+  d1[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
+  
+  # select only the unique rows
+  d1 <- unique(d1) 
+  
+  # return maatregelen
+  return(d1)
+  
+}
+
+# read the latest file with doelen
+ppr_doelen <- function(){
+ 
+  # select the latest file with doelen
+  fname <- list.files('hydrobiologie')
+  fname <- fname[grepl('^doelen',tolower(fname))][1]
+  
+  # read in the latest file from
+  d1 <- fread(paste0('hydrobiologie/',fname))
+  
+  # convert column to numeric
+  d1[,Doel_2022 := as.numeric(Doel_2022)]
+  
+  # return doelen
+  return(d1)
+}
+  

@@ -9,6 +9,7 @@
 
   # source functions
   source('scripts/ppr_funs.R')
+  source('scripts/calc_funs.R')
   
   # inladen basis bestanden ----
   
