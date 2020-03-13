@@ -147,28 +147,31 @@ makePmaps <- function(dat, Overzicht_kp, hybi, nomogram){
   # koppel kp plassen obv invoertabel per EAG
   Overzicht_kP_plas <- Overzicht_kP
   
-  sel <- dgwatdte$watertype %in% c('M20','M27','M25',"M14")  # selectie van alleen plassen
-  PvskPplas <-  merge(dgwatdte[sel & !is.na(dgwatdte$EAG) ,], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$EAG),c('EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
-                                                                                                                'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                      by.x = 'EAG', by.y = 'EAG', all.x = F, all.y = T)
-  PvskPplas1 <-  merge(dgwatdte[sel& !is.na(dgwatdte$GAF),], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$afvoergebied),c('afvoergebied','EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
-                                                                                                                        'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                       by.x = 'GAF', by.y = 'afvoergebied', all.x = F, all.y = T)
-  PvskPplas2 <-  merge(dgwatdte[sel,], Overzicht_kP_plas[,c('EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.',
-                                                            'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                       by.x = 'KRW', by.y = 'EAG', all.x = F, all.y = T)
+  sel <- dgwatdte$watertype %in% c('M20','M27','M25',"M14")  
+  PvskPplas <-  merge(dgwatdte[sel & !is.na(dgwatdte$EAG) ,], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$gebied),c('gebied',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
+                                                                                                                   'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
+                      by.x = 'EAG', by.y = 'gebied', all.x = F, all.y = T)
   
-  pvskp <- smartbind(PvskPplas, PvskPplas1) # PvskPplas2 zit er niet bij 
+  PvskPplas1 <-  merge(dgwatdte[sel& !is.na(dgwatdte$GAF),], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$gebied),c('gebied',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
+                                                                                                                  'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
+                       by.x = 'GAF', by.y = 'gebied', all.x = F, all.y = T)
+  
+  PvskPplas2 <-  merge(dgwatdte[sel,], Overzicht_kP_plas[,c('gebied',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.',
+                                                            'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
+                       by.x = 'KRW', by.y = 'gebied', all.x = F, all.y = T)
+  
+  pvskp <- smartbind(PvskPplas, PvskPplas1)
   
   PvskP <- merge(PvskP, pvskp[,c('pol','EAG','Troebel.naar.helder..mg.P.m2.d.', 'P.load_year..mgP.m2.d.', 
-                                 'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')], by = c('pol','EAG'), all = TRUE)
+                                 'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')], by = c('pol',"EAG"), all = TRUE)
   
   PvskP$wp_min_sum[!is.na(PvskP$P.load_year..mgP.m2.d.)]  <- PvskP$P.load_year..mgP.m2.d.[!is.na(PvskP$P.load_year..mgP.m2.d.)] 
   PvskP$PvskPLake <- PvskP$wp_min_sum/PvskP$Helder.naar.troebel..mg.P.m2.d. # >1 is te veel
   
   PvskP <- PvskP[!is.na(PvskP$wp_min_sum),]
+ 
   return(PvskP)
-  # write.table(PvskP, file = paste(getwd(),"/pbelasting/output/PvskPditchlakeALL",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+   # write.table(PvskP, file = paste(getwd(),"/pbelasting/output/PvskPditchlakeALL",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   # schrijf data weg voor controle ------------------------------------------------
   # geen p belasting in ouderkerk, gaasperplas, loenderveen en terra nova, boezem toevoegen: toevoegen tabel
   
@@ -441,7 +444,7 @@ tabelPerWL3jaargemEAG <- function (EKRset,eag_wl,doelen){
   setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
   
   # mean GEP per object: zou eigenlijk niet moeten als er dubbelen instaan
-  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
+  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
   doelgeb2 <- doelgeb
   doelgeb2$id <- sapply(strsplit(doelgeb2$id, '_'), `[`, 2)
   doelgeb <- smartbind(doelgeb,doelgeb2)
@@ -479,7 +482,7 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   # calculate mean per groep
   colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
                'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
-  d1 <- EKRset[,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
+  d1 <- EKRset[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
   
   # rename columns and order data.table
   setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','GHPR_level','GHPR','level','jaar'))
@@ -501,9 +504,7 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
   
   # mean GEP per object
-  doelgeb <- dcast(doelen1, id+bronddoel+GHPR ~ ., value.var = c("Doel", "Doel_2022"), fun.aggregate = mean)
-  doelgeb$GEP <- doelgeb$Doel ; doelgeb$Doel <- NULL
-  doelgeb$GEP_2022 <- doelgeb$Doel_2022 ; doelgeb$Doel_2022 <- NULL
+  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
   doelgeb2 <- doelgeb
   doelgeb2$id <- sapply(strsplit(doelgeb2$id, '_'), `[`, 2)
   doelgeb <- smartbind(doelgeb,doelgeb2)
@@ -612,7 +613,7 @@ trend <- function(z, detail = "hoofd"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
   #z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
   z<- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
-  setnames(z,c('id'),c('id'))
+  setnames(z,c('HoortBijGeoobject.identificatie'),c('id'))
   
   if(detail == "hoofd"){
     z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten

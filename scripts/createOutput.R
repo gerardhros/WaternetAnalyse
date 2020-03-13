@@ -2140,6 +2140,7 @@ lichtopbodem <- function (r, wq, waterpeil){
         legend.key.width = unit(0.5, "cm") )
   
 }
+
 dieptegrid <- function(r, waterpeil){
   
     ### waterpeil inlezen # benodigde kolommen: Datum, Meetwaarde, Meetpunt.ID

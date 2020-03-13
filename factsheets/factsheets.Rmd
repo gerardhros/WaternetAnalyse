@@ -237,6 +237,54 @@ for (i in 11:17){
 
 ```
 
+```{r, eval = FALSE}
+for (i in 11:50){
+#nrow(ESFoordelen)
+     #i=10 amstelland loopt vast pandoc error 99
+    # i=30 loopt vast 
+  #
+    
+    waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
+    wl <- waterlichamenwl$OWL_SGBP3 # of waterlichaam of eagcode of gafcode
+    # als eenheid factsheet KRW wl of GAF of meerdere EAGs
+    
+    if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])>0){ 
+      eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl|substr(eag_wl$GAFIDENT,1,4) %in% wl,]
+      wlname <- unique(eagwl$KRWmonitoringslocatie_SGBP3[(eagwl$KRW_SGBP3 %in% wl)])
+      wlname <- sapply(strsplit(wlname, '_'), `[`, 2) # hoortbijgeo zonder namespace oor selectie van totaalscores per waterlichaam
+    } 
+    # als eenheid factsheet is eag
+    if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])==0){
+      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]
+      wlname <- unique(EKRset$HoortBijGeoobject.identificatie[EKRset$EAGIDENT %in% wl])
+      wlname <- gsub("NL11_","",wlname)
+      } 
+
+    my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
+
+  
+    # alleen gewogen scores
+    EKRset1 <- EKRset[EKRset$HoortBijGeoobject.identificatie %in% wlname,] 
+    # ongewogen scores obv koppeling locatie en EAG
+    EKRset2 <- EKRset[EKRset$EAGIDENT %in% eagwl$GAFIDENT,]
+    if(nrow(EKRset1) == 0){
+     EKRset1 <- EKRset2 } # ingewikkeld, nu niet voor EAG
+
+    ## calculate score 
+ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, eag_wl = eag_wl, doelen = doelen)
+ekr_scores_sel <- ekr_scores[is.na(ekr_scores$EAGIDENT) & !is.na(ekr_scores$id),]
+## make neat titles, alleen hoofdmaatlatten
+ekr_scores_sel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel$wbmethode, 
+                               from = c("Maatlatten2018 Fytoplankton", "Maatlatten2018 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
+                               to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))
+ekr_scores_sel2 <- ekr_scores_sel[!ekr_scores_sel$wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & ekr_scores_sel$level == 1,]
+ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
+
+plot <- ekrplot(ekr_scores_sel2) 
+ggsave(paste0(wlname,"EKRGEP.png"), plot = plot, width = 20, height = 12, units = "cm")
+}
+```
+
 <script>
 document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r my_title`";
 </script> 
