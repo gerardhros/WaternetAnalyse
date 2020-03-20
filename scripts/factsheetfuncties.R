@@ -608,6 +608,60 @@ ekrplot <- function(ekr_scores_sel2){
           legend.position = "bottom")
   return(plot)
 }
+ekrplot2 <- function(ekr_scores_sel2){
+  ## build background [Kan eleganter..]
+  es_sel_background <- unique(ekr_scores_sel2[, c("id", "GEP_2022", "facet_wrap_code")])
+  
+  # es_sel_background$GEP_new <- es_sel_background$GEP - 0.05
+  
+  es_sel_background$goed_ymin_new <- es_sel_background$GEP_2022
+  es_sel_background$goed_ymax_new <- 1
+  es_sel_background$matig_ymin_new <- es_sel_background$GEP_2022 / 3 * 2
+  es_sel_background$matig_ymax_new <- es_sel_background$GEP_2022 
+  es_sel_background$ontoereikend_ymin_new <- es_sel_background$GEP_2022 / 3
+  es_sel_background$ontoereikend_ymax_new <- es_sel_background$GEP_2022 / 3 * 2 
+  es_sel_background$slecht_ymin_new <- 0
+  es_sel_background$slecht_ymax_new <- es_sel_background$GEP_2022 / 3
+  
+  es_sel_background_gather <- gather(es_sel_background, key = "doelen", value = "waarde", 
+                                     goed_ymin_new, goed_ymax_new, matig_ymin_new, matig_ymax_new, ontoereikend_ymin_new, ontoereikend_ymax_new, slecht_ymin_new, slecht_ymax_new)
+  es_sel_background_gather <- separate(es_sel_background_gather, doelen, into = c("doelen", "type", "sgbp_version"), sep = "_")
+  es_sel_background_spr    <- spread(es_sel_background_gather, key = type, value = waarde)
+  es_sel_background_spr$sgbp_version[es_sel_background_spr$sgbp_version %in% "new"] <- "SGBP3"
+  
+  es_sel_background_spr$Oordeel <- as.factor(es_sel_background_spr$doelen)
+  
+  #Create a custom color scale
+  myColors <- c("#00FF00", "#FFFF33", "#FF8000", "#FF0000")
+  names(myColors) <- levels(es_sel_background_spr$doelen)
+  
+  ## make plot
+  plot <- ggplot(ekr_scores_sel2, aes(x = id, y = EKR)) +
+    geom_rect(data = es_sel_background_spr, inherit.aes = FALSE,
+              aes(xmin = 0, xmax = 1, ymin = ymin, ymax = ymax, 
+                  fill = Oordeel), alpha = 0.3) +
+    scale_fill_manual(values = myColors) +
+    # geom_text(
+    #   aes(x = 0.5, y = 0.9, label = sgbp_version),
+    #   data = es_sel_background_spr, check_overlap = TRUE, size = 3)+ 
+    # # geom_vline(xintercept = 0.5, color = "lightgrey") +
+    # geom_point() +
+    geom_segment(aes(x = 0, xend = 1, 
+                     y = EKR, yend = EKR, linetype = "Huidige toestand"), 
+                 col = "black", cex = 1.2) + # linetype = 2 -> dashed
+    scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+    scale_linetype_manual("",values= c("Huidige toestand" = 1))+
+    facet_grid(cols = vars(facet_wrap_code)) +
+    theme_minimal()+ 
+    theme(axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.text.x=element_blank(),
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          legend.position = "bottom")
+  return(plot)
+}
 
 trend <- function(z, detail = "hoofd"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)

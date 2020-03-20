@@ -61,11 +61,16 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
 # inladen basis bestanden ----
 ESFoordelen <- fread('../data/esfKRW_20200228.csv') # hier later ook eags of gafs aan toevoegen
-ESFoordelen[,11:25] <- ESFoordelen[,lapply(.SD, function(x) trim(x)),.SDcols = 11:25]
-maatregelen <- fread('../data/maatregelenKRW_20200228.csv')# hier later ook eags of gafs aan toevoegen
-#maatregelen <- maatregelen[,-c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021'), with=FALSE]
-#maatregelen <- unique(maatregelen) # omdat er nu dubbelen in zitten bij splitsen van WL
-maatregelen[,2:25] <- maatregelen[,lapply(.SD, function(x) trim(x)),.SDcols = 2:25]
+# which colnames are character
+cols <- colnames(ESFoordelen)[sapply(ESFoordelen, is.character)]
+# trim character columns from starting and ending space
+ESFoordelen[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
+
+maatregelen <- fread('../data/maatregelenKRW_20200318.csv')# hier later ook eags of gafs aan toevoegen
+# which colnames are character
+cols <- colnames(maatregelen)[sapply(maatregelen, is.character)]
+# trim character columns from starting and ending space
+maatregelen[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
 
 ## data voor kaart ----------
 gEAG<- st_read("../data/EAG20191205.gpkg") %>% st_transform(proj4.rd)
@@ -137,7 +142,7 @@ EST <- fread('../hydrobiologie/EST.csv')
 # data voor P belasting
 dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
 dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
-Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+#Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
 nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
 pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
 #write.table(pvskp, file = paste("PvskPditchlakeALL",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
@@ -146,10 +151,10 @@ pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram)
 
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
-for (i in 11:17){
-  #nrow(ESFoordelen)
-     #i=10 amstelland loopt vast pandoc error 99
-    # i=8 loopt vast 
+for (i in 11:43){
+    #nrow(ESFoordelen)
+    #i=10 amstelland loopt vast pandoc error 99
+    #i=8 loopt vast 
     
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
     wl <- waterlichamenwl$OWL_SGBP3 # of waterlichaam of eagcode of gafcode
@@ -331,6 +336,9 @@ if(dtEST2$KRWWaterlichaamcode %in% c('NL11_5_1')){
 if(dtEST2$KRWWaterlichaamcode %in% c('NL11_1_2')){
   myimages<- "esticon/W5_O1_K_L.jpg" 
 }
+if(dtEST2$KRWWaterlichaamcode %in% c('NL11_1_1')){
+  myimages<- "esticon/W4_O1_K_St.jpg" 
+}
 
 include_graphics(myimages)
 }
@@ -479,7 +487,7 @@ De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast
 ### Toestand {data-width=400}
 
 ```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen.De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel in de linkerbalk (SGBP2) en het technisch aangepaste CONCEPTdoel voor SGBP3 rechts. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
-ekrplot(ekr_scores_sel2)
+ekrplot2(ekr_scores_sel2)
 ```
 
 

@@ -87,22 +87,22 @@ PvskP$PvskPDitch<- PvskP$wp_min_sum/PvskP$kP # >1 is te veel
 Overzicht_kP_plas <- Overzicht_kP
 
 sel <- dgwatdte$watertype %in% c('M20','M27','M25',"M14")  
-PvskPplas <-  merge(dgwatdte[sel & !is.na(dgwatdte$EAG) ,], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$EAG),c('EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
+PvskPplas <-  merge(dgwatdte[sel & !is.na(dgwatdte$EAG) ,], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$gebied),c('gebied',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
                                                         'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                    by.x = 'EAG', by.y = 'EAG', all.x = F, all.y = T)
+                    by.x = 'EAG', by.y = 'gebied', all.x = F, all.y = T)
 
-PvskPplas1 <-  merge(dgwatdte[sel& !is.na(dgwatdte$GAF),], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$afvoergebied),c('afvoergebied','EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
+PvskPplas1 <-  merge(dgwatdte[sel& !is.na(dgwatdte$GAF),], Overzicht_kP_plas[!is.na(Overzicht_kP_plas$gebied),c('gebied',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.', 
                                                          'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                     by.x = 'GAF', by.y = 'afvoergebied', all.x = F, all.y = T)
+                     by.x = 'GAF', by.y = 'gebied', all.x = F, all.y = T)
 
-PvskPplas2 <-  merge(dgwatdte[sel,], Overzicht_kP_plas[,c('EAG',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.',
+PvskPplas2 <-  merge(dgwatdte[sel,], Overzicht_kP_plas[,c('gebied',"P.load_year..mgP.m2.d.", 'Troebel.naar.helder..mg.P.m2.d.',
                                                          'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')],
-                     by.x = 'KRW', by.y = 'EAG', all.x = F, all.y = T)
+                     by.x = 'KRW', by.y = 'gebied', all.x = F, all.y = T)
 
 pvskp <- smartbind(PvskPplas, PvskPplas1)
 
-PvskP <- merge(PvskP, pvskp[,c('pol','EAG','Troebel.naar.helder..mg.P.m2.d.', 'P.load_year..mgP.m2.d.', 
-                            'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')], by = c('pol','EAG'), all = TRUE)
+PvskP <- merge(PvskP, pvskp[,c('pol','gebied','Troebel.naar.helder..mg.P.m2.d.', 'P.load_year..mgP.m2.d.', 
+                            'Helder.naar.troebel..mg.P.m2.d.', 'lake.ditch.vollenweider')], by = c('pol'), all = TRUE)
 
 PvskP$wp_min_sum[!is.na(PvskP$P.load_year..mgP.m2.d.)]  <- PvskP$P.load_year..mgP.m2.d.[!is.na(PvskP$P.load_year..mgP.m2.d.)] 
 PvskP$PvskPLake <- PvskP$wp_min_sum/PvskP$Helder.naar.troebel..mg.P.m2.d. # >1 is te veel
