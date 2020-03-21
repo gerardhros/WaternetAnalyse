@@ -40,13 +40,13 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 # EAGS en WL waar in maatregelen naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
 # EAGS waar in EST naar verwezen worden moeten bestaan in opp_kenmerken_EAG.csv
 # koppelingen naar EAGS en GAF waar in balansdata (dat) naar verwezen worden moeten bestaan in koppeltabel
-
 # er wordt veel te veel data (meer jaren, gebieden en parameters dan nodig) geladen omdat ik lui ben
 rm(list=ls())  
 # source functions
 source('../scripts/ppr_funs.R')
 source('../scripts/loadPackages.R')
 source('../scripts/factsheetfuncties.R')
+
 
 #  Directories and names------------------------------------------
 dirGIS <-"../data"
@@ -66,7 +66,7 @@ cols <- colnames(ESFoordelen)[sapply(ESFoordelen, is.character)]
 # trim character columns from starting and ending space
 ESFoordelen[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
 
-maatregelen <- fread('../data/maatregelenKRW_20200318.csv')# hier later ook eags of gafs aan toevoegen
+maatregelen <- fread('../data/maatregelenKRW_20200320.csv')# hier later ook eags of gafs aan toevoegen
 # which colnames are character
 cols <- colnames(maatregelen)[sapply(maatregelen, is.character)]
 # trim character columns from starting and ending space
@@ -114,7 +114,7 @@ waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirG
     wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
     
     # datafile with P-load PC Ditch
-    Overzicht_kP <- fread('../data/Overzicht_kP.csv') 
+    # Overzicht_kP <- fread('../data/Overzicht_kP.csv') 
     
     # toxiciteitsdata simoni
     simoni <- readRDS('../data/simoni.rds')
@@ -122,7 +122,8 @@ waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirG
   # update, filter and clean up databases -----------
    
     # EKR measurements
-    EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2)
+    EKRset <- ppr_ekr(ekr1 = EKRset1, ekr2 = EKRset2)
+    #EKRset$KRWwatertype.code <- EKRset$KRWwatertype.code.y
  
     # hybi measurements
     hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)
@@ -134,7 +135,7 @@ waterschappen  <- importOGR("2019_gemeentegrenzen_kustlijn_simplified.shp", dirG
     wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
       
     # Pload and limits from PC Ditch
-    Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
+    # Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
     
 # data voor EST tekening ----------------------
 # dit bestand moet af en toe geupdate obv nieuwe hybi en EAG data
@@ -142,7 +143,7 @@ EST <- fread('../hydrobiologie/EST.csv')
 # data voor P belasting
 dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
 dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
-#Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
 nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
 pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
 #write.table(pvskp, file = paste("PvskPditchlakeALL",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
@@ -151,9 +152,10 @@ pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram)
 
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
-for (i in 11:43){
+for (i in 12:50){
     #nrow(ESFoordelen)
     #i=10 amstelland loopt vast pandoc error 99
+    # i=11 vecht
     #i=8 loopt vast 
     
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
@@ -186,7 +188,7 @@ for (i in 11:43){
     waterlichamenwl$motstat <- waterlichamenwl$MotiveringBegrenzing
     waterlichamenwl$prov <- waterlichamenwl$Provincies
     waterlichamenwl$gem <- waterlichamenwl$Gemeenten
-    waterlichamenwl$typebesch <- watertypen$Omschrijving[watertypen$Code %in% unique(eagwl$watertype)]
+    waterlichamenwl$typebesch <- tolower(watertypen$Omschrijving[watertypen$Code %in% unique(eagwl$watertype)])
     wq1 <- wq[wq$EAGIDENT %in% eagwl$GAFIDENT,]
     hybi1 <- hybi[hybi$locatie.EAG %in% eagwl$GAFIDENT,]
     bod1 <- bod[bod$EAGIDENT %in% eagwl$GAFIDENT,]
@@ -288,18 +290,21 @@ ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
 plot <- ekrplot(ekr_scores_sel2) 
 ggsave(paste0(wlname,"EKRGEP.png"), plot = plot, width = 20, height = 12, units = "cm")
 }
-```
 
+```
 <script>
 document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r my_title`";
 </script> 
 
 # Factsheet toestand en ecologische sleutelfactoren (DIPS)
 
-## Hoofdlijnen {data-height=250}
+## Hoofdlijnen {data-height=260}
 
 ### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
-Het `r waterlichamenwl$OWMNAAM` (`r waterlichamenwl$OWL`) heeft watertype `r unique(waterlichamenwl$typebesch)` (`r unique(eagwl$watertype)`) en bestaat uit de deelgebieden: `r deelgebieden$samen`.
+`r waterlichamenwl$OWMNAAM` (`r waterlichamenwl$OWL`) heeft watertype "`r unique(waterlichamenwl$typebesch)`" (`r unique(eagwl$watertype)`) en het wateroppervlak van het waterlichaam is `r round(sum(eagwl$OppWater)/10000, 0)` hectare.
+Het waterlichaam bestaat uit de deelgebieden: 
+<br> 
+`r deelgebieden$samen`
 <br>
 `r waterlichamenwl$Karakterschets`
 <br>
@@ -327,18 +332,20 @@ ESTnaam2 <- ifelse(unique(dtEST2$watertype) == 'M20','DM',ifelse(unique(dtEST2$w
 ESTnaam3 <- ifelse(unique(dtEST2$StedelijkLandelijk) == 'Stedelijk','St','L') 
 
 myimages <- paste0("esticon/",ESTnaam1,'_',ESTnaam2,'_', ESTnaam3, ".jpg")
-if(dtEST2$KRWWaterlichaamcode %in% c('NL11_3_8')){
+
+if(dtEST2$KRW_SGBP3 %in% c('NL11_3_8')){
  myimages<- "esticon/W6_O7_DM_L.jpg" 
 }
-if(dtEST2$KRWWaterlichaamcode %in% c('NL11_5_1')){
+if(dtEST2$KRW_SGBP3 %in% c('NL11_5_1')){
   myimages<- "esticon/W4_O6_OM_L.jpg" 
 }
-if(dtEST2$KRWWaterlichaamcode %in% c('NL11_1_2')){
-  myimages<- "esticon/W5_O1_K_L.jpg" 
+if(dtEST2$KRW_SGBP3 %in% c('NL11_1_2')){
+  myimages<- "esticon/W6_O6_K_St.jpg" 
 }
-if(dtEST2$KRWWaterlichaamcode %in% c('NL11_1_1')){
-  myimages<- "esticon/W4_O1_K_St.jpg" 
+if(dtEST2$KRW_SGBP3 %in% c('NL11_1_1')){
+  myimages<- "esticon/W6_O6_K_St.jpg" 
 }
+
 
 include_graphics(myimages)
 }
@@ -539,7 +546,7 @@ kable(ESFtab, format = "html",col.names = NULL) %>%
 ```
 
 ## Bron {data-height=30}
-Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en `r waterlichamenwl$Literatuurverwijzing`.
+Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2020, begrenzing waterlichamen 2022-2027, hydrobiologische data 2006-2019, conceptmaatregelen en doelen voor SGBP3 en `r waterlichamenwl$Literatuurverwijzing`.
 
 # Maatregelen `r waterlichamenwl$Naam` (R)
 
@@ -611,16 +618,17 @@ ESFtab$OORDEEL = sprintf("![esficon](%s){width=50px}", paste0("esf/",ESFtab$OORD
 maatregelen1$Gebiedspartner <- maatregelen1$`gebiedspartner (gesprekspartner bij financiering, uitvoering of beleid)`
 maatregelen1$SGBPPeriode <- maatregelen1$SGBPPeriode.omschrijving
 maatregelen1$Initiatiefnemer <- maatregelen1$Initiatiefnemer.naam
+maatregelen1$BeoogdInitiatiefnemer <- maatregelen1$Initiatiefnemer.waternet
 maatregelen1$UitvoeringIn <- maatregelen1$UitvoeringIn
 maatregelen1$esffrst <- substr(maatregelen1$esf,1,4)
 
-maatregelen2 <- merge(ESFtab, maatregelen1[,c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer',
-                                              'Gebiedspartner','UitvoeringIn',"afweging")], 
+maatregelen2 <- merge(ESFtab, maatregelen1[,c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer'
+                                              ,'Gebiedspartner','UitvoeringIn',"afweging")], 
                       by.x = 'esf', by.y = 'esffrst', all.y = T) 
 # als meerdere esf aan een maatregel gekoppeld zijn dan wordt de eerste geselecteerd
 
 maatregelen2$ESFoordeel <- maatregelen2$OORDEEL
-maatregelen2 <- maatregelen2[,c(12,7,5,6,8,9,10,11)] # weer te geven kolommen selecteren
+maatregelen2 <- maatregelen2[,c(13,7,5,6,8,9,10,11,12)] # weer te geven kolommen selecteren
 maatregelen2 <- maatregelen2[order(maatregelen2$SGBPPeriode, decreasing = TRUE),]
 
 options(knitr.table.format = "markdown")
