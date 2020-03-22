@@ -7,6 +7,8 @@ output:
     orientation: rows
     vertical_layout: scroll
     logo: images/WN__Waternet-RGB_small.png
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r preprocessing, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
@@ -298,10 +300,11 @@ document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r my_
 
 # Factsheet toestand en ecologische sleutelfactoren (DIPS)
 
-## Hoofdlijnen {data-height=260}
+## Hoofdlijnen {data-height=265}
 
 ### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
 `r waterlichamenwl$OWMNAAM` (`r waterlichamenwl$OWL`) heeft watertype "`r unique(waterlichamenwl$typebesch)`" (`r unique(eagwl$watertype)`) en het wateroppervlak van het waterlichaam is `r round(sum(eagwl$OppWater)/10000, 0)` hectare.
+<br>
 Het waterlichaam bestaat uit de deelgebieden: 
 <br> 
 `r deelgebieden$samen`
@@ -428,7 +431,7 @@ ekr_scores_sel$facet_wrap_code <- as.factor(mapvalues(ekr_scores_sel$wbmethode,
                                from = c("Maatlatten2018 Fytoplankton", "Maatlatten2018 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
                                to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))
 ekr_scores_sel2 <- ekr_scores_sel[!ekr_scores_sel$wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & ekr_scores_sel$level == 1,]
-ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP
+ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP_2022
 
 if(nrow(ekr_scores_sel2)>1){
 d3 <-  ekr_scores_sel2  %>%
