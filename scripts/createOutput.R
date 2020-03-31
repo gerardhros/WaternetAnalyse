@@ -1,5 +1,5 @@
 # helpers voor app -------------------------
-layout_ggplotly <- function(gg, x = -0.02, y = -0.08){
+layout_ggplotly <- function(gg, x = -0.08, y = -0.04){
   # The 1 and 2 goes into the list that contains the options for the x and y axis labels respectively
   gg[['x']][['layout']][['annotations']][[1]][['y']] <- x
   gg[['x']][['layout']][['annotations']][[2]][['x']] <- y
@@ -130,9 +130,9 @@ plotEKRlijn <- function(z){
   ggplotly(plot)
 }
 plotEKRlijn2 <- function(z){
-  #z<- EKRset
+  z<- EKRset1
   z <- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
-  z <- z[!is.na(z$CODE),] # geen totaal scores per toetsgeied meenemen
+  #z <- z[!is.na(z$CODE),] # geen totaal scores per toetsgeied meenemen
   # wat wil ik: set start niet met NL11
   z$waterlichaam <- sapply(strsplit(z$HoortBijGeoobject.identificatie, '_'), `[`, 2)
   z$waterlichaam[z$waterlichaam == 'OvWa'] <- sapply(strsplit(z$HoortBijGeoobject.identificatie[z$waterlichaam == 'OvWa'], '_'), `[`, 3)  
@@ -182,6 +182,7 @@ plotEKRlijn2Toetsgebied_hoofd <- function(z){
   #z<- EKRset[EKRset$HoortBijGeoobject.identificatie == "NL11_Sterenzodden",]
   z<- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
   z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
+  # z<- z[z$Grootheid.code %in% c('OVWFLORA'),] 
   z$waterlichaam <- sapply(strsplit(z$HoortBijGeoobject.identificatie, '_'), `[`, 2)
   z$waterlichaam[is.na(z$waterlichaam)] <- paste0('gewogen_',z$HoortBijGeoobject.identificatie[is.na(z$waterlichaam)])
   z$waterlichaam[z$waterlichaam == 'OvWa'] <- sapply(strsplit(z$HoortBijGeoobject.identificatie[z$waterlichaam == 'OvWa'], '_'), `[`, 3)  
@@ -192,7 +193,7 @@ plotEKRlijn2Toetsgebied_hoofd <- function(z){
     stat_summary(fun.y = "mean", geom = "point") + stat_summary(fun.y = "mean", geom = "line") +
     scale_x_continuous(breaks=c(2005,2006, 2007, 2008, 2009, 2010,2011,2012,2013,2014,2015,2016,2017,2018))+
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
-    facet_wrap(.~facet_wrap_code)+
+    #facet_wrap(.~facet_wrap_code)+
     ggtitle("")+ ylab('')+ xlab('')+
     theme_minimal()+
     theme(
@@ -489,7 +490,7 @@ vispivot <- function (EKRlijst){
 
 # geo ------------------------------------------------
 geoplot3 <- function(l, wsa){
-  #l <- mcft2
+  #l <- z
   titel = paste(unique(l[ ,c("GHPR")]),sep="",collapse=" ")
   # titel = paste(unique(l[ ,c("Waardebepalingsmethode.code",'HoortBijGeoobject.identificatie','KRWwatertype.code', 'GHPR')]),sep="",collapse=" ")
   subtitel = paste(unique(l[ ,c("Waardebepalingsmethode.code")]),sep="",collapse="")
@@ -637,10 +638,12 @@ ekrmap <- function(EKRset, maatlat = "2V1 Overige waterflora"){
   #EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2012 Vis",], maatlat = "4VI1 Vis-kwaliteit"
   # gebiedData <- krwchem[!(is.na(krwchem$XCOORD)) & !(is.na(krwchem$YCOORD))
   #                    & !is.na(krwchem$CODE),]
-  gebiedData <- EKRset[!(is.na(EKRset$XCOORD)) & !(is.na(EKRset$YCOORD))
-                       & !is.na(EKRset$CODE),]
+  gebiedData <- EKRset2[!(is.na(EKRset2$XCOORD)) & !(is.na(EKRset2$YCOORD))
+                       & !is.na(EKRset2$CODE),]
   gebiedData <- gebiedData[gebiedData$GHPR_level == maatlat,]
-  gebiedData$EKR <- gebiedData$.
+  #gebiedData <- gebiedData[gebiedData$jaar > 2015,]
+  #gebiedData$EKR <- gebiedData$.
+  #gebiedData$EKR <- gebiedData$Numeriekewaarde
   #gebiedData <- gebiedData[gebiedData$Waardebepalingsmethode.code == "Maatlatten2012 Ov. waterflora",]
   gebiedData <- gebiedData[!(is.na(gebiedData$XCOORD)),]
   
@@ -661,8 +664,8 @@ ekrmap <- function(EKRset, maatlat = "2V1 Overige waterflora"){
 
   leaflet() %>% 
     addCircles(data = gebiedData, ~XCOORD.1, ~YCOORD.1, popup = paste("CODE", as.character(gebiedData$CODE), "<br>",
-                                                                                                "EKR score:", as.character(gebiedData$Numeriekewaarde), "<br>",
-                                                                                                "Meetjaar:", as.character(gebiedData$jaar)),
+                                                                      "EKR score:", as.character(gebiedData$Numeriekewaarde), "<br>",
+                                                                      "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, color= ~pal(klasse), fillOpacity = 0.8) %>%
     addLegend("bottomright", colors=col, labels=labels, title = titel1) %>%
     addTiles() 
@@ -1938,20 +1941,25 @@ diepte1<- function (hybi){
       addTiles()
     }}
 }
-diepteVegetatie <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE')){
+diepteVegetatie <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE','ZICHT')){
   #boxplotje plot maken
   hybi1<- hybi[hybi$parametercode %in% hybiparameter| hybi$TWN.naam == 'Nuphar lutea',]
-  hybi2 <- dcast(hybi1,locatie.EAG+locatiecode+jaar+locatie.KRW.watertype ~ 
+  hybi2 <- dcast.data.table(hybi1,locatie.EAG+locatiecode+jaar+locatie.KRW.watertype ~ 
                    parametercode+parameterfractie+TWN.naam, mean, 
                  value.var = c("meetwaarde")) #gemiddelde per EAG+jaar
+ 
   hybi2$subms <- hybi2$SUBMSPTN__ - hybi2$FLAB_SUBMS_
   hybi2$subms <- hybi2$subms -  hybi2$`_SUBMS_Nuphar lutea`
   hybi2$subms[hybi2$subms < 0] = 0
-  hybi3 <- hybi2[!is.na(hybi2$locatie.EAG) & !is.na(hybi2$locatie.KRW.watertype) & !is.na(hybi2$subms),]
+  
+  hybi2$DTEZICHT <- ifelse(hybi2$ZICHT__NA/hybi2$WATDTE__NA > 1, NaN, hybi2$ZICHT__NA/hybi2$WATDTE__NA)
+  hybi2$DTEZICHT <- as.numeric(hybi2$DTEZICHT)
+  hybi2$DTEZICHTfac <- cut(hybi2$DTEZICHT, breaks = c('0.1','0.2','0.3','0.4','0.6', '0.8','1.0'))
+  hybi3 <- hybi2[!is.na(hybi2$locatie.EAG) & !is.na(hybi2$locatie.KRW.watertype) & !is.na(hybi2$subms) & !is.na(hybi2$DTEZICHTfac),]
   
   hybi4 <- hybi3 %>%  
     group_by(locatie.EAG, jaar, locatie.KRW.watertype) %>%
-    summarise(waterdiepte = mean(WATDTE__), submers = mean(subms))
+    summarise(waterdiepte = mean(WATDTE__NA), submers = mean(subms))
   
   hybi4 <- hybi4[!is.na(hybi4$locatie.KRW.watertype) & !hybi4$locatie.KRW.watertype == "" & !is.na(hybi4$submers) & !is.na(hybi4$waterdiepte),]
   #hybi4$waterdiepte <- cut(hybi4$waterdiepte, breaks = quantile(hybi4$waterdiepte, probs = c(0, 0.05, 0.1, 0.2,0.3,0.4, 0.5,0.6, 0.7, 0.95, 1)), na.rm = T)
@@ -1977,9 +1985,51 @@ diepteVegetatie <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE'
     labs(x= 'waterdiepte' , y= 'submerse bedekking - submerse fractie draadalgen en gele plomp')
   
   ggplotly(p=p)
-  
-  
 } 
+
+diepteVegetatiemp <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE','ZICHT'), watertype = c('M10','M1a','M8','M3')){
+  #boxplotje plot maken
+  hybi1<- hybi[hybi$parametercode %in% hybiparameter| hybi$TWN.naam == 'Nuphar lutea',]
+  hybi1 <- hybi[hybi$locatie.KRW.watertype %in% watertype,]
+  hybi2 <- dcast.data.table(hybi1,locatie.EAG+locatiecode+jaar+locatie.KRW.watertype ~ 
+                              parametercode+parameterfractie+TWN.naam, mean, 
+                            value.var = c("meetwaarde")) #gemiddelde per EAG+jaar
+  
+  hybi2$subms <- hybi2$SUBMSPTN__ - hybi2$FLAB_SUBMS_
+  hybi2$subms <- hybi2$subms -  hybi2$`_SUBMS_Nuphar lutea`
+  hybi2$subms[hybi2$subms < 0] = 0
+  
+  hybi2$DTEZICHT <- ifelse(hybi2$ZICHT__NA/hybi2$WATDTE__NA > 1, NaN, hybi2$ZICHT__NA/hybi2$WATDTE__NA)
+  hybi2$DTEZICHT <- as.numeric(hybi2$DTEZICHT)
+  hybi2$DTEZICHTfac <- cut(hybi2$DTEZICHT, breaks = c('0.1','0.2','0.3','0.4','0.6', '0.8','1.0'))
+  hybi3 <- hybi2[!is.na(hybi2$locatie.EAG) & !is.na(hybi2$locatie.KRW.watertype) & !is.na(hybi2$subms) & !is.na(hybi2$DTEZICHTfac),]
+  
+  p<- ggplot(hybi3, aes(x= WATDTE__NA, y= subms, col = DTEZICHTfac, 
+                        text = sprintf("EAG: %s, <br> %s",locatie.EAG, locatiecode, jaar)))+
+    geom_jitter() +
+    scale_x_continuous(breaks = c(0,0.1,0.2,0.3,0.4,0.5,1,1.5,2.0,2.5,3.0))+
+    facet_grid(~locatie.KRW.watertype, scales = 'free')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 6), #EKR
+      axis.text.x = element_text(size= 6, angle = 90),
+      axis.text.y = element_text(size= 6),
+      axis.title = element_text(size=8),
+      axis.ticks =  element_line(colour = "black"), 
+      panel.background = element_blank(), 
+      plot.background = element_blank()
+    )+
+    guides(col=guide_legend(title='zicht/ diepte'), size = "legend")+
+    ggtitle(paste0("Gemiddeld gemeten waterdiepte versus bedekking onderwaterplanten")) +
+    labs(x= 'waterdiepte' , y= 'submerse bedekking')
+  
+  
+  ggplotly(p=p)%>% 
+    layout_ggplotly
+}
+
 slibdikte <- function (hybi){
   if(nrow(hybi)>0){ 
   c = dcast(hybi,locatiecode+jaar+xcoormonster+ycoormonster ~ fewsparameter, 
@@ -2140,6 +2190,7 @@ lichtopbodem <- function (r, wq, waterpeil){
         legend.key.width = unit(0.5, "cm") )
   
 }
+
 dieptegrid <- function(r, waterpeil){
   
     ### waterpeil inlezen # benodigde kolommen: Datum, Meetwaarde, Meetpunt.ID
