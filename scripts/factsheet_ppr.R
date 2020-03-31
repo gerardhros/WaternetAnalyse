@@ -184,7 +184,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       eagwl <- eag_wl[KRW_SGBP3 %in% wl|substr(GAFIDENT,1,4) %in% wl,]
       
       # extract the name as text after the first underscore
-      wlname <- sub('.*_', '',eagwl[,KRWmonitoringslocatie_SGBP3])
+      wlname <- sub('.*_', '',unique(eagwl[,KRWmonitoringslocatie_SGBP3]))
       
     } else {
       
@@ -198,13 +198,13 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     }
     
     # get title
-    my_title <- paste0(waterlichamenwl$OWMNAAM)
+    my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
     
     # get P load vs critical p load
-    pvskpsel <- pvskp[KRW %in% wl | EAG %in% eagwl$GAFIDENT | GAF %in% substr(eagwl$GAFIDENT, 1, 4),] 
+    pvskpsel <- pvskp[KRW %in% wl | EAG %in% eagwl$GAFIDENT | GAF %in% c(wl,substr(eagwl$GAFIDENT, 1, 4)),] 
     
     # get maatregelen
-    maatregelen1 <- maatregelen[HoortbijKRWWaterlichaam %in% wl,]
+    maatregelen1 <- maatregelen[HoortbijKRWWaterlichaam2021 %in% wl,]
     
     # update waterlichaam 
     waterlichamenwl[,motstat := MotiveringBegrenzing]
@@ -225,9 +225,8 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       bod1 <- bod[loc.eag %in% eagwl$GAFIDENT,]
     }
    
-    
     # get values from EKR
-    if (wlname %in% EKRset$HoortBijGeoobject.identificatie){
+    if (wlname[1] %in% EKRset$HoortBijGeoobject.identificatie){
       EKRset1 <- EKRset[HoortBijGeoobject.identificatie %in% wlname,]   
     } else {
       EKRset1 <- EKRset[EAGIDENT %in% eagwl$GAFIDENT,]
@@ -242,9 +241,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     waterpereag_sel <- waterpereag1[waterpereag1$GAFIDENT %in% eagwl$GAFIDENT, ]
     
     # get deelgebieden
-    deelgebieden <- gEAG_sel[,c('GAFIDENT','GAFNAAM')] %>% st_set_geometry(NULL) %>% as.data.table
+    deelgebieden <- as.data.table(gEAG_sel[,c('GAFIDENT','GAFNAAM')])[,geom:=NULL] 
     deelgebieden[,samen := paste0(GAFIDENT," (",GAFNAAM,")")]
-
+    
     # get hydrobiological data
     EST_sel <- EST[EAG %in% eagwl$GAFIDENT,]
     
@@ -275,6 +274,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       ESTnaam <- paste0("esticon/",ESTnaam1,'_',ESTnaam2,'_', ESTnaam3, ".jpg")
       if(unique(dtEST2$KRWWaterlichaamcode) %in% c('NL11_3_8')){ESTnaam <- "esticon/W6_O7_DM_L.jpg"} 
       if(unique(dtEST2$KRWWaterlichaamcode) %in% c('NL11_5_1')){ESTnaam <- "esticon/W4_O6_OM_L.jpg"} 
+      if(unique(dtEST2$KRWWaterlichaamcode) %in% c('NL11_1_2')){ESTnaam <- "esticon/W5_O1_K_L.jpg"}
     }
     
     ## plot locatie EAG binnen beheergebied AGV
@@ -345,16 +345,16 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     # --- make EKR plot ------------
     
     ## calculate EKR scores from EKRset1
-    ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, doelen = doelen)
+    ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, eag_wl = eag_wl, doelen = doelen)
     ekr_scores <- as.data.table(ekr_scores)
     
     ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores[,facet_wrap_code := as.factor(mapvalues(Waardebepalingsmethode.code, 
-                from = c("Maatlatten2012 Fytoplankton", "Maatlatten2012 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
+    ekr_scores[,facet_wrap_code := as.factor(mapvalues(wbmethode, 
+                from = c("Maatlatten2018 Fytoplankton", "Maatlatten2018 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
                 to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))]
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2)
-    ekr_scores1 <- ekr_scores[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & level == 1]
+    ekr_scores1 <- ekr_scores[!wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & level == 1]
     ekr_scores1[,oordeelsort := EKR/GEP]
     d3 <- ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),]
     
@@ -363,17 +363,19 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     d3_deel <- ekr_scores2[EKR==min(EKR,na.rm=T),]
     
     ## calculate score per deelmaatlat from EKRset2
-    ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, doelen = doelen)
+    ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, eag_wl = eag_wl,  doelen = doelen)
     setDT(ekr_scores)
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2_deel)
-    ekr_scores3 <- ekr_scores[Waardebepalingsmethode.code =="Maatlatten2018 Ov. waterflora" & 
+    ekr_scores3 <- ekr_scores[wbmethode =="Maatlatten2018 Ov. waterflora" & 
                               level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),]
     ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores3[,facet_wrap_code := as.factor(mapvalues(Waardebepalingsmethode.code, 
+    ekr_scores3[,facet_wrap_code := as.factor(mapvalues(wbmethode, 
                  from = c("Maatlatten2018 Ov. waterflora"),
                  to = c("Ov. waterflora")))]
-    ekr_scores3[,GHPR := as.factor(mapvalues(GHPR,from = c("Waterdiepte"),to = c("Vestigingsdiepte waterplanten")))]
+  
+    ekr_scores3[GHPR == 'Waterdiepte',GHPR := as.factor(mapvalues(GHPR,from = c("Waterdiepte"),to = c("Vestigingsdiepte waterplanten")))]
+    
     d3_deelptn <- ekr_scores2[EKR==min(EKR,na.rm=T),]
     
     # create map
@@ -386,9 +388,15 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     }
     
     # --- Ecologische SleutelFactoren ----- (ESF tabel) ------
+    
+    # ESF is doubled in columns: one string and one number, detect via lenght of the first row
+    cols <- which(grepl('ESF',colnames(ESF)))
+    cols_nchar <- ESF[1,lapply(.SD,function(x) nchar(x)),.SDcols = cols]
+      
+    # make data.table
     ESFtab = data.table(esf = paste0('ESF',1:8),
-                        kleur = as.factor(as.numeric(ESF[,3:10])),
-                        oms = as.factor(ESF[,17:24]))
+                        kleur = as.factor(as.numeric(ESF[,cols[cols_nchar==1]])),
+                        oms = as.factor(ESF[,cols[cols_nchar>1]]))
     
     # add oordeel
     ESFtab[kleur==1,OORDEEL := 'groennummer.jpg']
@@ -403,7 +411,6 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     
     # select relevant columns
     ESFtab <- ESFtab[,.(esf,OORDEEL,kleur,oms,piclatex)]
-    
     
     # --- uitgevoerde maatregelen ----------
     

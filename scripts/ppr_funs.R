@@ -307,9 +307,6 @@ ppr_maatregelen <- function(){
   # read maatregelen
   d1 <- fread(paste0('data/',fname)) 
   
-  # remove two columns selected by Laura
-  d1[,c('HoortbijKRWWaterlichaam2021','HoortbijKRWWaterlichaamNaam2021') := NULL]
-  
   # which colnames are character
   cols <- colnames(d1)[sapply(d1, is.character)]
   
