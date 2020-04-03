@@ -62,7 +62,8 @@ col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
 # inladen basis bestanden ----
-ESFoordelen <- fread('../data/esfKRW_20200228.csv') # hier later ook eags of gafs aan toevoegen
+ESFoordelen <- fread('../data/esfKRW_20200331.csv') # hier later ook eags of gafs aan toevoegen
+ESFoordelen[,ToestandChemie:=NULL]
 # which colnames are character
 cols <- colnames(ESFoordelen)[sapply(ESFoordelen, is.character)]
 # trim character columns from starting and ending space
@@ -154,30 +155,29 @@ pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram)
 
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
-for (i in 12:50){
-    #nrow(ESFoordelen)
-    #i=10 amstelland loopt vast pandoc error 99
-    # i=11 vecht
-    #i=8 loopt vast 
+for (i in 8:nrow(ESFoordelen)){
+    #i=13 vaarten vechtstreek: meer ruimte voor karakterschets
     
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
     wl <- waterlichamenwl$OWL_SGBP3 # of waterlichaam of eagcode of gafcode
-    # als eenheid factsheet KRW wl of GAF of meerdere EAGs
     
+    # als eenheid factsheet KRW wl of GAF of meerdere EAGs
     if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])>0){ 
-      eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl|substr(eag_wl$GAFIDENT,1,4) %in% wl,]
+      eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl,]
       wlname <- unique(eagwl$KRWmonitoringslocatie_SGBP3[(eagwl$KRW_SGBP3 %in% wl)])
       wlname <- sapply(strsplit(wlname, '_'), `[`, 2) # hoortbijgeo zonder namespace oor selectie van totaalscores per waterlichaam
     } 
-    # als eenheid factsheet is eag
+    # als eenheid factsheet is eag of gaf
     if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])==0){
-      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]
-      wlname <- unique(EKRset$HoortBijGeoobject.identificatie[EKRset$EAGIDENT %in% wl])
+      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl|substr(eag_wl$GAFIDENT,1,4) %in% wl,]
+      wlname <- unique(EKRset$HoortBijGeoobject.identificatie[EKRset$EAGIDENT %in% eagwl$GAFIDENT])
       wlname <- gsub("NL11_","",wlname)
       } 
 
     my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
-    # als wl is waterlichaam dan worden balansen die bij wl horen volgens koppeltabel, ook eagbalansen worden geslecteerd
+    my_title2 <- str_replace_all(my_title, pattern=" ", "")
+    # als wl is waterlichaam dan worden balansen die bij wl horen volgens koppeltabel, 
+    # ook eagbalansen worden geslecteerd
     # als wl is GAF dan wordt de GAF balans geselecteerd en eags die erbij horen
     # als er geen balans voor wl of eag zijn dan wordt gaf balans geslecteerd
     pvskpsel <- pvskp[pvskp$KRW %in% wl|pvskp$EAG %in% eagwl$GAFIDENT|pvskp$GAF %in% wl,] 
@@ -206,18 +206,18 @@ for (i in 12:50){
                            keep.rownames=FALSE)
     deelgebieden <- as.data.frame(deelgebieden)
     deelgebieden$samen <- paste0(deelgebieden$GAFIDENT," (",deelgebieden$GAFNAAM,")")
-    EST_sel <- EST[EST$EAG %in% eagwl$GAFIDENT,]
+    EST_sel <- EST[EST$Waterlichaam %in% eagwl$GAFIDENT,]
     
     outputF <- "html"
     rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
                     output_format = "flexdashboard::flex_dashboard", #pdf_document
-                    output_file = paste("FS_", wlname, ".html", sep=''),
+                    output_file = paste("FS_", my_title2, ".html", sep=''),
                     output_dir = "output/")
     
     ## Render preview
     webshot::webshot(
-      url = paste("output/FS_", wlname, ".html", sep=''),
-      file = paste("output/FS_", wlname, ".png", sep=''),
+      url = paste("output/FS_", my_title2, ".html", sep=''),
+      file = paste("output/FS_",my_title2, ".png", sep=''),
       vwidth = 3408,
       vheight = 2400,   # Use A series aspect ratio
       delay = 1,        # Wait to allow all element to load
@@ -232,7 +232,7 @@ for (i in 12:50){
     outputF <- "word"
     rmarkdown::render(input = "factsheets.Rmd", #of rmd of script
                     output_format = "bookdown::word_document2", #pdf_document
-                    output_file = paste("FS_", wlname, ".docx", sep=''),
+                    output_file = paste("FS_", my_title2, ".docx", sep=''),
                     output_dir = "output/")
     
 }
@@ -251,27 +251,24 @@ for (i in 11:50){
 #nrow(ESFoordelen)
      #i=10 amstelland loopt vast pandoc error 99
     # i=30 loopt vast 
-  #
-    
-    waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
+  #  waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
     wl <- waterlichamenwl$OWL_SGBP3 # of waterlichaam of eagcode of gafcode
     # als eenheid factsheet KRW wl of GAF of meerdere EAGs
     
     if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])>0){ 
-      eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl|substr(eag_wl$GAFIDENT,1,4) %in% wl,]
+      eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl %in% wl,]
       wlname <- unique(eagwl$KRWmonitoringslocatie_SGBP3[(eagwl$KRW_SGBP3 %in% wl)])
       wlname <- sapply(strsplit(wlname, '_'), `[`, 2) # hoortbijgeo zonder namespace oor selectie van totaalscores per waterlichaam
     } 
-    # als eenheid factsheet is eag
+    # als eenheid factsheet is eag of gaf
     if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])==0){
-      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl,]
-      wlname <- unique(EKRset$HoortBijGeoobject.identificatie[EKRset$EAGIDENT %in% wl])
+      eagwl <- eag_wl[eag_wl$GAFIDENT %in% wl|substr(eag_wl$GAFIDENT,1,4),]
+      wlname <- unique(EKRset$HoortBijGeoobject.identificatie[EKRset$EAGIDENT %in% eagwl$GAFIDENT])
       wlname <- gsub("NL11_","",wlname)
       } 
 
     my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
 
-  
     # alleen gewogen scores
     EKRset1 <- EKRset[EKRset$HoortBijGeoobject.identificatie %in% wlname,] 
     # ongewogen scores obv koppeling locatie en EAG
@@ -302,7 +299,7 @@ document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r my_
 
 ## Hoofdlijnen {data-height=265}
 
-### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
+### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=650}
 `r waterlichamenwl$OWMNAAM` (`r waterlichamenwl$OWL`) heeft watertype "`r unique(waterlichamenwl$typebesch)`" (`r unique(eagwl$watertype)`) en het wateroppervlak van het waterlichaam is `r round(sum(eagwl$OppWater)/10000, 0)` hectare.
 <br>
 Het waterlichaam bestaat uit de deelgebieden: 
@@ -322,7 +319,7 @@ Het waterlichaam `r waterlichamenwl$OWMNAAM` heeft de status `r waterlichamenwl$
 if(nrow(EST_sel)>0){
 
 ## merge Ecosysteemtoestanden met EAGs: er mag maar 1 watertype per factsheet zijn. Dat is zo als of KRW WL of EAG uitgangspunt zijn.
-dtEST2 <- merge(EST_sel, eagwl, by.x = "EAG", by.y  = "GAFIDENT")
+dtEST2 <- merge(EST_sel, eagwl, by.x = "Waterlichaam", by.y  = "GAFIDENT")
 
 ## gather O en W 
 dtEST4 <- dtEST2[,yearid := frank(-jaar, ties.method = 'dense')][yearid <= 1] # alleen laatste jaar meenemen
@@ -349,8 +346,7 @@ if(dtEST2$KRW_SGBP3 %in% c('NL11_1_1')){
   myimages<- "esticon/W6_O6_K_St.jpg" 
 }
 
-
-include_graphics(myimages)
+include_graphics(myimages[1])
 }
 
 ```
@@ -383,7 +379,7 @@ map <- ggplot() +
                axis.ticks.y=element_blank(),
                panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
                legend.position="none") +
-         coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
+         coord_sf(xlim = c(bboxEAG$xmin, bboxEAG$xmax), ylim = c(bboxEAG$ymin, bboxEAG$ymax), datum = NA)
 map
 
 ```
@@ -496,18 +492,25 @@ De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast
 
 ### Toestand {data-width=400}
 
-```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen.De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel in de linkerbalk (SGBP2) en het technisch aangepaste CONCEPTdoel voor SGBP3 rechts. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
+```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen. De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
+if(length(unique(ekr_scores_sel2$id))==1){
 ekrplot2(ekr_scores_sel2)
-```
+}
 
+if(length(unique(ekr_scores_sel2$id))>1){
+a = split(ekr_scores_sel2,list(ekr_scores_sel2$id), drop=TRUE)
+
+do.call(grid.arrange,c(lapply(1:length(a), function(i) ekrplot2(as.data.frame(do.call('rbind',a[i])))), nrow=1))
+}
+```
 
 ## Ecologische sleutelfactoren {data-height=700}
 
 ### Ecologische sleutelfactoren
 
 ```{r esf, echo= FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
-ESFtab <- t(ESF[,17:24])
-ESFtab2 <- t(ESF[,3:10])
+ESFtab <- t(ESF[,19:27])
+ESFtab2 <- t(ESF[,5:12])
 ESFtab <- as.data.frame(ESFtab);ESFtab2 <- as.data.frame(ESFtab2)
 ESFtab$esf <- substr(rownames(ESFtab), 1, 4);ESFtab2$esf <- substr(rownames(ESFtab2), 1, 4)
 ESFtab <- merge(ESFtab,ESFtab2, by = 'esf')
@@ -608,8 +611,8 @@ gauge(rate, min = 0, max = length(maatregelen1$Naam), symbol = '', gaugeSectors(
 ###
 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
-ESFtab <- t(ESF[,17:24])
-ESFtab2 <- t(ESF[,3:10])
+ESFtab <- t(ESF[,19:27])
+ESFtab2 <- t(ESF[,5:12])
 ESFtab <- as.data.frame(ESFtab);ESFtab2 <- as.data.frame(ESFtab2)
 ESFtab$esf <- substr(rownames(ESFtab), 1, 4);ESFtab2$esf <- substr(rownames(ESFtab2), 1, 4)
 ESFtab <- merge(ESFtab,ESFtab2, by = 'esf')
@@ -707,6 +710,13 @@ plotbod(bod1)
 ### Brondata: water- en stoffenbalansen
 ### Brondata: Monitoringsresultaten uit meetprogramma`s fysisch-chemie en hydrobiologie
 ### Brondata: Monitoringsresultaten uit meetprogramma waterbodemchemie
+
+## {data-height=800}
+
+### EKR scores op alle deelmaatlatten in de tijd {data-height=800}
+```{r ekrtijd, echo= FALSE, warning = FALSE, message = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
+plotEKRlijn(EKRset2)
+```
 
 # Begrippenlijst en afkortingen
 

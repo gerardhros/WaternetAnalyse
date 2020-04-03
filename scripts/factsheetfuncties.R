@@ -318,9 +318,10 @@ extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   p
   
 }
+
 waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   # diepte4licht <- log(25)/1.2
-  hybi2 <- hybi[fewsparameter %in% parameter,]
+  hybi2 <- hybi[hybi$fewsparameter %in% parameter & hybi$jaar == max(hybi$jaar),]
   
   p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = hybi2$locatie.KRW.watertype))+
     geom_boxplot() +
@@ -474,7 +475,7 @@ tabelPerWL3jaargemEAG <- function (EKRset,eag_wl,doelen){
   return(d3)
 }
 
-tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
+tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, eag_wl, doelen){
   d1 <- NULL
   # make local copy (only within this function)
   doelen1 <- copy(doelen)
@@ -506,7 +507,7 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   # mean GEP per object
   doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
   doelgeb2 <- doelgeb
-  doelgeb2$id <- sapply(strsplit(doelgeb2$id, '_'), `[`, 2)
+  doelgeb2$id <- gsub("NL11_","",doelgeb2$id) #KRW waterlichaam totaal score
   doelgeb <- smartbind(doelgeb,doelgeb2)
   
   # merge with doelen
@@ -520,8 +521,8 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   
   # add classification for EKR
   d2[EKR < GEP_2022/3,oordeel_2022 := 'slecht']
-  d2[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3,oordeel_2022 := 'ontoereikend']
-  d2[EKR >= 2 * GEP / 3,oordeel_2022 := 'matig']
+  d2[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+  d2[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
   d2[EKR >= GEP_2022, oordeel_2022 := 'goed']
   
  
@@ -663,6 +664,37 @@ ekrplot2 <- function(ekr_scores_sel2){
   return(plot)
 }
 
+plotEKRlijnfs <- function(z, z2, eag_wl){
+  #z<- EKRset1 #z2 <- EKRset2
+  z <- z[is.na(z$Monster.lokaalID),]
+  z2 <- z2[is.na(z2$Monster.lokaalID),]
+  
+
+  
+  z$GHPR <- with(z,reorder(GHPR, z$level))
+  
+  z$jaar <- as.numeric(z$jaar)
+  
+  plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= waterlichaam, group = waterlichaam))+
+    stat_summary(fun.y = "mean", geom = "point") + 
+    stat_summary(fun.y = "mean", geom = "line") +
+    scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
+    facet_wrap(.~ GHPR)+
+    ylab('')+xlab('')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 5, angle=90),
+      axis.text.y = element_text(size= 5),
+      axis.ticks =  element_line(colour = "black"), 
+      panel.background = element_blank(), 
+      plot.background = element_blank()
+    )
+  ggplotly(plot)
+}
+
 trend <- function(z, detail = "hoofd"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
   #z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
@@ -685,13 +717,13 @@ trend <- function(z, detail = "hoofd"){
   
   COF <- fitted_models %>% tidy(model) 
   R2 <- fitted_models %>% glance(model) 
-  trtabset <- merge(COF, tabset2, by =
-                      c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  trtabset <- merge(COF[,c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")], 
+                    tabset2, by = c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
   gebiedData  <- merge(trtabset, R2, by = c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
   gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
   gebiedData$group <- 'grey'# 1 jaar data
   return(gebiedData)
 } 
 # deze functie werkt alleen als alle 4 de maatlatten significante trend wordt berekend
-# trendkrw <- trend(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "deel") # juist trend per waterlichaam berekenen
-# write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+# trendkrw <- trendEAG(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "deel") # juist trend per waterlichaam berekenen
+# write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE) # wegschrijven als csv
