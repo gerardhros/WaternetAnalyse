@@ -38,9 +38,9 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   # remove columns with no data or non-relevant information (judgement gerard)
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
   cols <- c(cols,'watertype','EAGIDENT','monsternemer','planvanaanpak','analist',
-            'bron','bemonsteringsprotocol','analyseprotocol','analysecode','locatie.referentievlakzcoord',
-            'locatie.meetprogrammahistorie','locatie.meetprogrammaactueel','locatie.meetnethistorie',
-            'locatie.meetnetactueel','opmerkingmeting','externereferentie','veldapparaat')
+            'bron','bemonsteringsprotocol','analyseprotocol','locatie.referentievlakzcoord',
+            'locatie.meetprogrammaactueel',
+            'locatie.meetnetactueel','opmerkingmeting','externereferentie')
   db[,c(cols) := NULL]
   
   # return updated database
@@ -60,16 +60,24 @@ ppr_ekr <- function(ekr1,ekr2){
   cols <- c('MEETNET_HISTORIE','REFERENTIEVLAK','GLOBALID','GN_CREATED_USER','GN_CREATED_DATE',
             'GN_LAST_EDITED_USER','GN_LAST_EDITED_DATE','MEETNET_ACTUEEL','FEWSFILTER_HISTORIE',
             'FEWSFILTER_ACTUEEL','PROGRAMMA_HISTORIE','PROGRAMMA_ACTUEEL','.',
-            'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer','Compartiment.code',
+            'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer',
             'Begintijd','Eindtijd')
   # ensure that cols are present in colnames db
   cols <- cols[cols %in% colnames(db)]
-
   # remove columns
   db[,c(cols):=NULL]
+  
+  # add type water body
+  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
+  d3 <- merge(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
+              by.y = c('GAFIDENT'), all.x = TRUE)
+  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
+  d4 <- merge(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
+              by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
+  d3 <- smartbind(d3,d4)
  
   # return updated database
-  return(db)
+  return(d3)
   
 }
 
@@ -84,8 +92,8 @@ ppr_slootbodem_kl <- function(db, wtype = NULL,mlocs = NULL){
   db[limietsymbool == '<',meetwaarde := meetwaarde * 0.5] 
   
   # merge with GAFIDENT from eag_wl (be aware: EAG 3300 are few missing)
-  db <- data.table::merge.data.table(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
-  db <- data.table::merge.data.table(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
+  db <- merge(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
+  db <- merge(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
   
   # wijzig relevante namen van bodemfews database
   cols <- colnames(db)
@@ -172,8 +180,8 @@ ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   db[,eenheid := gsub("/","_",eenheid)]
   
   # remove columns with no data or non-relevant information (judgement gerard)
-  cols <- c('locatie.referentievlakzcoord','locatie.meetprogrammahistorie','locatie.meetprogrammaactueel',
-            'locatie.meetnethistorie','locatie.meetnetactueel',
+  cols <- c('locatie.referentievlakzcoord','locatie.meetprogrammaactueel',
+            'locatie.meetnetactueel',
             'fewsparametereenheidreferentie')
   db[,c(cols) := NULL]
   
