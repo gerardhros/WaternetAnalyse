@@ -98,7 +98,7 @@ plotFractiePerToetsgebied2 <- function(l){
 
 # lijnplot
 plotEKRlijn <- function(z){
-  #z<- EKRset
+  #z<- EKRset1 z2 <-
   z <- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
   # z <- z[!is.na(z$CODE),] # geen totaal scores per toetsgeied meenemen
   # wat wil ik: set start niet met NL11
@@ -434,8 +434,8 @@ tabelPerWLEnEAGPerJaarDeel <- function (EKRset, doelen, eag_wl){
   }
 
 # taxa
-draaitaxa <- function (EKRlijst){
-  selectedData3 <- EKRlijst[EKRlijst$Analysecompartiment.code %in% 'OW',
+draaitaxa <- function (EKRlijst1){
+  selectedData3 <- EKRlijst1[EKRlijst1$Analysecompartiment.code %in% 'OW',
                           c('CODE','HoortBijGeoobject.identificatie','EAGIDENT','Biotaxon.naam',
                             'Biotaxon.naam.nl', 'KRWwatertype.code','Grootheid.code','jaar',
                             'Numeriekewaarde', 'Waardebepalingsmethode.code')]
@@ -456,6 +456,7 @@ draaitaxa <- function (EKRlijst){
     rendererName = "Heatmap"
 )
 }
+
 vispivot <- function (EKRlijst){
   
   selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","Identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code")
@@ -490,7 +491,7 @@ vispivot <- function (EKRlijst){
 
 # geo ------------------------------------------------
 geoplot3 <- function(l, wsa){
-  #l <- z
+  #l <- mcft2
   titel = paste(unique(l[ ,c("GHPR")]),sep="",collapse=" ")
   # titel = paste(unique(l[ ,c("Waardebepalingsmethode.code",'HoortBijGeoobject.identificatie','KRWwatertype.code', 'GHPR')]),sep="",collapse=" ")
   subtitel = paste(unique(l[ ,c("Waardebepalingsmethode.code")]),sep="",collapse="")
@@ -525,7 +526,7 @@ geoplot3 <- function(l, wsa){
       anim <- p + transition_time(jaar) +
           labs(title = "Jaar: {frame_time}")+
           ease_aes('linear')
-      gganimate::animate(anim, nframes = 24, fps = 0.5, renderer = gifski_renderer(paste0(wsa,titel,".gif")))
+      gganimate::animate(anim, nframes = 24, fps = 0.5, renderer = gifski_renderer(paste0(wsa,"mafy.gif")))
         
      }
   }
@@ -634,7 +635,7 @@ gGeofiguurPerIndicatorPerAfvoergebiedFacetJaar <- function (EKRset){
 }
 
 # kaart ekr per mp ---------------
-ekrmap <- function(EKRset, maatlat = "2V1 Overige waterflora"){
+ekrmap <- function(EKRset2, maatlat = "2V1 Overige waterflora"){
   #EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2012 Vis",], maatlat = "4VI1 Vis-kwaliteit"
   # gebiedData <- krwchem[!(is.na(krwchem$XCOORD)) & !(is.na(krwchem$YCOORD))
   #                    & !is.na(krwchem$CODE),]
@@ -765,9 +766,9 @@ ekrmap3jrEAGOvWa <- function(tabset, maatlat = "2V21 Soortensamenstelling macrof
     addTiles()
 }
 ekrmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
-  
+  #maatlat = c("2V1 Soortensamenstelling macrofyten Waterplanten", "2V21 Soortensamenstelling hydrofyten")
   gebiedData <- tabset[!is.na(tabset$EAGIDENT),]
-  gebiedData <- gebiedData[gebiedData$GHPR_level == maatlat,]
+  gebiedData <- gebiedData[gebiedData$GHPR_level %in% maatlat,]
   
   '7' -> gebiedData$klasse[gebiedData$EKR < 0.2]
   '6' -> gebiedData$klasse[gebiedData$EKR >= 0.2 & gebiedData$EKR < 0.4]
@@ -780,20 +781,20 @@ ekrmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
   
   
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
-  map <- sp::merge(gEAG, gebiedData[, c('EKR','klasse','jaar','EAGIDENT','GEP','bronddoel', 'KRWwatertype.code',
+  map <- sp::merge(gEAG, gebiedData[, c('EKR','klasse','EAGIDENT','GEP_2022','bronddoel', 'watertype',
                                         'GHPR_level')], by.x = 'GAFIDENT', by.y =
                      'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
   
-  map2 <- map[map$GAFIDENT %in% c('3000-EAG-1','2000-EAG-7','2000-EAG-2','2000-EAG-3','2000-EAG-4','2000-EAG-5','2000-EAG-6'),] 
+  map2 <- map[map$GAFIDENT %in% c('3000-EAG-3','3000-EAG-4','3000-EAG-2','2000-EAG-7','2000-EAG-2','2000-EAG-3','2000-EAG-4','2000-EAG-5','2000-EAG-6'),] 
   
-  map <- map[order(map$jaar),]
+  # map <- map[order(map$jaar),]
   
   leaflet() %>%
     addPolygons(data = map,layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
                                                      "EKR score:", map$., "<br>",
                                                      "EKR klasse:", map$klasse, "<br>",
                                                      "Gemiddelde getoetste meetjaren:", map$jaar, "<br>",
-                                                     "Doel:", map$Doel, "<br>",
+                                                     "Doel:", map$GEP_2022, "<br>",
                                                      "Maatlat:", maatlat ),
                 stroke = F, color= 'green', opacity=0.8, weight = 0.5, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
@@ -803,7 +804,6 @@ ekrmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
     addLegend("bottomright", colors=col, labels=labels, title = "")%>%
     addTiles()
 }
-
 ekrmap3jrWL <- function(tabset, maatlat = "2V21 Soortensamenstelling macrofyten"){
   #gebiedData <- EKRset[EKRset$jaar > '2013'& EKRset$jaar < '2018',]
   #maatlat = "4VI1 Vis-kwaliteit"
@@ -871,33 +871,175 @@ ekrmap3 <- function(gebiedData, maatlat = "4VI1 Vis-kwaliteit"){
     addTiles()
 }
 
+oordeelmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
+  #maatlat = c("2V1 Soortensamenstelling macrofyten Waterplanten", "2V21 Soortensamenstelling hydrofyten")
+  gebiedData <- tabset[!is.na(tabset$EAGIDENT),]
+  gebiedData <- gebiedData[gebiedData$GHPR_level %in% maatlat,]
+  
+  gebiedData$oordeel <- as.factor(gebiedData$oordeel_2022)
+  #gebiedData$oordeel = factor(gebiedData$oordeel, levels = c( "4", "5", "6","7"))
+  gebiedData <- gebiedData[!is.na(gebiedData$oordeel),]
+  
+  colordl <- c('goed'="green",'matig'="yellow",'ontoereikend'="orange",'slecht'="red")
+  labelsordl <- c('goed'='goed','matig'='matig','ontoereikend'='ontoereikend','slecht'='slecht')
+  pal <- colorFactor(palette = colordl,  domain = gebiedData$oordeel)
+  map <- sp::merge(gEAG, gebiedData[, c('EKR','oordeel','oordeel_2022','EAGIDENT','GEP_2022','bronddoel', 'watertype',
+                                        'GHPR_level')], by.x = 'GAFIDENT', by.y =
+                     'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
+  
+  map2 <- map[map$GAFIDENT %in% c('3000-EAG-3','3000-EAG-4','3000-EAG-2','2000-EAG-7','2000-EAG-2','2000-EAG-3','2000-EAG-4','2000-EAG-5','2000-EAG-6'),] 
+  
+  # map <- map[order(map$jaar),]
+  
+  leaflet() %>%
+    addPolygons(data = map, layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
+                                                                "EKR score:", map$EKR, "<br>",
+                                                                "Oordeel:", map$oordeel_2022, "<br>",
+                                                                "Doel:", map$GEP_2022, "<br>",
+                                                                "Maatlat:", maatlat ),
+                stroke = F, color= 'green', opacity=0.8, weight = 0.5, smoothFactor = 0.8,
+                fill=T, fillColor = ~pal(oordeel), fillOpacity = 0.6) %>%
+    addPolygons(data= map2, layerId = map2$GAFIDENT,
+                stroke = T, color= ~pal(oordeel), opacity=0.8, weight = 0.5, smoothFactor = 0.8,
+                fill=T, fillColor = ~pal(oordeel), fillOpacity = 1) %>%
+    addLegend("bottomright", colors=colordl, labels=labelsordl, title = "")%>%
+    addTiles()
+}
+
 ## trend ----------------------------------------------------------------------------------------
- 
-trendfychem <- function(z, param = "P"){
-  #z <- wq
-  z<- z[z$fewsparameter == param ,]
-  z<- z[grep('^VAST',z$locatie.meetnethistorie),]
+trendEAG <- function(z, detail = "deel"){
+  #EKRset$jaar <- as.numeric(EKRset$jaar)
+  # z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
+  z<- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
+  setnames(z,c('HoortBijGeoobject.identificatie'),c('id'))
   
-  tabset2 <- dcast(z, fewsparametercode+ CODE ~ maand+jaar, 
-                   value.var = "meetwaarde", fun.aggregate = mean)
-  tb <- melt(tabset2, variable.name = "datum", na.rm =TRUE, value.name = "meetwaarde") # omgekeerde draaitabel voor correct format lm
-  tb$datum <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  if(detail == "hoofd"){
+    z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
+  }
   
-  fitted_models = z %>%  # lineaire regressie over jaren per parameter en gebied
-    group_by(fewsparameter, CODE) %>% 
+  tabset2 <- dcast(z, id+KRWwatertype.code+Waardebepalingsmethode.code+GHPR_level+EAGIDENT ~ jaar, 
+                   value.var = "Numeriekewaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
+    group_by(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level,EAGIDENT) %>% 
     filter(length(unique(jaar)) > 1) %>% 
-    do(model = lm(meetwaarde ~ datum, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per gebied
+    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
   
   COF <- fitted_models %>% tidy(model) 
   R2 <- fitted_models %>% glance(model) 
-  trtabset <- merge(COF, z, by =
-                      c('fewsparameter','CODE')) # data trend samenvoegen met resultaten
-  gebiedData  <- merge(trtabset, R2, by = c('fewsparameter','CODE')) # data trend samenvoegen met resultaten
-  gebiedData <- gebiedData[!is.na(gebiedData$CODE),]
-  #gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
-  #write.table(gebiedData, file = paste(getwd(),"/output/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  trtabset <- merge(COF[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")], 
+                    tabset2, by =
+                      c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData  <- merge(trtabset, R2, by = c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData  <- gebiedData[gebiedData$term == 'jaar',]
+  gebiedData$group <- 'grey'# 1 jaar data
+  return(gebiedData)
+}
+
+trendEAGverschil <- function(z, detail = "deel"){
+  #EKRset$jaar <- as.numeric(EKRset$jaar)
+  z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2020, ]
+  z<- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
+  setnames(z,c('HoortBijGeoobject.identificatie'),c('id'))
+  
+  if(detail == "hoofd"){
+    z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
+  }
+  
+  tabset2 <- dcast(z, id+KRWwatertype.code+Waardebepalingsmethode.code+GHPR_level+EAGIDENT ~ jaar, 
+                   value.var = "Numeriekewaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
+    group_by(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level,EAGIDENT) %>% 
+    filter(length(unique(jaar)) > 1) %>% 
+    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
+  
+  COF <- fitted_models %>% tidy(model) 
+  R2 <- fitted_models %>% glance(model) 
+  trtabset <- merge(COF[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")], 
+                    tabset2, by =
+                      c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData  <- merge(trtabset, R2, by = c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData  <- gebiedData[gebiedData$term == 'jaar',]
+  
+  # trend 2018
+  tabset2 <- dcast(z[z$jaar < 2019,], id+KRWwatertype.code+Waardebepalingsmethode.code+GHPR_level+EAGIDENT ~ jaar, 
+                   value.var = "Numeriekewaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
+    group_by(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level,EAGIDENT) %>% 
+    filter(length(unique(jaar)) > 1) %>% 
+    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
+  
+  COF <- fitted_models %>% tidy(model) 
+  R2 <- fitted_models %>% glance(model) 
+  trtabset <- merge(COF[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")], tabset2, by =
+                      c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData1  <- merge(trtabset, R2, by = c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData1  <- gebiedData1[gebiedData1$term == 'jaar' ,]
+  
+  gebiedData <- merge(gebiedData, gebiedData1[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate','p.value','r.squared')], by =c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level'))
+  colnames(gebiedData) <- gsub(x = colnames(gebiedData), pattern = "\\.x", replacement = ".2019")
+  colnames(gebiedData) <- gsub(x = colnames(gebiedData), pattern = "\\.y", replacement = ".2018") 
+  
+  
+  # trend 2017
+  tabset2 <- dcast(z[z$jaar < 2018,], id+KRWwatertype.code+Waardebepalingsmethode.code+GHPR_level+EAGIDENT ~ jaar, 
+                   value.var = "Numeriekewaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
+    group_by(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level,EAGIDENT) %>% 
+    filter(length(unique(jaar)) > 1) %>% 
+    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
+  
+  COF <- fitted_models %>% tidy(model) 
+  R2 <- fitted_models %>% glance(model) 
+  trtabset <- merge(COF[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")], tabset2, by =
+                      c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData1  <- merge(trtabset, R2, by = c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData1  <- gebiedData1[gebiedData1$term == 'jaar' ,]
+  
+  gebiedData <- merge(gebiedData, gebiedData1[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','GHPR_level','estimate','p.value','r.squared')], by =c('id',"EAGIDENT",'Waardebepalingsmethode.code','GHPR_level'))
+  
+  write.table(gebiedData, file = paste(getwd(),"/output/EAGTrendVerschil",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  
   return(gebiedData)
 } 
+
+trendfychem <- function(z, param = c("P","N","NH3")){
+  z <- wq
+  z<- z[z$fewsparameter %in% param ,]
+  z<- z[grep('*VAST*',z$locatie.meetnethistorie),]
+  
+  tabset2 <- dcast(z, fewsparametercode+EAGIDENT ~ jaar, 
+                   value.var = "meetwaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm = TRUE, value.name = "JGM") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en gebied
+    group_by(fewsparametercode, EAGIDENT) %>% 
+    filter(length(unique(jaar)) > 1) %>% 
+    do(model = lm(JGM ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per gebied
+  
+  COF <- fitted_models %>% tidy(model) 
+  R2 <- fitted_models %>% glance(model) 
+  trtabset <- merge(COF[,c("EAGIDENT",'fewsparametercode','estimate',"term")], tabset2, by =
+                      c('fewsparametercode','EAGIDENT')) # data trend samenvoegen met resultaten
+  gebiedData  <- merge(trtabset, R2, by = c('fewsparametercode','EAGIDENT')) # data trend samenvoegen met resultaten
+  gebiedData <- gebiedData[!is.na(gebiedData$EAGIDENT),]
+  gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
+  write.table(gebiedData, file = paste(getwd(),"/output/EAGTrendfychem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  return(gebiedData)
+} 
+
 plottrend <- function(gebiedData){  
   zw <- 
     ggplot(gebiedData[gebiedData$term == 'jaar' ,], aes(x = reorder(EAGIDENT, -estimate), y = estimate, fill = group)) +
@@ -926,7 +1068,7 @@ plottrend2 <- function(gebiedData){
   zw <- 
     ggplot(gebiedData[gebiedData$term == 'jaar' ,], aes(x = GHPR_level, y = estimate, fill = group)) +
     geom_bar(stat ='identity')+
-    facet_wrap(.~EAGIDENT)+
+    facet_wrap(.~id)+
     scale_fill_manual(values=c('grey','red'))+
     coord_flip()+
     theme_minimal()+
@@ -946,9 +1088,9 @@ plottrend2 <- function(gebiedData){
   
   ggplotly(p=zw) 
 }
-plottrend3 <- function(gebiedData){
+plottrend3 <- function(mfatrend){
   # gebiedData <- vegtrend
-  gebiedData<- gebiedData[!gebiedData$EAGIDENT %in% c('2220-EAG-1','1000-EAG-1','2000-EAG-1'),] 
+  gebiedData<- mfatrend[!mfatrend$EAGIDENT %in% c('2220-EAG-1','1000-EAG-1','2000-EAG-1'),] 
   # Gaasperplas verkeerde trend berekend door fout in monitoringslocatie emerse zone,
   # grachten fout in monsterlocaties 2012. Te weinig data voor trend.
   # ams zuid, de schommeling zit in drijfbladplanten en die zijn niet eenduidig bemonsterd, terwijl klassegrenzen smal zijn.
@@ -960,8 +1102,8 @@ plottrend3 <- function(gebiedData){
   '4' -> gebiedData$klasse[gebiedData$estimate >= 0 & gebiedData$estimate < 0.1]
   '5' -> gebiedData$klasse[gebiedData$estimate >= 0.1 & gebiedData$estimate < 0.15]
   '6' -> gebiedData$klasse[gebiedData$estimate >= 0.2]
-  gebiedData$klasse[is.na(gebiedData$p.value.x)] <- '8'# slechts 1 of 2 jaar data
-  gebiedData$klasse[gebiedData$p.value.x > 0.4] <- "7" # geen trend
+  gebiedData$klasse[is.na(gebiedData$p.value)] <- '8'# slechts 1 of 2 jaar data
+  gebiedData$klasse[gebiedData$p.value > 0.4] <- "7" # geen trend
   gebiedData$klasse[gebiedData$r.squared == 1] <- "8" 
   gebiedData$klasse <- factor(gebiedData$klasse, levels = c("1", "2", "3", "4","5","6","7","8"))
   
@@ -977,7 +1119,7 @@ plottrend3 <- function(gebiedData){
               '6'="0.2 - 0.5", '7' = 'geen trend', '8' = 'berekening niet mogelijk')
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
   
-  map <- sp::merge(gEAG, gebiedData[, c('klasse','estimate','p.value.x','r.squared','group','EAGIDENT', 'KRWwatertype.code',
+  map <- sp::merge(gEAG, gebiedData[, c('klasse','estimate','p.value','r.squared','group','EAGIDENT', 'KRWwatertype.code',
                                         'GHPR_level')], by.x = 'GAFIDENT', by.y =
                      'EAGIDENT', duplicateGeoms = T)
   
@@ -985,7 +1127,7 @@ plottrend3 <- function(gebiedData){
     addPolygons(layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
                                                      "EAG code", map$GAFIDENT, "<br>",
                                                      "EKR trend:", map$estimate, "<br>",
-                                                     "trend significantie:", map$p.value.x, "<br>",
+                                                     "trend significantie:", map$p.value, "<br>",
                                                      "R2:", map$r.squared, "<br>"
                                                      ),
                 stroke = T, color= 'black', opacity=0.8, weight = 1, smoothFactor = 0.8,
@@ -1529,13 +1671,13 @@ plotmcftsrt <- function(hybi1){
   
 }
 # macrofauna
-plotmafa <- function(mafa){
-  #mafa <-hybi1
+plotmafa <- function(mafa,TWNev){
+ # mafa <-hybi
   mafa <- mafa[mafa$analysecode == 'MEA',]
   mafa <- merge(TWNev, mafa, by.x = 'taxonname', by.y ='TWN.naam', all.x = FALSE, all.y = TRUE)
   #mafa <- dcast(mafa, TWN.taxongroup+locatie.EAG+datum+jaar~ ., value.var = "meetwaarde", fun.aggregate = sum, drop = TRUE)# som aantallen per groep
   mafa <- dcast(mafa, locatie.EAG+taxongroup+jaar~ ., value.var = "meetwaarde", fun.aggregate = mean, drop = TRUE) # gemiddelde van locaties en jaren
-  mafa<- mafa[!is.na(mafa$taxongroup) & !mafa$taxongroup == "",]
+  mafa<- mafa[!is.na(mafa$taxongroup) & !mafa$taxongroup == "" & !is.na(mafa$.),]
   
   mafaplot <- ggplot(mafa)+
     geom_bar(aes(x = jaar, y = ., fill = taxongroup), stat= "identity", position = "stack") +
@@ -1554,6 +1696,46 @@ plotmafa <- function(mafa){
       #plot.background = element_blank()
     )+
     ggtitle( "Aantal waarnemingen per macrofauna taxongroep") +
+    labs(x="jaar",y="n")
+  return(mafaplot)
+}
+
+plotmafa2 <- function(mafa,TWNev){
+  mafa <- hybi
+  mafa <- mafa[mafa$analysecode == 'MEA',]
+  mafa <- merge.data.frame(TWNev, mafa, by.x = 'taxonname', by.y ='TWN.naam', all.x = FALSE, all.y = TRUE)
+  # mafa <- dcast(mafa, taxongroup+locatie.EAG+datum+jaar~ ., value.var = "meetwaarde", fun.aggregate = sum, drop = TRUE)# som aantallen per groep
+  mafa <- dcast(mafa, monsterident+locatie.KRW.watertype+locatie.KRWmeetpuntlocatie +taxongroup+jaar~ ., value.var = "meetwaarde", fun.aggregate = mean, drop = TRUE) # gemiddelde van locaties en jaren
+  #mafa <- dcast(mafa, taxongroup+jaar~ ., value.var = "locatie.EAG", fun.aggregate = lengthUnique, drop = TRUE) # gemiddelde van locaties en jaren
+  mafa<- mafa[!is.na(mafa$taxongroup) & !mafa$taxongroup == "" & !is.na(mafa$.),]
+  #mafa <- dcast(mafa, taxongroup+jaar~ ., value.var = ".", fun.aggregate = mean, drop = TRUE) # gemiddelde van locaties en jaren
+  mafa <-as.data.table(mafa)
+  mafasel <- mafa[,length(unique(jaar))>3, by=locatie.KRWmeetpuntlocatie]
+  # mafasel <- mafa[,length(unique(jaar))>3, by=locatie.EAG]
+  # mafa <- mafa[ocatie.EAG %in% mafasel$locatie.EAG[mafasel$V1 == TRUE]]
+  mafa <- mafa[locatie.KRWmeetpuntlocatie %in% mafasel$locatie.KRWmeetpuntlocatie[mafasel$V1 == TRUE]]
+  mafa <- mafa[mafa$locatie.KRW.watertype %in% c('M10','M27','M14','M20'),]
+  mafa$meetwaarde <- mafa$.
+  mafa <- dcast(mafa, locatie.KRW.watertype+taxongroup+jaar~ ., value.var = "meetwaarde", fun.aggregate = mean, drop = TRUE) # gemiddelde van locaties en jaren
+  eptindex <- mafa[mafa$taxongroup %in% c("Insecta - Ephemeroptera","Insecta - Remaining","Insecta - Trichoptera"),]
+  
+  mafaplot <- ggplot(mafa)+
+    geom_bar(aes(x = jaar, y = ., fill = taxongroup), stat= "identity", position = "stack") +
+    guides(fill= guide_legend(title='Groepen macrofauna', label.theme = element_text(size = 7), ncol = 2))+
+    #scale_x_discrete(position = "bottom") +
+    # facet_wrap(.~locatie.KRW.watertype, scales = 'fixed')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 5, angle = 90),
+      axis.text.y = element_text(size= 5),
+      axis.ticks =  element_line(colour = "black"), 
+      panel.background = element_blank(), 
+      #plot.background = element_blank()
+    )+
+    ggtitle( "Gemiddeld aantal individuen macrofauna per monster") +
     labs(x="jaar",y="n")
   return(mafaplot)
 }
@@ -1752,7 +1934,7 @@ waterbalansmaand <- function(dat){
           w_o_uitlaat3   = -w_o_uitlaat3,
           w_o_uitlaat4   = -w_o_uitlaat4,
           w_o_verdamping = -w_o_verdamping,
-          w_o_wegzijg   = -w_o_wegzijg
+          w_o_wegzijging   = -w_o_wegzijging
         )
       
      colPP <-  c("green4","darkorange", "darkred", "red", "red1",  "red2", "brown",  "blue", "darkgrey",  "darkgreen", "grey","yellow", "green4", "orchid1", "cyan", "deeppink1", "darkturquoise", "blue","brown", "black" )    
@@ -1785,44 +1967,7 @@ waterbalansmaand <- function(dat){
     )
   }
 }
-pvskpplot <- function(dat){
-  if(nrow(dat) > 0) {
-    PvskP <- makePmaps(dat) %>%
-      group_by(pol) %>%
-      summarise_all(mean)
-    PvskP <- PvskP[!is.na(PvskP$pol),]
-    if(is.na(PvskP$wp_meting_mgm2d)){
-      PvskP$wp_meting_mgm2d <- 0 }
-    
-    colWat <-  c("green4","darkorange", "darkred", "red", "red1",  "red2","red3", "brown",  "blue", "black","darkgreen", "grey")  
-    colWat1 <- adjustcolor(colWat, alpha.f = 0.2)
-    colWat <- paste(c(colWat1,"yellow", colWat))
-    
-    d <- PvskP %>%
-      dplyr::select(date, pol, wp_meting_mgm2d, kPDitch, Helder.naar.troebel..mg.P.m2.d.,
-                    starts_with('wp_'),
-                    -one_of(c('wp_min_sum', 'wp_tot_sum', 'wp_inc_sum','wp_meting_gm3'))) %>%
-      mutate(wp_meting_mgm2d = -wp_meting_mgm2d)
-    
-    plot <- gather(d,
-                   d %>% dplyr::select(-date, -pol, -kPDitch, -Helder.naar.troebel..mg.P.m2.d.) %>% names(),
-                   key = 'source',
-                   value = 'value') %>%
-      ggplot() +
-      geom_bar(aes(x = pol, y = value, fill = source), stat = 'identity') +
-      geom_point(aes(x = pol, y= kPDitch), shape = 26, size = 2, fill = "red", colour = "red")+
-      geom_point(aes(x = pol, y= Helder.naar.troebel..mg.P.m2.d.), shape = 26, size = 2, fill = "salmon",
-                 colour = "salmon")+
-      xlab('Datum') + ylab('P Belasting [mg P/m2/dag]') +
-      ggtitle(paste0('Fosfaat belasting watersysteem',d$pol)) +
-      theme_classic() +
-      theme(legend.title = element_blank()) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 0.01))+
-      scale_fill_manual(values =colWat)
-    
-    ggplotly(plot)  
-  }
-}
+
 pbalansjaar <- function(dat){
   if(nrow(dat) > 0) {
     fosforbalansplot <- function(dat1){
@@ -2362,9 +2507,10 @@ zwavel <- function(bod1){
     labs(x = "", y="mg/l")
   ggplotly(p=zw) 
 }
+
 bodmap <- function(selb){
   selb <-
-    spTransform(SpatialPointsDataFrame(coords=selb[,c("locatie.x","locatie.y")],
+    spTransform(SpatialPointsDataFrame(coords=selb[,c("loc.x","loc.y")],
                                        data=selb, proj4string=proj4.rd),
                 CRSobj=proj4.google)
   gebiedData <-as.data.frame(selb)
@@ -2376,33 +2522,51 @@ bodmap <- function(selb){
   
   ktPbod <- 
     leaflet(gebiedData) %>% 
-    addCircles(~locatie.x.1, ~locatie.y.1, popup = paste("locatie", gebiedData$locatiecode, "<br>",
-                                                         "Ptot bodem:", gebiedData$Ptot_gP.kg_dg_BS, "g/kgP dg"),
+    addCircles(~loc.x.1, ~loc.y.1, popup = paste("locatie", gebiedData$locatiecode, "<br>",
+                                                  "Ptot bodem:", gebiedData$Ptot_gP_kg_dg_BS, "g/kgP dg", "<br>",
+                                                 "jaar:", gebiedData$jaar),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasseP)) %>%
     addLegend("bottomright", colors= col, labels=labels, title = 'Ptot mgP/kg DG') %>%
     addTiles()
   
   return(ktPbod)
 }
-bodmap2 <- function(bod){
-  selb <- dcast(bod, locatie.EAG+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
-  selb$FESPFWratio <-((selb$`Fe_mg/l_ng_BS`/ 55.845)-(selb$`Stot_mg/l_ng_BS`/32.065))/(selb$`Ptot_mgP/l_ng_BS`/30.974)
-  selb$FESPDWratio <-((selb$`Fe_mg/kg_dg_BS`/55.845)-(selb$`Stot_mg/kg_dg_BS`/32.065))/((selb$`Ptot_gP/kg_dg_BS`*1000)/30.974)
-  selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_PW`/32.065))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
-  selb$nlvrFW <- 0.0247*selb$`Ptot_mgP/l_ng_BS`-1.6035
-  #selb$nlvrOls <- 0.0058*(selb$`Ptot_mgPOlsen/l_ng_BS`/0.030974)-1.1361
-  selb$nlvrDW <- 0.0077*(selb$`Ptot_gP/kg_dg_BS`*1000)-4.7259
-  selb$nlvrPW <- 0.8095*selb$`Ptot_mgP/l_nf_PW`-0.2905
-    '1' -> selb$klassenlvPW[is.na(selb$nlvrPW)]
-    '7' -> selb$klassenlvPW[selb$nlvrPW > 10]
-    '6' -> selb$klassenlvPW[selb$nlvrPW <= 10 & selb$nlvrPW > 5 ] 
-    '5' -> selb$klassenlvPW[selb$nlvrPW <= 5 & selb$nlvrPW > 2.5]
-    '4' -> selb$klassenlvPW[selb$nlvrPW <= 2.5 & selb$nlvrPW > 0.5]
-    '3' -> selb$klassenlvPW[selb$nlvrPW <= 0.5]
-    selb$klassenlvPW <- as.factor(selb$nlvrPW)
+
+bodmap2 <- function(bod1){
+  # dcast slootbodem 
+  selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  
+  # calculate relevant ratios
+  selb[,FESPFWratio := (Fe_mg_l_ng_BS/55.845 - Stot_mg_l_ng_BS/32065)/(Ptot_mgP_l_ng_BS/30.974)]
+  selb[,FESPDWratio := (Fe_mg_kg_dg_BS/55.845-Stot_mg_kg_dg_BS/32.065)/(Ptot_gP_kg_dg_BS*1000/30.974)]
+  
+  # add SP-ratio
+  if(is.null(selb$Stot_mg_l_PW & selb$Stot_mg_l_nf_PW)){
+    selb[!is.na(SO4_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - SO4_mg_l_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  if(is.null(selb$Stot_mg_l_nf_PW)){
+    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  if(!is.null(selb$Stot_mg_l_nf_PW)){
+    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  
+  # filter only op samples where FESPFWratio, FESPDWratio and FESPPWratio are present
+  selb <- selb[!(is.na(FESPFWratio)|is.na(FESPDWratio)|is.na(FESPPWratio))]
+  
+  # calculate nalevering
+  selb[,nlvrFW := 0.0247 * Ptot_mgP_l_ng_BS - 1.6035]
+  selb[,nlvrDW := 0.0077 * Ptot_gP_kg_dg_BS * 1000 - 4.7259]
+  selb[,nlvrPW := 0.8095 * Ptot_mgP_l_nf_PW - 0.2905]
+  
+  # add categories
+  selb[,classFESPFWratio := cut(FESPFWratio, breaks = c((min(FESPFWratio)-1), 1.4, 4, max(FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPDWratio := cut(FESPDWratio, breaks = c((min(FESPDWratio)-1), 1.4, 4, max(FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPPWratio := cut(FESPPWratio, breaks = c((min(FESPPWratio)-1), 1.4, 4, max(FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  
     
     selb <-
-      spTransform(SpatialPointsDataFrame(coords=selb[,c("locatie.x","locatie.y")],
+      spTransform(SpatialPointsDataFrame(coords=selb[,c("loc.x","loc.y")],
                                          data=selb, proj4string=proj4.rd),
                   CRSobj=proj4.google)
     selb <-as.data.frame(selb)
@@ -2411,10 +2575,10 @@ bodmap2 <- function(bod){
     pal <- colorFactor(palette = col,  domain = bod$nlvrPW)
     
     ktnlvP <- leaflet(selb) %>% 
-      addCircles(~locatie.x.1, ~locatie.y.1, popup = paste("locatie", selb$locatiecode, "<br>",
+      addCircles(~loc.x.1, ~loc.y.1, popup = paste("locatie", selb$locatiecode, "<br>",
                                                            "nalevering:", selb$nlvrPW, "mg/m2/dag", "<br>", "jaar:", selb$jaar, "<br>",
                                                            "IJzer-Zwavel/Fosfor-ratio:", selb$FESPPWratio),
-                 weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klassenlvPW)) %>%
+                 weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(nlvrPW)) %>%
       addLegend("bottomright", colors= col, labels=labels, title = 'Nalevering P obv poriewater mg/m2/dag') %>%
       addTiles()
     return(ktnlvP)
@@ -2423,10 +2587,10 @@ bodmap2 <- function(bod){
 # esf 4 --------------------
 # functie taxa voorkomen per SO4, Ca, Cl, HCO3
 plotkoolstoftax <- function(hybi, taxa = 'Stratiotes aloides'){
-  ptbLocSubms <- dcast(hybi,locatie.EAG+jaar ~ .,lengthUnique,value.var=c("locatiecode"), subset = .(parametercode == 'SUBMSPTN'))#aantal unieke locatiecodes per EAG+jaar waar SUBMSPTN is gerapporteerd.
+  ptbLocSubms <- dcast(hybi,locEAG+jaar ~ .,lengthUnique,value.var=c("locatiecode"), subset = .(parametercode == 'SUBMSPTN'))#aantal unieke locatiecodes per EAG+jaar waar SUBMSPTN is gerapporteerd.
   ptbLocSubms$nLoc <- ptbLocSubms$.# aantal vegetatielocatie in EAG
   
-  ptbFreqhot <- dcast(hybi[hybi$TWN.naam == taxa & hybi$parameterfractie == "" & hybi$analysecode == 'PTN',], locatie.EAG+jaar~ .,
+  ptbFreqhot <- dcast(hybi[hybi$TWN.naam == taxa & hybi$parameterfractie == "" & hybi$analysecode == 'PTN',], locEAG+jaar~ .,
                       lengthUnique, value.var = "locatiecode")
   ptbFreqhot$Freq <- ptbFreqhot$. # aantal UNIEKE locatie met taxa X in EAG
   ptbAbunC2 <- merge(ptbFreqhot,ptbLocSubms[,c('locatie.EAG','jaar','nLoc')], by = c('locatie.EAG','jaar'), all.x = FALSE, all.y = FALSE) 
@@ -3034,10 +3198,11 @@ hybisam <- function(hybi){
   
   
 }
-calcMeanHybiY <- function(dbhybi, eenheid = 'KRW'){
+
+calcMeanHybiY <- function(hybi, eenheid = 'KRW'){
   
   # make local copy
-  b = copy(dbhybi) 
+  b = copy(hybi) 
   
   # adjust fews parameter names
   b[,fewsparameter := gsub("/","_",fewsparameter)]
@@ -3062,10 +3227,10 @@ calcMeanHybiY <- function(dbhybi, eenheid = 'KRW'){
   
   # rename relevant columns # toevoegen kroos
   cols <- c('PTN_BEDKG_%_SUBMSPTN_','PTN_BEDKG_%_FLAB_SUBMS','PTN_BEDKG_%_FLAB_DRIJVD','PTN_BEDKG_%_EMSPTN_',
-            'TALBVWTR_graad_TALBVWTR_','ZICHT_m_ZICHT_','WATDTE_m_WATDTE_','DTEZICHT','DTEZICHTfac','CHLFa_ug_l_CHLFa_')
+            'TALBVWTR_graad_TALBVWTR_','ZICHT_m_ZICHT_','WATDTE_m_WATDTE_',"WATERBTE_m_WATERBTE_","SLIBDTE_m_SLIBDTE_",'DTEZICHT','DTEZICHTfac','CHLFa_ug_l_CHLFa_')
   colsn <- c('bedsubmers','draadwieren','FLAB','bedemers','taludhoek','doorzicht',
-             'waterdiepte','dieptedoorzicht','dieptedoorzichtfac','chlorofyla')
-  setnames(b,cols,colsn)
+             'waterdiepte','waterbreedte','slibdikte','dieptedoorzicht','dieptedoorzichtfac','chlorofyla')
+  setnames(b,cols,colsn, skip_absent = T)
   
   # select those columns
   if(eenheid == "KRW"){
