@@ -32,7 +32,7 @@ tabelPerWL3jaargemEAG <- function (EKRset,gEAG,doelen){
   doelgeb <- doelen[,.(GEP = mean(Doel,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
   
   # merge with doelen
-  d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
+  d2 <- merge.data.table(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
   
   # add classification for EKR
   d2[EKR < GEP/3,oordeel := 'slecht']
@@ -47,7 +47,7 @@ tabelPerWL3jaargemEAG <- function (EKRset,gEAG,doelen){
   d2[!is.na(EAGIDENT), wl := EAGIDENT]
   
   # merge with EAG shape
-  d3 <- merge(d2, gEAG[,c('GAFIDENT','GAFNAAM')], by.x = 'wl',by.y = 'GAFIDENT', all.x = TRUE)
+  d3 <- merge.data.table(d2, gEAG[,c('GAFIDENT','GAFNAAM')], by.x = 'wl',by.y = 'GAFIDENT', all.x = TRUE)
   
   # setnames
   setnames(d3,c('wl','id'),c('waterlichaam','geo_id'))
