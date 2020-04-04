@@ -597,12 +597,11 @@ tabelPerWL3jaargemEAG <- function (EKRset,eag_wl,doelen){
 tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   
   # make local copy (only within this function)
-  doelen1 <- copy(doelen)
   d1 <- copy(EKRset)
   
   # calculate mean per groep
   colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
-               'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
+               'Waardebepalingsmethode.code','facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3')
   d1 <- d1[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
   
   # rename columns and order data.table
@@ -619,21 +618,6 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   # LM: bij mij gaan joins hierdoor juist mis
   d1[,GHPR := gsub(' $','',GHPR)]
   
-  # rename columns doelen object
-  setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
-  
-  # mean GEP per object
-  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
-  
-  # make copy, add new id where NL11_ is removed
-  doelgeb2 <- copy(doelgeb)
-  doelgeb2[,id := sapply(strsplit(id, '_'), `[`, 2)]
-  
-  doelgeb <- rbind(doelgeb,doelgeb2)
-  
-  # merge with doelen
-  d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
-  
   # add classification for EKR
   d1[EKR < GEP/3,oordeel := 'slecht']
   d1[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
@@ -647,22 +631,6 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
   d1[EKR >= GEP_2022, oordeel_2022 := 'goed']
   
   #write.table(d2, file = paste(getwd(),"./output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
- 
-  # add type water body and join by EAG-GAF
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  d3 <- merge(d2[!is.na(d2$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], 
-              by.x = c('EAGIDENT'),
-              by.y = c('GAFIDENT'), all.x = TRUE)
-  
-  # add type water body and join by waterlichaam
-  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
-  d4 <- merge(d2[is.na(d2$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], 
-              by.x = c('id'),
-              by.y = c('waterlichaam'), all.x = TRUE)
-  d3 <- rbind(d3,d4,fill=TRUE)
-  
-  #write.table(d3, file = paste(getwd(),"./output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-  
   # return the object
   return(d1)
 }

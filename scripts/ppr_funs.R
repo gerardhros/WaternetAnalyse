@@ -72,10 +72,10 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   doelen1 <- copy(doelen)
   # mean GEP per id (en niet per eag zoals in de doelenset staat)
   doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(HoortBijGeoobject.identificatie,bronddoel,GHPR)]
-  # doelen koppelen aan gewogen scores (hoorbijid zonder namespace)
-  doelgeb2 <- doelgeb
-  doelgeb2$HoortBijGeoobject.identificatie <- gsub("NL11_","",doelgeb2$HoortBijGeoobject.identificatie) #KRW waterlichaam totaal score
-  doelgeb <- smartbind(doelgeb,doelgeb2)
+  # make copy, add new id where NL11_ is removed
+  doelgeb2 <- copy(doelgeb)
+  doelgeb2[,id := sapply(strsplit(HoortBijGeoobject.identificatie, '_'), `[`, 2)]
+  doelgeb <- rbind(doelgeb,doelgeb2)
   
   # merge with doelen
   db <- merge(db, doelgeb, by = c('HoortBijGeoobject.identificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
