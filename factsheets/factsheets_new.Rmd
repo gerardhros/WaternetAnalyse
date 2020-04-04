@@ -40,7 +40,7 @@ if(length(out$ESTnaam)>0){include_graphics(out$ESTnaam)}
 ```{r kaart, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
 
 ## plot ligging waterlichaam
-out$mapEAG
+include_graphics(out$mapEAG)
 
 ```
 
@@ -49,7 +49,7 @@ out$mapEAG
 ```{r kaart2, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
 
 ## plot ligging deelgebieden
-out$mapDEELGEBIED
+include_graphics(out$mapDEELGEBIED)
 
 ```
 
@@ -82,7 +82,7 @@ De toestand in `r out$waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiern
 ### Toestand {data-width=400}
 
 ```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen.De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel in de linkerbalk (SGBP2) en het technisch aangepaste CONCEPTdoel voor SGBP3 rechts. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
-print(out$mapEKR)
+include_graphics(out$mapEKR)
 ```
 
 
@@ -168,6 +168,12 @@ gauge(out$rates$rate_nieuw, min = 0, max = out$rates$rate_max, symbol = '', gaug
 options(knitr.table.format = "markdown")
 options(kableExtra.auto_format = FALSE)
 
+# maatregelen, select only the relevant items for html and word file (ignore the latex columns)
+maatregelen2 <- as.data.table(out$maatregelen2)
+cols <- c('ESFoordeel','SGBPPeriode','Naam','Toelichting','BeoogdInitiatiefnemer',
+          'Gebiedspartner','UitvoeringIn','afweging')
+maatregelen2<- maatregelen2[,mget(cols)]
+
 if(outputF == "word" & nrow(out$maatregelen2)>0){
   knitr::kable(out$maatregelen2) %>% 
           kable_styling(full_width=FALSE) %>% 
@@ -175,6 +181,8 @@ if(outputF == "word" & nrow(out$maatregelen2)>0){
           column_spec(2, width = "12em", border_right = F)%>%
           collapse_rows(columns=1, valign="top")
 }
+
+
 
 if(outputF == "html" & nrow(out$maatregelen2)>0){
   knitr::kable(out$maatregelen2, format = "html") %>% 
@@ -202,19 +210,20 @@ Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen no
 ## Indicatoren ESF {data-height=500}
 ### ESF 1: Productiviteit
 ```{r chartP, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = 'Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).'}
-print(out$plotPwbal)
+if(!is.null(out$plotPwbal)){include_graphics(out$plotPwbal)}
+
 ```
 
 ### ESF 2 en 4: Lichtklimaat en waterdiepte
 ```{r licht2, echo= FALSE, warning = FALSE, message = FALSE, fig.cap= "Lichtklimaat in plassen obv extinctie tussen 2010 en 2019 of Waterdiepte in sloten."}
-print(out$plotLichtklimaat)
-print(out$plotWaterdiepte)
+if(!is.null(out$plotLichtklimaat)){include_graphics(out$plotLichtklimaat)}
+if(!is.null(out$plotWaterdiepte)){include_graphics(out$plotWaterdiepte)}
 
 ```
 
 ### ESF 1 en 3: Waterbodem
 ```{r watbodem, echo= FALSE, warning = FALSE, message = FALSE, fig.cap = 'Nalevering en voedselrijkdom waterbodem.', echo = FALSE, message = FALSE, warning = FALSE}
-print(out$plotWaterbodem)
+if(!is.null(out$plotWaterbodem)){include_graphics(out$plotWaterbodem)}
 ```
 
 ## {data-height=50}

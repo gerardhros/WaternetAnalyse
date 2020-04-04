@@ -13,8 +13,8 @@ source('scripts/factsheet_ppr.R')
 # add functions
 source('scripts/factsheetfuncties.R')
 
-i = 37
-out = factsheetExtract(i=37,brondata = brondata, splot = TRUE)
+# run example
+out = factsheetExtract(i=12,brondata = brondata, splot = TRUE)
 
 # deze render werkt nog als splot=FALSE => referentie aanpassen
 outputF <- "html"
