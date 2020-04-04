@@ -435,7 +435,7 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   
   p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = hybi2$locatie.KRW.watertype))+
     geom_boxplot() +
-    theme_minimal()+ scale_y_reverse(limits=c(3.5,0)) + 
+    theme_minimal()+ scale_y_reverse(limits=c(max(hybi2$meetwaarde)+0.1,0)) + 
     guides(col=guide_legend(title="KRW watertype"))+
     theme(
       strip.background = element_blank(),
@@ -443,8 +443,8 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
       strip.text.y = element_text(size = 5), #EKR
       axis.text.x = element_text(size= 7, angle=0,colour = 'black'),
       axis.text.y = element_text(size= 7, hjust=2,colour = 'black'),
-      axis.ticks =  element_line(colour = "black"), 
-      axis.line = element_line(colour='black'),
+      axis.ticks =  element_line(colour = "grey90"), 
+      axis.line = element_line(colour='grey90'),
       panel.background = element_blank(), 
       plot.background = element_blank()
     )+ 
@@ -494,8 +494,8 @@ plotbod <- function(bod1,type='grid'){
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
       strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 7, angle = 0,col='black'),
-      axis.text.y = element_text(size= 7,col='black'),
+      axis.text.x = element_text(size= 7, angle = 0, colour='black'),
+      axis.text.y = element_text(size= 7, colour='black'),
       axis.ticks =  element_line(colour = "black"),
       axis.line = element_line(colour='black'),
       panel.background = element_blank(),
@@ -513,8 +513,8 @@ plotbod <- function(bod1,type='grid'){
         strip.background = element_blank(),
         strip.text.x = element_text(size = 6), #EAG
         strip.text.y = element_text(size = 5), #EKR
-        axis.text.x = element_text(size= 7, angle = 0,col='black'),
-        axis.text.y = element_text(size= 7,col='black'),
+        axis.text.x = element_text(size= 7, angle = 0,colour='black'),
+        axis.text.y = element_text(size= 7,colour='black'),
         axis.ticks =  element_line(colour = "black"),
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
