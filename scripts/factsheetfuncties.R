@@ -221,6 +221,118 @@ pvskpplot <- function(pvskpsel){
     return(plot)
 }
 
+plotEmpty <-function(db,type){
+  
+  # plot Pwbal
+  if(type=='Pwbal'){
+    plot <-  ggplot(db) +
+      geom_bar(aes(x = GAF, y = pload), stat = 'identity') +
+      xlab('') + ylab('mg P/m2/dag')+
+      theme_classic() + ylim(0,2) +
+      theme(legend.title = element_blank(), 
+            legend.text  = element_text(size = 6),
+            legend.key.size = unit(0.9, "lines"),
+            legend.position = "right")+
+      theme(axis.text.x = element_text(angle = 30, hjust =1)) +
+      annotate("text", x = nrow(db) * 0.6 , y=1, 
+               label = "P-belasting en bronnen\nzijn (nog) niet bekend.",
+               hjust = 'middle',size=8,color='blue') +
+      theme(axis.text =element_text(colour="black"))
+  }
+  
+  if(type=='plotLichtklimaat'){
+    
+    plot <-  ggplot(db) +
+      geom_bar(aes(x = GAF, y = Lext), stat = 'identity') +
+      xlab('') + ylab('Vertical extinctie')+
+      theme_classic() + ylim(0,4) +
+      theme(legend.title = element_blank(), 
+            legend.text  = element_text(size = 6),
+            legend.key.size = unit(0.9, "lines"),
+            legend.position = "right")+
+      theme(axis.text.x = element_text(angle = 30, hjust =1)) +
+      annotate("text", x = nrow(db) * 0.6 , y=2, 
+               label = "Gegevens over het lichtklimaat\nzijn voor deze EAGs\n(nog) niet bekend.",
+               hjust = 'middle',size=6,color='blue') +
+      theme(axis.text =element_text(colour="black"))
+  }
+  
+  if(type == 'plotWaterdiepte'){
+    
+    plot <- ggplot(db, aes(x= GAF, y= wd, col = krwwt))+
+      geom_boxplot() +
+      theme_minimal()+ scale_y_reverse(limits=c(3.5,0)) + 
+      guides(col=guide_legend(title="KRW watertype"))+
+      theme(
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 6), #EAG
+        strip.text.y = element_text(size = 5), #EKR
+        axis.text.x = element_text(size= 7, angle=0,colour = 'black'),
+        axis.text.y = element_text(size= 7, hjust=2,colour = 'black'),
+        axis.ticks =  element_line(colour = "black"), 
+        axis.line = element_line(colour='black'),
+        panel.background = element_blank(), 
+        plot.background = element_blank() )+ 
+      annotate("text", x = nrow(db) * 0.6 , y=1.6, 
+               label = "Metingen waterdiepte \nzijn (nog) niet bekend.",
+               hjust = 'middle',size=6,color='blue') +
+      ggtitle('') +
+      labs(x= '', y = 'waterdiepte (m)\n')
+  }
+    
+  if(type=='plotbodFW'){
+    
+    plot <- ggplot(db, aes(x= GAF, y= plv, fill = ijzerval))+
+      geom_boxplot() +
+      theme_minimal()+ ylim(-0.5,0.5)+
+      theme(
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 6), #EAG
+        strip.text.y = element_text(size = 5), #EKR
+        axis.text.x = element_text(size= 7, angle = 0,colour = 'black'),
+        axis.text.y = element_text(size= 7,colour = 'black'),
+        axis.ticks =  element_line(colour = "black"),
+        axis.line = element_line(colour='black'),
+        panel.background = element_blank(),
+        plot.background = element_blank())+
+      annotate("text", x = nrow(db) * 0.6 , y=0, 
+               label = "Potentiele nalevering \nis (nog) niet bekend.",
+               hjust = 'middle',size=6,color='blue') +
+      scale_fill_manual(values = c('red', 'salmon', 'lightblue'), 
+                        labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
+      ggtitle( "Potentiele nalevering") +
+      labs(x="",y="P mg/m2/dag\n", fill = '')
+  }
+    
+  if(type=='plotqPW'){
+    
+    plot <- ggplot(db, aes(x= GAF, y= plv, fill = ijzerval))+
+      geom_boxplot() + ylim(-0.5,1.5)+
+      theme_minimal()+
+      theme(
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 6), #EAG
+        strip.text.y = element_text(size = 5), #EKR
+        axis.text.x = element_text(size= 7, angle = 0,colour='black'),
+        axis.text.y = element_text(size= 7, colour='black'),
+        axis.ticks =  element_line(colour = "black"),
+        axis.line = element_line(colour='black'),
+        panel.background = element_blank(), 
+        plot.background = element_blank())+
+      annotate("text", x = nrow(db) * 0.6 , y=0.8, 
+               label = "Actuele nalevering \nis (nog) niet bekend.",
+               hjust = 'middle',size=6,color='blue') +
+      scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
+      ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
+      labs(x="",y="P mg/m2/dag\n", fill = '')
+  }
+  
+  
+  # return plot
+  return(plot)
+  
+}
+
 legendplot <- function(PvskP){
   if(nrow(PvskP) > 0) {
     naamplot <- unique(PvskP$KRW)
@@ -318,27 +430,31 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   # diepte4licht <- log(25)/1.2
   hybi2 <- hybi[hybi$fewsparameter %in% parameter & hybi$jaar == max(hybi$jaar),]
   
+  # remove values that cannot exists (negative depths)
+  hybi2[meetwaarde < 0, meetwaarde := NA]
+  
   p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = hybi2$locatie.KRW.watertype))+
     geom_boxplot() +
-    theme_minimal()+
+    theme_minimal()+ scale_y_reverse(limits=c(3.5,0)) + 
     guides(col=guide_legend(title="KRW watertype"))+
     theme(
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
       strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 5, angle=40),
-      axis.text.y = element_text(size= 5, hjust=2),
+      axis.text.x = element_text(size= 7, angle=0,colour = 'black'),
+      axis.text.y = element_text(size= 7, hjust=2,colour = 'black'),
       axis.ticks =  element_line(colour = "black"), 
+      axis.line = element_line(colour='black'),
       panel.background = element_blank(), 
       plot.background = element_blank()
-    )+
+    )+ 
     ggtitle('') +
-    labs(x= 'Ecologisch analysegebied', y = 'waterdiepte (m)')
+    labs(x= '', y = 'waterdiepte (m)\n')
   p
   
 }
 
-plotbod <- function(bod1){
+plotbod <- function(bod1,type='grid'){
   
   # dcast slootbodem 
   selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
@@ -378,15 +494,16 @@ plotbod <- function(bod1){
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
       strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 5, angle = 90),
-      axis.text.y = element_text(size= 5),
+      axis.text.x = element_text(size= 7, angle = 0,col='black'),
+      axis.text.y = element_text(size= 7,col='black'),
       axis.ticks =  element_line(colour = "black"),
+      axis.line = element_line(colour='black'),
       panel.background = element_blank(),
       plot.background = element_blank()
     )+
     scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
     ggtitle( "Potentiele nalevering") +
-    labs(x="",y="P mg/m2/dag", fill = '')
+    labs(x="",y="P mg/m2/dag\n", fill = '')
   
   if(!is.null(selb$FESPPWratio)){
   qPW <- ggplot(selb, aes(x= loc.eag, y= nlvrPW, fill = classFESPPWratio))+
@@ -396,27 +513,97 @@ plotbod <- function(bod1){
         strip.background = element_blank(),
         strip.text.x = element_text(size = 6), #EAG
         strip.text.y = element_text(size = 5), #EKR
-        axis.text.x = element_text(size= 5, angle = 90),
-        axis.text.y = element_text(size= 5, hjust=2),
-        axis.ticks =  element_line(colour = "black"), 
+        axis.text.x = element_text(size= 7, angle = 0,col='black'),
+        axis.text.y = element_text(size= 7,col='black'),
+        axis.ticks =  element_line(colour = "black"),
+        axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank()
       )+
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
-      ggtitle( "Actuele nalevering uit de waterbodem obv poriewatermetingen") +
-      labs(x="",y="P mg/m2/dag", fill = '')
+      ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
+      labs(x="",y="P mg/m2/dag\n", fill = '')
   }
-  if(is.null(selb$FESPPWratio)){plotFW} 
-  if(!is.null(selb$FESPPWratio)){grid.arrange(plotFW, qPW)}
-}
+  if(is.null(selb$FESPPWratio)){out = plotFW} 
+  if(!is.null(selb$FESPPWratio)){out = grid.arrange(plotFW, qPW)}
 
-tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, eag_wl, doelen){
-  d1 <- NULL
+  if(type=='plotFW'){out = plotFW}
+  if(type=='plotqPW'){out = qPW}
+  
+  return(out)
+  }
+
+
+# functie EKRplot -------------
+tabelPerWL3jaargemEAG <- function (EKRset,eag_wl,doelen){
+  
+  # make local copy (only within this function)
+  doelen1 <- copy(doelen)
   
   # calculate mean per groep
   colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
-               'Waardebepalingsmethode.code','facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3')
-  d1 <- EKRset[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)), by=colgroup]
+               'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
+  d1 <- EKRset[,.(waarde = mean(Numeriekewaarde, na.rm=TRUE)),by=colgroup]
+  
+  # rename columns and order data.table
+  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','GHPR_level','GHPR','level','jaar'))
+  setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,-jaar)
+  
+  # add year number (given ordered set), and take only three most recent years
+  d1 <- d1[,yearid := seq_len(.N),by=.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)][yearid < 4]
+  
+  # calculate mean EKR per group over the three years
+  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by =.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)]
+  
+  # remove empty spaces in GHPR needed for joining later
+  d1[,GHPR := gsub(' $','',GHPR)]
+  
+  # merge with doelen
+  
+  # rename columns doelen object
+  setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
+  
+  # mean GEP per object: zou eigenlijk niet moeten als er dubbelen instaan
+  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
+  doelgeb2 <- doelgeb
+  doelgeb2$id <- sapply(strsplit(doelgeb2$id, '_'), `[`, 2)
+  doelgeb <- smartbind(doelgeb,doelgeb2)
+  
+  # merge with doelen
+  # zowel met als zonder NL11_
+  d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
+  
+  # add classification for EKR
+  d2[EKR < GEP/3,oordeel := 'slecht']
+  d2[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
+  d2[EKR >= 2 * GEP / 3,oordeel := 'matig']
+  d2[EKR >= GEP, oordeel := 'goed']
+  
+  # add type water body
+  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
+  d3 <- merge(d2[!is.na(d2$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
+              by.y = c('GAFIDENT'), all.x = TRUE)
+  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
+  d4 <- merge(d2[is.na(d2$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('id'),
+              by.y = c('waterlichaam'), all.x = TRUE)
+  d3 <- smartbind(d3,d4)
+  
+  write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  
+  # return the object
+  return(d3)
+}
+
+tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
+  
+  # make local copy (only within this function)
+  doelen1 <- copy(doelen)
+  d1 <- copy(EKRset)
+  
+  # calculate mean per groep
+  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
+               'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
+  d1 <- d1[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
   
   # rename columns and order data.table
   setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3'))
@@ -432,6 +619,21 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, eag_wl, doelen){
   # LM: bij mij gaan joins hierdoor juist mis
   d1[,GHPR := gsub(' $','',GHPR)]
   
+  # rename columns doelen object
+  setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
+  
+  # mean GEP per object
+  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
+  
+  # make copy, add new id where NL11_ is removed
+  doelgeb2 <- copy(doelgeb)
+  doelgeb2[,id := sapply(strsplit(id, '_'), `[`, 2)]
+  
+  doelgeb <- rbind(doelgeb,doelgeb2)
+  
+  # merge with doelen
+  d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
+  
   # add classification for EKR
   d1[EKR < GEP/3,oordeel := 'slecht']
   d1[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
@@ -445,6 +647,21 @@ tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, eag_wl, doelen){
   d1[EKR >= GEP_2022, oordeel_2022 := 'goed']
   
   #write.table(d2, file = paste(getwd(),"./output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+ 
+  # add type water body and join by EAG-GAF
+  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
+  d3 <- merge(d2[!is.na(d2$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], 
+              by.x = c('EAGIDENT'),
+              by.y = c('GAFIDENT'), all.x = TRUE)
+  
+  # add type water body and join by waterlichaam
+  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
+  d4 <- merge(d2[is.na(d2$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], 
+              by.x = c('id'),
+              by.y = c('waterlichaam'), all.x = TRUE)
+  d3 <- rbind(d3,d4,fill=TRUE)
+  
+  #write.table(d3, file = paste(getwd(),"./output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   
   # return the object
   return(d1)
@@ -651,6 +868,11 @@ trend <- function(z, detail = "hoofd"){
   gebiedData$group <- 'grey'# 1 jaar data
   return(gebiedData)
 } 
+
+
+
+
+
 # deze functie werkt alleen als alle 4 de maatlatten significante trend wordt berekend
 # trendkrw <- trendEAG(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "deel") # juist trend per waterlichaam berekenen
 # write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE) # wegschrijven als csv

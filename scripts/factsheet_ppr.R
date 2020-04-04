@@ -6,8 +6,7 @@ source('scripts/ppr_funs.R')
 source('scripts/loadPackages.R')
 source('scripts/factsheetfuncties.R')
 
-#  Directories and names------------------------------------------
-# dirGIS <-"data"
+# Directories and names------------------------------------------
 
 # other settings ---------------------------
 proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
@@ -272,9 +271,10 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       
       # final ESTnaam
       ESTnaam <- paste0("esticon/",ESTnaam1,'_',ESTnaam2,'_', ESTnaam3, ".jpg")
-      if(unique(dtEST2$KRWWaterlichaamcode) %in% c('NL11_3_8')){ESTnaam <- "esticon/W6_O7_DM_L.jpg"} 
-      if(unique(dtEST2$KRWWaterlichaamcode) %in% c('NL11_5_1')){ESTnaam <- "esticon/W4_O6_OM_L.jpg"} 
-      if(unique(dtEST2$KRWWaterlichaamcode) %in% c('NL11_1_2')){ESTnaam <- "esticon/W5_O1_K_L.jpg"}
+      if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_3_8')){ESTnaam <- "esticon/W6_O7_DM_L.jpg"} 
+      if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_5_1')){ESTnaam <- "esticon/W4_O6_OM_L.jpg"} 
+      if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_2')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
+      if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_1')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
     }
     
     ## plot locatie EAG binnen beheergebied AGV
@@ -286,9 +286,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     mapEAG <- ggplot() +
       geom_sf(data = waterschappen, color = 'white',fill="white", size = 1) +
       geom_sf(data = gEAG,
-              color = 'grey', fill = "white", size = 0.2) +
+              color = 'grey45', fill = "white", size = 0.2) +
       geom_sf(data = waterpereag_sel,
-              color = NA, fill = '#3498DB') +
+              color = NA, fill = '#345bdb') +#3498DB
       geom_sf(data = gEAG_sel,
               color = '#d73027', fill = NA, size = 1.5) +
       theme(panel.grid = element_blank(),
@@ -306,11 +306,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     # create dir to save plots
     if(!wlname %in% list.files('factsheets/routput')){dir.create(paste0('factsheets/routput/',wlname))}
     
-    if(splot){
-      # save plot
-      mapEAG + ggsave(paste0('factsheets/routput/',wlname,'/mapEAG.png'),width = 10,height = 10,units='cm',dpi=500)
-      mapEAG <- paste0('factsheets/routput/',wlname,'/mapEAG.png')
-    }
+    # save plot, and location where map is saved
+    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',wlname,'/mapEAG.png'),width = 10,height = 10,units='cm',dpi=500)    }
+    mapEAG <- paste0('routput/',wlname,'/mapEAG.png')
     
     ## plot locatie deelgebieden binnen EAG
     
@@ -336,11 +334,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
             legend.position="none") +
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
     
-    if(splot){
-      ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',wlname,'/mapDEELGEBIED.png'),width = 10,height = 10,units='cm',dpi=500)
-      mapDEELGEBIED <- paste0('factsheets/routput/',wlname,'/mapDEELGEBIED.png')
-    }
-    
+    # save plot, and location where map is saved
+    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',wlname,'/mapDEELGEBIED.png'),width = 10,height = 10,units='cm',dpi=500)}
+    mapDEELGEBIED <- paste0('routput/',wlname,'/mapDEELGEBIED.png')
     
     # --- make EKR plot ------------
     
@@ -381,22 +377,20 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     # create map
     mapEKR <- ekrplot(ekr_scores1)
     
-    if(splot){
-      ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',wlname,'/mapEKR.png'),width = 13,height = 8,
-                      units='cm',dpi=500)
-      mapEKR <- paste0('factsheets/routput/',wlname,'/mapEKR.png')
-    }
+    # save plot, and location where map is saved
+    if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',wlname,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
+    mapEKR <- paste0('routput/',wlname,'/mapEKR.png')
     
     # --- Ecologische SleutelFactoren ----- (ESF tabel) ------
     
     # ESF is doubled in columns: one string and one number, detect via lenght of the first row
     cols <- which(grepl('ESF',colnames(ESF)))
     cols_nchar <- ESF[1,lapply(.SD,function(x) nchar(x)),.SDcols = cols]
-      
+    
     # make data.table
     ESFtab = data.table(esf = paste0('ESF',1:8),
-                        kleur = as.factor(as.numeric(ESF[,cols[cols_nchar==1]])),
-                        oms = as.factor(ESF[,cols[cols_nchar>1]]))
+                        kleur = as.numeric(ESF[,.SD,.SDcols=cols[cols_nchar==1]]),
+                        oms = as.factor(ESF[,.SD,.SDcols=cols[cols_nchar>1]]))
     
     # add oordeel
     ESFtab[kleur==1,OORDEEL := 'groennummer.jpg']
@@ -428,82 +422,160 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       rate_fase = nrow(maatregelen1[Gefaseerd > 0 & SGBPPeriode.omschrijving %in% periode,]),
       rate_del = nrow(maatregelen1[Vervangen > 0 | Ingetrokken > 0  & SGBPPeriode.omschrijving %in% periode,]),
       rate_nieuw = nrow(maatregelen1[SGBPPeriode.omschrijving %in% c("SGBP3 2021-2027"),]))
-
+    
+    # add gauges (its not yet possible to save as png)
+    if(FALSE){
+    m_gaug_uit <-  gauge(rates$rate_uit, min = 0, max = rates$rate_max, symbol = '', gaugeSectors(
+                         success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+    m_gaug_plan <- gauge(rates$rate_plan, min = 0, max = rates$rate_max, symbol = '', gaugeSectors(
+                         success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+    m_gaug_fase <- gauge(rates$rate_fase, min = 0, max = rates$rate_max, symbol = '', gaugeSectors(
+                         success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+    m_gaug_del <-  gauge(rates$rate_del, min = 0, max = rates$rate_max, symbol = '', gaugeSectors(
+                         success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+    m_gaug_new <-  gauge(rates$rate_nieuw, min = 0, max = length(maatregelen1$Naam), symbol = '', gaugeSectors(
+                         success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
+    }
+   
+    # make widgets in ggplot, and add color in relation to sucess/ warning / danger criteria
+    m_gauges <- data.table(title = c('Maatregelen SGBP 1 en 2\n uitgevoerd of in uitvoering',
+                                     'Maatregelen SGBP 1 en 2\n in planvorming',
+                                     'Maatregelen SGBP 1 en 2\n gefaseerd',
+                                     'Maatregelen SGBP 1 en 2\n vervangen of ingetrokken',
+                                     'Maatregelen SGBP3\n nieuw t.o.v. totaal'),
+                      percentage = c(as.numeric(rates[c(1,3,4,5)])/rates$rate_max,rates$rate_nieuw/length(maatregelen1$Naam))
+    )
+    m_gauges[,label := paste0(round(percentage*100),'%')]
+    m_gauges[,group := fifelse(percentage < 0.4,'red',fifelse(percentage < 0.8,'orange','green'))]
+    
+    mapGauge <- ggplot(m_gauges, aes(fill = group, ymax = percentage, ymin = 0, xmax = 2, xmin = 1)) +
+                  geom_rect(aes(ymax=1, ymin=0, xmax=2, xmin=1), fill ="gray85") +
+                  geom_rect() + 
+                  coord_polar(theta = "y",start=-pi/2) + xlim(c(0, 2)) + ylim(c(0,2)) +
+                  geom_text(aes(x = 0, y = 0, label = label, colour=group), size=5.5) +
+                  geom_text(aes(x=1.5, y=1.5, label=title), size=3.2) + 
+                  facet_wrap(~title, ncol = 5) +
+                  theme_void() +
+                  scale_fill_manual(values = c("red"="#CC0000", "orange"="#FF8800", "green"="#007E33")) +
+                  scale_colour_manual(values = c("red"="#CC0000", "orange"="#FF8800", "green"="#007E33")) +
+                  theme(strip.background = element_blank(),
+                        strip.text.x = element_blank()) +
+                  guides(fill=FALSE) +
+                  guides(colour=FALSE) 
+    
+    # save plot, and location where map is saved
+    if(splot){ggplot2::ggsave(mapGauge,file=paste0('factsheets/routput/',wlname,'/mapGauge.png'),width = 24,height = 5,units='cm',dpi=500)}
+    mapGauge <- paste0('routput/',wlname,'/mapGauge.png')
+    
     # add nieuw information to maatregelen
     maatregelen1[,Gebiedspartner := `gebiedspartner (gesprekspartner bij financiering, uitvoering of beleid)`]
     maatregelen1[,SGBPPeriode := SGBPPeriode.omschrijving]
     maatregelen1[,Initiatiefnemer := Initiatiefnemer.naam]
+    maatregelen1[,BeoogdInitiatiefnemer := Initiatiefnemer.waternet]
     maatregelen1[,esffrst := substr(esf,1,4)]
     maatregelen1[nchar(esffrst)==0, esffrst := NA]
     
     # join measures with ESF-tabel
-    cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','Gebiedspartner','UitvoeringIn',"afweging")
-    
+    cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer',
+              'Gebiedspartner','UitvoeringIn',"afweging")
     maatregelen2 <- merge(ESFtab, maatregelen1[,mget(cols)],by.x = 'esf', by.y = 'esffrst', all.y = T) 
     
     # als meerdere esf aan een maatregel gekoppeld zijn dan wordt de eerste geselecteerd
+    cols <- c('ESFoordeel','ESFoordeel_latex','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
     maatregelen2[,ESFoordeel := OORDEEL]
-    cols <- c('ESFoordeel','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
+    maatregelen2[,ESFoordeel_latex := piclatex]
     maatregelen2 <- maatregelen2[,mget(cols)] 
-    setorder(maatregelen2,-SGBPPeriode)
     
-    if(nrow(maatregelen2)>0){
-      maatregelen2 <- maatregelen2 %>% group_by(ESFoordeel) %>% arrange(ESFoordeel, desc(ESFoordeel))
-    }
+    # sorteer met oplopend jaar en ESF
+    setorder(maatregelen2,ESFoordeel,-SGBPPeriode)
+    
+    # formatting (avoid characters that conflict with latex)
+    hp_latex <- "\\T\\includegraphics[height = 0.8cm,keepaspectratio,valign=t]{"
+    maatregelen2[, Toelichting := gsub('%','\\%',Toelichting,fixed=TRUE)]
+    maatregelen2[,Toelichting_latex := gsub('  ',' ',gsub('\r\n','',Toelichting))]
+    maatregelen2[,Toelichting_latex := gsub('\\.nl/','.nl',gsub('\\https://','www.',Toelichting_latex))]
+    maatregelen2[,ESFoordeel_latex := sprintf(paste0(hp_latex,ESFoordeel_latex,"}"))]
+    maatregelen2[,Gebiedspartner := gsub('\\?','onbekend',Gebiedspartner)]
+    maatregelen2[, Naam := gsub('%','\\%',Naam,fixed=TRUE)]
     
     # --- plot ESF1: productiviteit ----
-    if(nrow(pvskpsel)>0){
-      if(sum(is.na(pvskpsel$naam))==0){plotPwbal = pvskpplot(pvskpsel)
+    if(sum(is.na(pvskpsel$naam)) & length(is.na(pvskpsel$naam))>0){
+      # plot figure ESF1
+      plotPwbal = pvskpplot(pvskpsel)
+    } else {
+      # plot figure ESF1 when no data is available
+      plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, pload = 0)
+      plotPwbal = plotEmpty(db = plotLeegDB,type='Pwbal')
+    }
       
-      if(splot){
-        ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',wlname,'/plotPwbal.png'),width = 13,height = 8,
-                        units='cm',dpi=500)
-        plotPwbal <- paste0('factsheets/routput/',wlname,'/plotPwbal.png')
-      }
-      } else {
-        plotPwbal = NULL}
-      }
+    # save plot
+    if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',wlname,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
+    plotPwbal <- paste0('routput/',wlname,'/plotPwbal.png')
     
     # --- plot ESF 2: lichtklimaat
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
+      
+      # plot ESF 2
       plotLichtklimaat = extinctie1(wq = copy(wq1)[jaar > '2015'], 
                                     hybi = copy(hybi1), 
                                     parameter = c('VEC','WATDTE_m'))
-      if(splot){
-        ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',wlname,'/plotLichtklimaat.png'),width = 13,height = 8,
-                        units='cm',dpi=500)
-        plotLichtklimaat <- paste0('factsheets/routput/',wlname,'/plotLichtklimaat.png')
-      }
-      
     } else {
-      plotLichtklimaat = NULL
+      
+      # plot figure ESF2 when no data is available
+      plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, Lext = 0)
+      plotLichtklimaat = plotEmpty(db = plotLeegDB,type='plotLichtklimaat')
     }
+    
+    # save plot is saved 
+    if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',wlname,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
+    plotLichtklimaat <- paste0('routput/',wlname,'/plotLichtklimaat.png')
     
     # --- plot ESF 4: waterdiepte
     if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
+      
+      # plot ESF 4
       hybi2 <- hybi1[!is.na(fewsparameter == 'WATDTE_m'),]
       plotWaterdiepte = waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
       
-      if(splot){
-        ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',wlname,'/plotWaterdiepte.png'),width = 13,height = 8,
-                        units='cm',dpi=500)
-        plotWaterdiepte <- paste0('factsheets/routput/',wlname,'/plotWaterdiepte.png')
-      }
-      
     } else {
-      plotWaterdiepte = NULL
+      
+      # plot figure ESF4 when no data is available
+      plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, wd = 0,krwwt ='onbekend')
+      plotWaterdiepte = plotEmpty(db = plotLeegDB,type='plotWaterdiepte')
     }
+    
+    # save plot
+    if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',wlname,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
+    plotWaterdiepte <- paste0('routput/',wlname,'/plotWaterdiepte.png')
     
     # --- plot ESF3 : waterbodem
-    if(nrow(bod1) > 0) {plotWaterbodem = plotbod(bod1)
-    
-    if(splot){
-      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem.png'),width = 13,height = 8,
-                      units='cm',dpi=500)
-      plotWaterbodem <- paste0('factsheets/routput/',wlname,'/plotWaterbodem.png')
+    if(nrow(bod1) > 0) {
+      
+      # plot ESF 4
+      plotbodFW = plotbod(bod1,type = 'plotFW')
+      plotqPW = plotbod(bod1,type = 'plotqPW')
+      plotWaterbodem = plotbod(bod1,type='grid')
+      
+    } else {
+      
+      # plot figure ESF3 when no data is available
+      plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, plv = 0,ijzerval ='onbekend')
+      plotbodFW = plotEmpty(db = plotLeegDB,type='plotbodFW')
+      plotqPW = plotEmpty(db = plotLeegDB,type='plotqPW')
+      plotWaterbodem = plotbodFW
     }
     
-    } else {plotWaterbodem = NULL}
+    # save plots
+    if(splot){
+      ggplot2::ggsave(plotbodFW,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem_FW.png'),width = 13,height = 8,
+                      units='cm',dpi=500)
+      ggplot2::ggsave(plotqPW,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem_qPW.png'),width = 13,height = 8,
+                      units='cm',dpi=500)
+      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem.png'),width = 13,height = 8,
+                      units='cm',dpi=500)}
+    plotbodFW <- paste0('routput/',wlname,'/plotWaterbodem_FW.png')
+    plotqPW <- paste0('routput/',wlname,'/plotWaterbodem_qPW.png')
+    plotWaterbodem <- paste0('routput/',wlname,'/plotWaterbodem.png')
     
     # make a list to store the output
     out <- list(waterlichamenwl = waterlichamenwl,
@@ -515,10 +587,13 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
                 mapEAG = mapEAG,
                 mapDEELGEBIED = mapDEELGEBIED,
                 mapEKR = mapEKR,
+                mapGauge = mapGauge,
                 plotPwbal = plotPwbal,
                 plotLichtklimaat = plotLichtklimaat,
                 plotWaterdiepte = plotWaterdiepte,
                 plotWaterbodem = plotWaterbodem,
+                plotbodFW = plotbodFW,
+                plotqPW = plotqPW,
                 ESFtab = ESFtab,
                 maatregelen1 = maatregelen1,
                 maatregelen2 = maatregelen2,
