@@ -60,9 +60,6 @@ check1 <-  function(EST, eag_wl){
   
 }
 
-# returns string w/o leading or trailing whitespace
-trim <- function (x) gsub("^\\s+|\\s+$", "", x)
-
 # functies voor plot P belasting versus kP ---------------------
 # helper om voor alle balansdata P vs kP matrix te maken (deze niet in iteratie, maar als input vanuit preprocessing gebruiken)
 makePmaps <- function(dat, Overzicht_kp, hybi, nomogram){
@@ -221,8 +218,6 @@ pvskpplot <- function(pvskpsel){
       theme(axis.text.x = element_text(angle = 30, hjust =1))+
       scale_fill_manual(values = colWat)
     #ggsave(plot = plot, file = paste(getwd(),naamplot, format(Sys.time(),"%Y%m%d%H%M"),".png", sep= ""))
-    
-    
     return(plot)
 }
 
@@ -415,130 +410,44 @@ plotbod <- function(bod1){
   if(!is.null(selb$FESPPWratio)){grid.arrange(plotFW, qPW)}
 }
 
-# functie EKRplot -------------
-tabelPerWL3jaargemEAG <- function (EKRset,eag_wl,doelen){
-  
-  # make local copy (only within this function)
-  doelen1 <- copy(doelen)
-  
-  # calculate mean per groep
-  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
-               'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
-  d1 <- EKRset[,.(waarde = mean(Numeriekewaarde, na.rm=TRUE)),by=colgroup]
-  
-  # rename columns and order data.table
-  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','GHPR_level','GHPR','level','jaar'))
-  setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,-jaar)
-  
-  # add year number (given ordered set), and take only three most recent years
-  d1 <- d1[,yearid := seq_len(.N),by=.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)][yearid < 4]
-  
-  # calculate mean EKR per group over the three years
-  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by =.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)]
-  
-  # remove empty spaces in GHPR needed for joining later
-  d1[,GHPR := gsub(' $','',GHPR)]
-  
-  # merge with doelen
-  
-  # rename columns doelen object
-  setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
-  
-  # mean GEP per object: zou eigenlijk niet moeten als er dubbelen instaan
-  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
-  doelgeb2 <- doelgeb
-  doelgeb2$id <- sapply(strsplit(doelgeb2$id, '_'), `[`, 2)
-  doelgeb <- smartbind(doelgeb,doelgeb2)
-  
-  # merge with doelen
-  # zowel met als zonder NL11_
-  d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
-  
-  # add classification for EKR
-  d2[EKR < GEP/3,oordeel := 'slecht']
-  d2[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
-  d2[EKR >= 2 * GEP / 3,oordeel := 'matig']
-  d2[EKR >= GEP, oordeel := 'goed']
-  
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  d3 <- merge(d2[!is.na(d2$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
-              by.y = c('GAFIDENT'), all.x = TRUE)
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  d4 <- merge(d2[is.na(d2$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('id'),
-              by.y = c('waterlichaam'), all.x = TRUE)
-  d3 <- smartbind(d3,d4)
-  
-  write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-  
-  # return the object
-  return(d3)
-}
-
 tabelPerWL3jaargemEAG_incl2022 <- function (EKRset, eag_wl, doelen){
   d1 <- NULL
-  # make local copy (only within this function)
-  doelen1 <- copy(doelen)
   
   # calculate mean per groep
   colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
-               'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
-  d1 <- EKRset[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
+               'Waardebepalingsmethode.code','facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3')
+  d1 <- EKRset[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)), by=colgroup]
   
   # rename columns and order data.table
-  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','GHPR_level','GHPR','level','jaar'))
-  setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,-jaar)
+  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3'))
+  setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,facet_wrap_code,-jaar, GEP, GEP_2022, waterlichaam, KRW_SGBP3)
   
   # add year number (given ordered set), and take only three most recent years
-  d1 <- d1[,yearid := seq_len(.N),by=.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)][yearid < 4]
+  d1 <- d1[,yearid := seq_len(.N),by=.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,facet_wrap_code, GEP, GEP_2022, waterlichaam, KRW_SGBP3)][yearid < 4]
   
   # calculate mean EKR per group over the three years
-  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by =.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)]
+  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by =.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,facet_wrap_code, GEP, GEP_2022, waterlichaam, KRW_SGBP3)]
   
   # remove empty spaces in GHPR needed for joining later
   # LM: bij mij gaan joins hierdoor juist mis
   d1[,GHPR := gsub(' $','',GHPR)]
   
-  # merge with doelen
-  
-  # rename columns doelen object
-  setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
-  
-  # mean GEP per object
-  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
-  doelgeb2 <- doelgeb
-  doelgeb2$id <- gsub("NL11_","",doelgeb2$id) #KRW waterlichaam totaal score
-  doelgeb <- smartbind(doelgeb,doelgeb2)
-  
-  # merge with doelen
-  d2 <- merge(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
+  # add classification for EKR
+  d1[EKR < GEP/3,oordeel := 'slecht']
+  d1[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
+  d1[EKR >= 2 * GEP / 3,oordeel := 'matig']
+  d1[EKR >= GEP, oordeel := 'goed']
   
   # add classification for EKR
-  d2[EKR < GEP/3,oordeel := 'slecht']
-  d2[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
-  d2[EKR >= 2 * GEP / 3,oordeel := 'matig']
-  d2[EKR >= GEP, oordeel := 'goed']
+  d1[EKR < GEP_2022/3,oordeel_2022 := 'slecht']
+  d1[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+  d1[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+  d1[EKR >= GEP_2022, oordeel_2022 := 'goed']
   
-  # add classification for EKR
-  d2[EKR < GEP_2022/3,oordeel_2022 := 'slecht']
-  d2[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-  d2[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-  d2[EKR >= GEP_2022, oordeel_2022 := 'goed']
-  
- 
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  d3 <- merge(d2[!is.na(d2$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
-              by.y = c('GAFIDENT'), all.x = TRUE)
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  d4 <- merge(d2[is.na(d2$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('id'),
-              by.y = c('waterlichaam'), all.x = TRUE)
-  d3 <- smartbind(d3,d4)
-  
-  #write.table(d3, file = paste(getwd(),"./output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  #write.table(d2, file = paste(getwd(),"./output/EKROordeelPerGebied3JaarGem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   
   # return the object
-  return(d3)
+  return(d1)
 }
 
 ekrplot <- function(ekr_scores_sel2){
@@ -610,8 +519,13 @@ ekrplot <- function(ekr_scores_sel2){
   return(plot)
 }
 ekrplot2 <- function(ekr_scores_sel2){
+  # facet per maatlat en EAG (als FS niveau is GAF en meerdere EAGs)
+  NA -> ekr_scores_sel2$KRW_SGBP3[ekr_scores_sel2$KRW_SGBP3 == ""]
+  ekr_scores_sel2$facet_wrap_code <- as.character(ekr_scores_sel2$facet_wrap_code)
+  ekr_scores_sel2$wlmt <- ifelse(is.na(ekr_scores_sel2$KRW_SGBP3), paste0(ekr_scores_sel2$EAGIDENT," ",ekr_scores_sel2$facet_wrap_code), ekr_scores_sel2$facet_wrap_code)
+  
   ## build background [Kan eleganter..]
-  es_sel_background <- unique(ekr_scores_sel2[, c("id", "GEP_2022", "facet_wrap_code")])
+  es_sel_background <- unique(ekr_scores_sel2[, c("id", "GEP_2022", "wlmt")])
   
   # es_sel_background$GEP_new <- es_sel_background$GEP - 0.05
   
@@ -650,49 +564,62 @@ ekrplot2 <- function(ekr_scores_sel2){
     geom_segment(aes(x = 0, xend = 1, 
                      y = EKR, yend = EKR, linetype = "Huidige toestand"), 
                  col = "black", cex = 1.2) + # linetype = 2 -> dashed
-    scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
+    scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1)) +
     scale_linetype_manual("",values= c("Huidige toestand" = 1))+
-    facet_grid(cols = vars(facet_wrap_code)) +
+    facet_grid(cols = vars(wlmt)) +
     theme_minimal()+ 
     theme(axis.title.x=element_blank(),
           axis.ticks.x=element_blank(),
           axis.text.x=element_blank(),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_line(size = 0.1, linetype = "solid", colour = "white"),
+          panel.grid.minor.y = element_line(size = 0.01, linetype = "dotted", colour = "white"),
+          panel.ontop = TRUE,
           legend.position = "bottom")
   return(plot)
 }
 
-plotEKRlijnfs <- function(z, z2, eag_wl){
-  #z<- EKRset1 #z2 <- EKRset2
-  z <- z[is.na(z$Monster.lokaalID),]
-  z2 <- z2[is.na(z2$Monster.lokaalID),]
-  
+plotEKRlijnfs <- function(z){
 
-  
-  z$GHPR <- with(z,reorder(GHPR, z$level))
-  
+  z <- z %>%
+    arrange(GHPR_level) %>%               # sort your dataframe
+    mutate(GHPR = factor(GHPR, unique(GHPR))) # reset your factor-column based on that order
   z$jaar <- as.numeric(z$jaar)
+  z$Numeriekewaarde <- as.numeric(z$Numeriekewaarde)
+  z$facet_wrap_code <- as.character(z$facet_wrap_code)
+  z$wlmt <- ifelse(is.na(z$KRW_SGBP3)|z$KRW_SGBP3 == "", paste0(z$EAGIDENT," ",z$facet_wrap_code), z$facet_wrap_code)
   
-  plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= waterlichaam, group = waterlichaam))+
+  z <- z %>%
+    group_by(waterlichaam, wlmt ,GHPR , GHPR_level, level, jaar)%>%
+    summarise_at(c('Numeriekewaarde'),mean) 
+  
+  z <- z %>%
+    ungroup(waterlichaam)
+  
+ ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col = GHPR, group = GHPR))+
     stat_summary(fun.y = "mean", geom = "point") + 
     stat_summary(fun.y = "mean", geom = "line") +
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
-    facet_wrap(.~ GHPR)+
+    scale_x_continuous(limits= c(2006, 2020), breaks=c(2006, 2008, 2010, 2012, 2014,2016,2018))+
+    facet_grid(vars(level),vars(wlmt))+
     ylab('')+xlab('')+
+    guides(col=guide_legend(title=""))+
+    ggtitle("", subtitle = z$waterlichaam)+
     theme_minimal()+
     theme(
       strip.background = element_blank(),
-      strip.text.x = element_text(size = 6), #EAG
-      strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 5, angle=90),
+      strip.text.x = element_text(size = 7), #waardebepmethode
+      strip.text.y = element_text(size = 2), #level
+      axis.text.x = element_text(size= 5, angle=90), #jaar
       axis.text.y = element_text(size= 5),
       axis.ticks =  element_line(colour = "black"), 
       panel.background = element_blank(), 
-      plot.background = element_blank()
-    )
-  ggplotly(plot)
+      plot.background = element_blank(),
+      legend.title = element_text(size = 7), 
+      legend.text  = element_text(size = 6),
+      legend.key.size = unit(0.9, "lines"),
+      legend.position = "right")
 }
 
 trend <- function(z, detail = "hoofd"){

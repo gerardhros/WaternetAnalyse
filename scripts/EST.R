@@ -1,3 +1,17 @@
+#inlezen data
+biotaxon <- read_excel('../hydrobiologie/TwnList_2019-07-19.xlsx')
+hybi_grenswaarden <- fread("../data/grenswaarden_est.csv")
+eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
+# locaties van alle metingen (water, biologie, en slootbodem)
+locaties <- fread('../data/Location.csv')
+# inladen gegevens hydrobiologie
+hybi <- readRDS('../data/alles_reliable.rds')
+hybi$meetwaarde <- as.numeric(hybi$meetwaarde)
+# update, filter and clean up databases -----------
+# hybi measurements
+hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)
+hybiest <- hybi[hybi$parameterfractie == "",] # FLAB alleen totaal
+
 do_monster_submers <- function(x,z){
   monster_df_out <- NULL
   for(i in unique(x$monsterident)){
@@ -6,7 +20,10 @@ do_monster_submers <- function(x,z){
       doorz_diep <- NA
     }
     n_soort <- nrow(x[x$monsterident %in% i & x$parametercode %in% "" & x$biotaxonnaam %in% z,]) #LET OP: DIT IS VOOR W5 en verder
-    woeker <- max(x$meetwaarde[x$monsterident %in% i & x$parametercode %in% "" &! x$biotaxonnaam %in% ""])
+    woeker <- max(x$meetwaarde[x$monsterident %in% i & x$parametercode %in% "" & !x$biotaxonnaam %in% ""])
+    if(woeker == -Inf){
+      woeker <- 0
+    }
     SUBMS <- x$meetwaarde[x$monsterident %in% i & x$parametercode %in% "SUBMSPTN"]
     if(!length(SUBMS)>0){
       SUBMS <- NA
@@ -190,19 +207,19 @@ do_O8 <- function(x, y){
 }
 
 soortenlijst_submers <- unique(hybi$biotaxonnaam[hybi$WNA.onderwaterplantensoorten == '1'])
+soortenlijst_submers <- soortenlijst_submers[!is.na(soortenlijst_submers)]
 soortenlijst_oever <- unique(hybi$biotaxonnaam[hybi$WNA.oeverplantensoorten == '1'])
+soortenlijst_oever <- soortenlijst_oever[!is.na(soortenlijst_oever)]
 EAGs <- sort(unique(hybi$locatie.EAG))
 
 df_out_totaal <- NULL
-df_submers_totaal <- NULL
-df_submers_long_totaal <- NULL
+df_out <- NULL
 
 for(EAG in EAGs){
-  df1 <- hybi[ hybi$locatie.EAG %in% EAG,]
+  df1 <- hybiest[hybiest$locatie.EAG %in% EAG & hybiest$jaar > 2010,]
   jaars <- sort(unique(df1$jaar))
   for(jaar in jaars){
   df <- df1[df1$jaar %in% jaar,] 
-  WL <- df$locatie.KRWmeetpuntlocatie
   #DEEL ESTs 
   monster_subm <- do_monster_submers(df,soortenlijst_submers)
   W1_result <- do_W1(df, hybi_grenswaarden)
@@ -226,19 +243,20 @@ for(EAG in EAGs){
   O8_result <- do_O8(monster_oever, hybi_grenswaarden)
   
   df_out <- data.frame(EAG=EAG, jaar = jaar, EST=c(paste0("W",1:9),paste0("O",1:8)), result=c(W1_result, W2_result, W3_result, W4_result, W5_result, W6_result, W7_result, W8_result, W9_result,O1_result, O2_result, O3_result, O4_result, O5_result, O6_result, O7_result, O8_result))
+  print(df_out)
   df_out_totaal <- rbind(df_out_totaal, df_out)
   #EINDE DEEL ESTs
 }
 }
 
-df1 <- cast(df_out_totaal,EAG+jaar~EST, value = "result")
+df1 <- dcast(df_out_totaal,EAG+jaar~EST, value = "result")
 df1$EAG <- as.character(df1$EAG)
-krweag <- unique(locatie[c("EAGIDENT","OWMIDENT")])
 
+df1 <- merge(df1, eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAG'),
+            by.y = c('GAFIDENT'), all.x = TRUE)
 df3 <- df1 %>% 
-  left_join(krweag, by = c('EAG' = 'EAGIDENT'))%>%
-  arrange(EAG,OWMIDENT,jaar,desc(jaar)) %>% 
-  group_by(EAG,OWMIDENT) %>%
+  arrange(EAG,KRW_SGBP3,jaar,desc(jaar)) %>% 
+  group_by(EAG,KRW_SGBP3) %>%
   top_n(1, wt = jaar) 
 
 write.table(df3, "EST.csv", sep=";", dec=".", row.names=F)

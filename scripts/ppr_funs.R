@@ -47,7 +47,7 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   return(db)
 }
 
-ppr_ekr <- function(ekr1,ekr2){
+ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   
   # combine both EKR from KRW and overig water into one data.table
   db <- rbindlist(list(ekr1,ekr2), fill=TRUE)
@@ -61,24 +61,45 @@ ppr_ekr <- function(ekr1,ekr2){
             'GN_LAST_EDITED_USER','GN_LAST_EDITED_DATE','MEETNET_ACTUEEL','FEWSFILTER_HISTORIE',
             'FEWSFILTER_ACTUEEL','PROGRAMMA_HISTORIE','PROGRAMMA_ACTUEEL','.',
             'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer',
-            'Begintijd','Eindtijd')
+            'Begintijd','Eindtijd','Doel','bronddoel',"HandelingsperspectiefWBP",'KRWwatertype.code.y')
   # ensure that cols are present in colnames db
   cols <- cols[cols %in% colnames(db)]
   # remove columns
   db[,c(cols):=NULL]
+  db[,GHPR := gsub(' $','',GHPR)]
   
-  # add type water body
+  # make local copy (only within this function)
+  doelen1 <- copy(doelen)
+  # mean GEP per id (en niet per eag zoals in de doelenset staat)
+  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(HoortBijGeoobject.identificatie,bronddoel,GHPR)]
+  # doelen koppelen aan gewogen scores (hoorbijid zonder namespace)
+  doelgeb2 <- doelgeb
+  doelgeb2$HoortBijGeoobject.identificatie <- gsub("NL11_","",doelgeb2$HoortBijGeoobject.identificatie) #KRW waterlichaam totaal score
+  doelgeb <- smartbind(doelgeb,doelgeb2)
+  
+  # merge with doelen
+  db <- merge(db, doelgeb, by = c('HoortBijGeoobject.identificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
+  
+  # add namen per waterlichaam en eag
+  db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2) 
+  
   eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
   d3 <- merge(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
               by.y = c('GAFIDENT'), all.x = TRUE)
   eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  d4 <- merge(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
+  d4 <- merge(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM',"waterlichaam")], by.x = c('HoortBijGeoobject.identificatie'),
               by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
   d3 <- smartbind(d3,d4)
- 
+  d3$waterlichaam <- ifelse(!is.na(d3$SGBP3_NAAM), d3$SGBP3_NAAM, d3$GAFNAAM)
+  d3 <- d3[!is.na(d3$waterlichaam),] #visdata verwijderen
+  d3 <- as.data.table(d3)
+  
+  # namen aanpassen
+  d3$facet_wrap_code <- as.factor(mapvalues(d3$Waardebepalingsmethode.code,
+                                            from = c("Maatlatten2018 Fytoplankton", "Maatlatten2018 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
+                                            to = c("Fytoplankton", "Macrofauna", "Waterflora", "Vis")))
   # return updated database
   return(d3)
-  
 }
 
 ppr_slootbodem_kl <- function(db, wtype = NULL,mlocs = NULL){

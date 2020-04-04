@@ -17,6 +17,8 @@ output:
 bibliography: [referenties.bib]
 biblio-style: apalike
 documentclass: book
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r global, include = FALSE}
@@ -81,24 +83,10 @@ Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()
 #vol <- importCSV('input/vollenweider.csv', path = getwd()) 
 nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
 
-bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")
-bod$jaar <- format(bod$datum, '%Y')
-bod$jaar <- as.numeric(bod$jaar)
-bod$meetwaarde[bod$limietsymbool == '<'] <- bod$meetwaarde[bod$limietsymbool == '<']/2 # meetwaarden detectiegrens/ halve detectiegrens meenemen
-bod <- merge(bod, eag_wl[,c('watertype','GAFIDENT')], by.x ='locatie.EAG', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-bod$locatie.KRW.watertype <- bod$watertype
-selb <- dcast(bod, locatie.EAG+locatiecode+locatie.omschrijving+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
-selb$klasseP <- NULL
-'8' -> selb$klasseP[is.na(selb$`Ptot_gP/kg_dg_BS`)]
-'7' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` > 10]
-'6' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 10 & selb$`Ptot_gP/kg_dg_BS` > 5 ] 
-'5' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 5 & selb$`Ptot_gP/kg_dg_BS` > 2.5]
-'4' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 2.5 & selb$`Ptot_gP/kg_dg_BS` > 1.5]
-'3' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1.5 & selb$`Ptot_gP/kg_dg_BS` > 1]
-'2' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1 & selb$`Ptot_gP/kg_dg_BS` > 0.5]
-'1' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 0.5]
-selb$klasseP <- as.factor(selb$klasseP)
+# slootbodem measurements
+bod  <- fread("../data/bodemfews.csv")
+selb <- ppr_slootbodem_kl(bod, wtype = eag_wl, mlocs = locaties)
+bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
 
 simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
@@ -147,7 +135,7 @@ combineWidgets(
     diepte(hybi[hybi$jaar >= '2006' & hybi$jaar < '2009',]),
     diepte(hybi[hybi$jaar >= '2009' & hybi$jaar < '2012',]),
     diepte(hybi[hybi$jaar >= '2012' & hybi$jaar < '2015',]),
-    diepte(hybi[hybi$jaar >= '2015' & hybi$jaar < '2019',])
+    diepte(hybi[hybi$jaar >= '2015' & hybi$jaar < '2020',])
 )
 #saveWidget(krw, "dieptemeerderejaren_0608_0911_1214_1518.html", selfcontained = FALSE)
 #webshot("diepte.html", file = "PvskP.png")
@@ -330,8 +318,6 @@ maatregelen2 %>%
           collapse_rows(columns=1, valign="top"))
 }
 ```
-
-
 
 ## ESF 3 Voedselrijkdom waterbodem
 
