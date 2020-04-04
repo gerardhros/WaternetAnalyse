@@ -659,11 +659,12 @@ if(nrow(hybi1[hybi1$fewsparameter == 'WATDTE_m',])>0){
 ```
 
 ### ESF 1 en 3: Waterbodem
-```{r watbodem, echo= FALSE, warning = FALSE, message = FALSE, fig.cap = 'Nalevering en voedselrijkdom waterbodem.', echo = FALSE, message = FALSE, warning = FALSE}
+```{r watbodem, echo= FALSE, warning = FALSE, message = FALSE, fig.cap = 'Nalevering en voedselrijkdom waterbodem.'}
 if(nrow(bod1) > 0) {
 plotbod(bod1)
 }
 ```
+
 ## {data-height=10}
 ### Brondata: water- en stoffenbalansen
 ### Brondata: Monitoringsresultaten uit meetprogramma`s fysisch-chemie en hydrobiologie

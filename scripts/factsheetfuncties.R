@@ -441,10 +441,10 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
       strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 7, angle=0,colour = 'black'),
-      axis.text.y = element_text(size= 7, hjust=2,colour = 'black'),
-      axis.ticks =  element_line(colour = "grey90"), 
-      axis.line = element_line(colour='grey90'),
+      axis.text.x = element_text(size= 7, angle=0, colour = 'black'),
+      axis.text.y = element_text(size= 7, hjust=2, colour = 'black'),
+      axis.ticks =  element_line (colour = "black"), 
+      axis.line = element_line (colour='black'),
       panel.background = element_blank(), 
       plot.background = element_blank()
     )+ 
