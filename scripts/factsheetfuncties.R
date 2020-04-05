@@ -410,12 +410,13 @@ extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
       strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 9, angle=40),
-      axis.text.y = element_text(size= 9, hjust=2),
+      axis.text.x = element_text(size= 7, angle=0, colour = 'black'),
+      axis.text.y = element_text(size= 7, hjust=0, colour = 'black'),
       axis.ticks =  element_line(colour = "black"), 
       panel.background = element_blank(), 
       plot.background = element_blank(),
-      axis.title=element_text(size=9) )+
+      axis.title=element_text(size=9),
+      axis.line = element_line(colour='black'))+
     theme(legend.title = element_text(size = 10, face = 'bold'), 
           legend.text  = element_text(size = 10),
           legend.key.size = unit(0.9, "lines"),
@@ -454,7 +455,7 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   
 }
 
-plotbod <- function(bod1,type='grid'){
+plotbod <- function(bod1, type='grid'){
   
   # dcast slootbodem 
   selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
@@ -525,12 +526,12 @@ plotbod <- function(bod1,type='grid'){
       labs(x="",y="P mg/m2/dag\n", fill = '')
   }
   if(is.null(selb$FESPPWratio)){out = plotFW} 
-  if(!is.null(selb$FESPPWratio)){out = grid.arrange(plotFW, qPW)}
+  if(!is.null(selb$FESPPWratio)){out = arrangeGrob(plotFW, qPW)}
 
   if(type=='plotFW'){out = plotFW}
   if(type=='plotqPW'){out = qPW}
   
-  return(out)
+  return(grid.draw(out))
   }
 
 
@@ -741,26 +742,26 @@ ekrplot2 <- function(ekr_scores_sel2){
               aes(xmin = 0, xmax = 1, ymin = ymin, ymax = ymax, 
                   fill = Oordeel), alpha = 0.3) +
     scale_fill_manual(values = myColors) +
-    # geom_text(
-    #   aes(x = 0.5, y = 0.9, label = sgbp_version),
-    #   data = es_sel_background_spr, check_overlap = TRUE, size = 3)+ 
-    # # geom_vline(xintercept = 0.5, color = "lightgrey") +
-    # geom_point() +
     geom_segment(aes(x = 0, xend = 1, 
                      y = EKR, yend = EKR, linetype = "Huidige toestand"), 
-                 col = "black", cex = 1.2) + # linetype = 2 -> dashed
+                 col = "black", cex = 1.4) + # linetype = 2 -> dashed
     scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1)) +
     scale_linetype_manual("",values= c("Huidige toestand" = 1))+
     facet_grid(cols = vars(wlmt)) +
     theme_minimal()+ 
     theme(axis.title.x=element_blank(),
           axis.ticks.x=element_blank(),
-          axis.text.x=element_blank(),
+          strip.text.x = element_text(size = 11), # maatlat
+          strip.text.y = element_text(size = 9), #
+          axis.text.x = element_blank(), #
+          axis.text.y = element_text(size= 9), # ekrscores
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
-          panel.grid.major.y = element_line(size = 0.1, linetype = "solid", colour = "white"),
-          panel.grid.minor.y = element_line(size = 0.01, linetype = "dotted", colour = "white"),
-          panel.ontop = TRUE,
+          panel.grid.major.y = element_line(),
+          panel.grid.minor.y = element_line(),
+          panel.ontop = F,
+          legend.title = element_text(size = 11), 
+          legend.text  = element_text(size = 10),
           legend.position = "bottom")
   return(plot)
 }
