@@ -74,7 +74,7 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(HoortBijGeoobject.identificatie,bronddoel,GHPR)]
   # make copy, add new id where NL11_ is removed
   doelgeb2 <- copy(doelgeb)
-  doelgeb2[,HoortBijGeoobject.identificatie := sapply(strsplit(HoortBijGeoobject.identificatie, '_'), `[`, 2)]
+  doelgeb2$HoortBijGeoobject.identificatie <- gsub("^NL11_*","",doelgeb2$HoortBijGeoobject.identificatie)
   doelgeb <- rbind(doelgeb,doelgeb2)
   
   # merge with doelen
