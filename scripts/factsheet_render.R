@@ -34,6 +34,7 @@ file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$wlname, 
 
 
 
+
 knitr::knit("factsheets_test.Rnw", output = paste0("output/FS_", out$wlname, ".tex"))
 tools::texi2pdf(paste0("output/FS_", out$wlname, ".tex"))
 ofiles <- list.files(pattern='.pdf')[grep('^FS_',list.files(pattern='.pdf'))]
