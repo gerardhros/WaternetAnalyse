@@ -25,3 +25,5 @@ factsheets/output/*.png
 /factsheets/routput/*
 /figure/*
 /output/*
+factsheets/*.log
+factsheets/*.tex
