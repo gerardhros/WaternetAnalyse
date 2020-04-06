@@ -93,7 +93,7 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   d3 <- rbind(d3,d4,fill=TRUE)
 
   # add changes of Laura (check later) 
-  d3[,waterlichaam := fifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
+  d3[,waterlichaam := ifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
   # delete visdata
   d3 <- d3[!is.na(waterlichaam),]
   
