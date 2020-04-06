@@ -3,15 +3,15 @@
 
 # source functions
 source('scripts/ppr_funs.R')
-source('scripts/loadPackages.R')
-source('scripts/factsheetfuncties.R')
+#source('scripts/loadPackages.R')
+#source('scripts/factsheetfuncties.R')
 
 # Directories and names------------------------------------------
 
 # other settings ---------------------------
-proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
-proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
+proj4.rd <- sp::CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- sp::CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4.osm <- sp::CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
 col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
@@ -32,13 +32,13 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
 ## data voor kaart ----------
 
   # shape met alle EAGs
-  gEAG <- st_read("data/EAG20191205.gpkg",quiet = T) %>% st_transform(proj4.rd)
+  gEAG <- sf::st_read("data/EAG20191205.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
   
   # shape met al het water in EAG
-  waterpereag1 <- st_read("data/WaterPerEAG20191205.gpkg",quiet = T) %>% st_transform(proj4.rd)
+  waterpereag1 <- sf::st_read("data/WaterPerEAG20191205.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
 
   # shape met waterschapsgebied
-  waterschappen  <- st_read("data/2019_gemeentegrenzen_kustlijn_simplified.shp",quiet = T) %>% st_transform(proj4.rd)
+  waterschappen  <- sf::st_read("data/2019_gemeentegrenzen_kustlijn_simplified.shp",quiet = T) %>%sf::st_transform(proj4.rd)
 
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
@@ -52,24 +52,25 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # water types
-  watertypen <- fread('data/KRWWatertype.csv')
+  watertypen <- data.table::fread('data/KRWWatertype.csv')
   
   # locaties van alle metingen (water, biologie, en slootbodem)
-  locaties <- fread('data/Location.csv')
+  locaties <- data.table::fread('data/Location.csv')
 
   ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
   ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-  eag_wl <- fread('data/EAG_Opp_kenmerken_20200218.csv')
+  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
   #eag_wl <- eag_wl[is.na(eag_wl$Einddatum),] # sommige EAGs bestaan niet meer in EAGs, maar wel in krw dataset.       Deze opnieuw maken. vaarten ronde hoep, westeramstel, ronde venen en zevenhoven en vecht waterlichaam koppeling en watertype aangepast in         eag_opp-kenmerken aangepast omdat er anders geen kaart wordt weergegeven en geen ekrset data wordt geselecteerd.
   
   # KRW doelen 
   doelen <- ppr_doelen()
   
   # nonogram
-  nomogram <- fread('data/nomogram.csv')
+  nomogram <- data.table::fread('data/nomogram.csv')
   
   # waterbalans data (made by loadBalances)
   dat <- readRDS("pbelasting/dat.rds") 
+  dat[,date := as.POSIXct(paste0(jaar,"-",maand,"-01"), format = '%Y-%m-%d')]
   
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
@@ -79,7 +80,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
   
   # slootbodem measurements
-  bod  <- fread("data/bodemfews.csv")
+  bod  <- data.table::fread("data/bodemfews.csv")
 
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
@@ -88,7 +89,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   wq  <- readRDS("data/ImportWQ.rds") %>% as.data.table()
   
   # datafile with P-load PC Ditch
-  Overzicht_kP <- fread('data/Overzicht_kP.csv') 
+  Overzicht_kP <- data.table::fread('data/Overzicht_kP.csv') 
   
   # toxiciteitsdata simoni
   simoni <- readRDS('data/simoni.rds')
@@ -122,23 +123,22 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
 # data voor EST tekening ----------------------
 
   # dit bestand moet af en toe geupdate obv nieuwe hybi en EAG data
-  EST <- fread('hydrobiologie/EST.csv')
+  EST <- data.table::fread('hydrobiologie/EST.csv')
 
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # data voor P belasting (override the existing ones, this need to be updated)
-  dat <- readRDS("pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances, selectie waterlichamen goed doorlopen en mogelijk namen aanpassen van pol zodat ze korter worden
-  dat$date <- as.POSIXct(paste0(dat$jaar,"-",dat$maand,"-01"), format = '%Y-%m-%d') 
-  Overzicht_kP <- importCSV('pbelasting/input/Overzicht_kP.csv', path = getwd()) 
-  nomogram <- importCSV('pbelasting/input/nomogram.csv', path = getwd())
+  #nomogram <- importCSV('pbelasting/input/nomogram.csv', path = getwd())
+  #Overzicht_kP <- importCSV('pbelasting/input/Overzicht_kP.csv', path = getwd()) 
+  #pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
+  #pvskp <- as.data.table(pvskp)
   
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
-  # data voor P belasting (override the existing ones, this need to be updated)
-  pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
-  pvskp <- as.data.table(pvskp)
+  # data voor P belasting
+  pvskp <- ppr_pmaps(dat, Overzicht_kp, hybi, nomogram)
   
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
@@ -341,13 +341,10 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     # --- make EKR plot ------------
     
     ## calculate EKR scores from EKRset1
-    ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, eag_wl = eag_wl, doelen = doelen)
-    ekr_scores <- as.data.table(ekr_scores)
+    ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, eag_wl = eag_wl, doelen = doelen)
     
     ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores[,facet_wrap_code := as.factor(mapvalues(wbmethode, 
-                from = c("Maatlatten2018 Fytoplankton", "Maatlatten2018 Macrofauna", "Maatlatten2018 Ov. waterflora", "Maatlatten2018 Vis"),
-                to = c("Fytoplankton", "Macrofauna", "Ov. waterflora", "Vis")))]
+    ekr_scores[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2)
     ekr_scores1 <- ekr_scores[!wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & level == 1]
@@ -359,20 +356,16 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     d3_deel <- ekr_scores2[EKR==min(EKR,na.rm=T),]
     
     ## calculate score per deelmaatlat from EKRset2
-    ekr_scores <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, eag_wl = eag_wl,  doelen = doelen)
-    setDT(ekr_scores)
+    ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, eag_wl = eag_wl,  doelen = doelen)
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores3 <- ekr_scores[wbmethode =="Maatlatten2018 Ov. waterflora" & 
                               level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),]
     ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores3[,facet_wrap_code := as.factor(mapvalues(wbmethode, 
-                 from = c("Maatlatten2018 Ov. waterflora"),
-                 to = c("Ov. waterflora")))]
-  
-    ekr_scores3[GHPR == 'Waterdiepte',GHPR := as.factor(mapvalues(GHPR,from = c("Waterdiepte"),to = c("Vestigingsdiepte waterplanten")))]
+    ekr_scores3[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
+    ekr_scores3[GHPR == 'Waterdiepte',GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten",GHPR))]
     
-    d3_deelptn <- ekr_scores2[EKR==min(EKR,na.rm=T),]
+    d3_deelptn <- ekr_scores3[EKR==min(EKR,na.rm=T),]
     
     # create map
     mapEKR <- ekrplot(ekr_scores1)
@@ -478,7 +471,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     # join measures with ESF-tabel
     cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer',
               'Gebiedspartner','UitvoeringIn',"afweging")
-    maatregelen2 <- merge(ESFtab, maatregelen1[,mget(cols)],by.x = 'esf', by.y = 'esffrst', all.y = T) 
+    maatregelen2 <- merge.data.table(ESFtab, maatregelen1[,mget(cols)],by.x = 'esf', by.y = 'esffrst', all.y = T) 
     
     # als meerdere esf aan een maatregel gekoppeld zijn dan wordt de eerste geselecteerd
     cols <- c('ESFoordeel','ESFoordeel_latex','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
@@ -499,9 +492,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     maatregelen2[, Naam := gsub('%','\\%',Naam,fixed=TRUE)]
     
     # --- plot ESF1: productiviteit ----
-    if(sum(is.na(pvskpsel$naam)) & length(is.na(pvskpsel$naam))>0){
+    if(sum(is.na(pvskpsel$naam)) != length(pvskpsel$naam)){
       # plot figure ESF1
-      plotPwbal = pvskpplot(pvskpsel)
+      plotPwbal = ppr_pvskpplot(pvskpsel)
     } else {
       # plot figure ESF1 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, pload = 0)
@@ -516,9 +509,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
       
       # plot ESF 2
-      plotLichtklimaat = extinctie1(wq = copy(wq1)[jaar > '2015'], 
-                                    hybi = copy(hybi1), 
-                                    parameter = c('VEC','WATDTE_m'))
+      plotLichtklimaat = ppr_extinctie1(wq = wq1, hybi = hybi1,parameter = c('VEC','WATDTE_m'))
     } else {
       
       # plot figure ESF2 when no data is available

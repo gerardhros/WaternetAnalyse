@@ -181,8 +181,8 @@ makePmaps <- function(dat, Overzicht_kp, hybi, nomogram){
 pvskpplot <- function(pvskpsel){
     
     PvskP <- pvskpsel %>%
-      group_by(naam) %>%
-      summarise_all(mean)
+      dplyr::group_by(naam) %>%
+      dplyr::summarise_all(mean)
     
     PvskP <- PvskP[!is.na(PvskP$naam),]
     if(is.na(PvskP$wp_meting_mgm2d)){
@@ -194,11 +194,11 @@ pvskpplot <- function(pvskpsel){
     
     d <- PvskP %>%
       dplyr::select(naam, wp_meting_mgm2d, kPDitch, Helder.naar.troebel..mg.P.m2.d.,
-                    starts_with('wp_'),
-                    -one_of(c('wp_min_sum', 'wp_tot_sum', 'wp_inc_sum','wp_meting_gm3'))) %>%
+                    dplyr::starts_with('wp_'),
+                    -dplyr::one_of(c('wp_min_sum', 'wp_tot_sum', 'wp_inc_sum','wp_meting_gm3'))) %>%
       mutate(wp_meting_mgm2d = -wp_meting_mgm2d)
     
-    d2 <- gather(d,
+    d2 <- tidyr::gather(d,
                    d %>% dplyr::select( -naam, -kPDitch, -Helder.naar.troebel..mg.P.m2.d.) %>% 
                    names(),
                    key = 'source',
