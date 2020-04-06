@@ -469,75 +469,48 @@ ppr_pmaps <- function(dat, Overzicht_kp, hybi, nomogram){
  
 }
 
-ppr_tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
+ppr_tabelPerWL3jaargemEAG_incl2022 <- function (EKRset){
   
   # make local copy (only within this function)
-  doelen1 <- copy(doelen)
   d1 <- copy(EKRset)
   
   # calculate mean per groep
-  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code',
-               'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar')
+  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code','Waardebepalingsmethode.code',
+               'facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3')
   d1 <- d1[jaar > 2008,.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
   
   # rename columns and order data.table
-  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','GHPR_level','GHPR','level','jaar'))
-  setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,-jaar)
+  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','facet_wrap_code','GHPR_level',
+                         'GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3'))
+  setorder(d1,EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode,-jaar,GEP, GEP_2022, waterlichaam, KRW_SGBP3)
+  
+  # columns to group
+  colg <- c('EAGIDENT','id','watertype','GHPR_level','GHPR','level','wbmethode','facet_wrap_code', 'GEP', 'GEP_2022', 'waterlichaam', 'KRW_SGBP3')
   
   # add year number (given ordered set), and take only three most recent years
-  d1 <- d1[,yearid := seq_len(.N),by=.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)][yearid < 4]
+  d1 <- d1[,yearid := seq_len(.N),by = colg][yearid < 4]
   
   # calculate mean EKR per group over the three years
-  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by =.(EAGIDENT,id,watertype,GHPR_level,GHPR,level,wbmethode)]
+  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by = colg]
   
   # remove empty spaces in GHPR needed for joining later
   # LM: bij mij gaan joins hierdoor juist mis
   d1[,GHPR := gsub(' $','',GHPR)]
   
-  # merge with doelen
-  
-  # rename columns doelen object
-  setnames(doelen1,c('HoortBijGeoobject.identificatie'),c('id'))
-  
-  # mean GEP per object
-  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(id,bronddoel,GHPR)]
-  
-  # make copy, add new id where NL11_ is removed
-  doelgeb2 <- copy(doelgeb)
-  doelgeb2[,id := sapply(strsplit(id, '_'), `[`, 2)]
-  
-  doelgeb <- rbind(doelgeb,doelgeb2)
-  
-  # merge with doelen
-  d2 <- merge.data.table(d1, doelgeb, by = c('id','GHPR'), all.x = TRUE)
+  # add classification for EKR
+  d1[EKR < GEP/3,oordeel := 'slecht']
+  d1[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
+  d1[EKR >= 2 * GEP / 3,oordeel := 'matig']
+  d1[EKR >= GEP, oordeel := 'goed']
   
   # add classification for EKR
-  d2[EKR < GEP/3,oordeel := 'slecht']
-  d2[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
-  d2[EKR >= 2 * GEP / 3,oordeel := 'matig']
-  d2[EKR >= GEP, oordeel := 'goed']
-  
-  # add classification for EKR
-  d2[EKR < GEP_2022/3,oordeel_2022 := 'slecht']
-  d2[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-  d2[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-  d2[EKR >= GEP_2022, oordeel_2022 := 'goed']
-  
-  # add type water body and join by EAG-GAF
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  d3 <- merge.data.table(d2[!is.na(EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], 
-              by.x = c('EAGIDENT'),
-              by.y = c('GAFIDENT'), all.x = TRUE)
-  
-  # add type water body and join by waterlichaam
-  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
-  d4 <- merge.data.table(d2[is.na(EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], 
-              by.x = c('id'),
-              by.y = c('waterlichaam'), all.x = TRUE)
-  d3 <- rbind(d3,d4,fill=TRUE)
+  d1[EKR < GEP_2022/3,oordeel_2022 := 'slecht']
+  d1[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+  d1[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+  d1[EKR >= GEP_2022, oordeel_2022 := 'goed']
   
   # return the object
-  return(d3)
+  return(d1)
 }
 
 # ekr-plot for factsheet
@@ -769,7 +742,7 @@ plotEmpty <-function(db,type){
   
 }
 
-# functie vor lichtklimaat en waterdiepte-----------
+# functie vor lichtklimaat en waterdiepte
 ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   
   # median depth of hydrobiological data
@@ -913,8 +886,12 @@ ppr_plotbod <- function(bod1, type='grid'){
   if(is.null(selb$FESPPWratio)){out = plotFW} 
   if(!is.null(selb$FESPPWratio)){out = arrangeGrob(plotFW, qPW)}
   
+  # plot figure
   if(type=='plotFW'){out = plotFW}
   if(type=='plotqPW'){out = qPW}
+  #if(type=='grid'){grid.newpage();grid.draw(out)}
+  if(type=='grid'){out = arrangeGrob(plotFW, qPW)}
   
-  return(grid.draw(out))
+  # return output
+  return(out)
 }

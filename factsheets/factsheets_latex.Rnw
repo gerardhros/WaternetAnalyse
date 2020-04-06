@@ -46,8 +46,9 @@ eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand}
 eah_message <- paste(eah_m1,eah_m2,eah_m3)
 
 # prepare ESF tabel
-pESFtab <- out$ESFtab[,c('OORDEEL','oms','piclatex')]
-pESFtab$oms <- as.character(pESFtab$oms)
+pESFtab <- out$ESFtab[,c('OORDEEL','oms_latex','piclatex')]
+pESFtab$oms_latex <- as.character(pESFtab$oms_latex)
+pESFtab[,oms_latex := gsub('°',' graden',oms_latex)]
 
 # load maatregelentabel, and select the latex columns
 cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
@@ -81,7 +82,7 @@ plotqPW = out$plotqPW
   ]
   
   % Add the top row with title
-  \posterbox[blankest,interior engine=path,height=2cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=8,below=top}{\resizebox{26cm}{!}{\bfseries \Sexpr{lx_naam}}}
+  \posterbox[blankest,interior engine=path,height=2cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=8,below=top}{\resizebox{26cm}{!}{\bfseries \Sexpr{lx_title}}}
 
  % add frame for beschrijving gebied en watersysteem
   \posterbox[adjusted title=Beschrijving van het gebied en watersysteem op hoofdlijnen]{
@@ -133,14 +134,14 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   % start table over the widt of the page
   \noindent\begin{tabular}{p{0.05\textwidth}m{0.9\textwidth}}
   
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[1]}} & \Sexpr{pESFtab$oms[1]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[2]}} & \Sexpr{pESFtab$oms[2]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[3]}} & \Sexpr{pESFtab$oms[3]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[4]}} & \Sexpr{pESFtab$oms[4]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[5]}} & \Sexpr{pESFtab$oms[5]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[6]}} & \Sexpr{pESFtab$oms[6]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[7]}} & \Sexpr{pESFtab$oms[7]}\\
-  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[8]}} & \Sexpr{pESFtab$oms[8]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[1]}} & \Sexpr{pESFtab$oms_latex[1]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[2]}} & \Sexpr{pESFtab$oms_latex[2]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[3]}} & \Sexpr{pESFtab$oms_latex[3]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[4]}} & \Sexpr{pESFtab$oms_latex[4]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[5]}} & \Sexpr{pESFtab$oms_latex[5]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[6]}} & \Sexpr{pESFtab$oms_latex[6]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[7]}} & \Sexpr{pESFtab$oms_latex[7]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[8]}} & \Sexpr{pESFtab$oms_latex[8]}\\
   \end{tabular}
   }
 
@@ -185,7 +186,7 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   
   % Add the top row with title
   \posterbox[blankest,interior engine=path,height=2.6cm,halign=center,valign=center,fontupper=\bfseries,colupper=black]{name=title,column=1,span=10,below=top}{
-  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_naam}}\\[3mm]
+  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_title}}\\[3mm]
   Maatregelen om de waterkwaliteit te verbeteren.
   \vspace{5mm}
   
@@ -251,7 +252,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   
    % Add the top row with title
   \posterbox[blankest,interior engine=path,height=2.6cm,halign=center,valign=center,fontupper=\bfseries,colupper=black]{name=title,column=1,span=6,below=top}{
-  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_naam}}\\[3mm]
+  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_title}}\\[3mm]
   Toelichting en onderbouwing ESF-en, monitoring en begrenzing.
   \vspace{5mm}
   }
@@ -342,7 +343,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   
    % Add the top row with title
   \posterbox[blankest,interior engine=path,height=2.6cm,halign=center,valign=center,fontupper=\bfseries,colupper=black]{name=title,column=1,span=6,below=top}{
-  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_naam}}\\[3mm]
+  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_title}}\\[3mm]
   Begrippenlijst en afkortingen.
   \vspace{5mm}
   }
