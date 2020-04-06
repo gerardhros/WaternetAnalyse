@@ -99,7 +99,6 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   
   # namen aanpassen
   d3[,facet_wrap_code <- as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
-  
   # return updated database
   return(d3)
 }
