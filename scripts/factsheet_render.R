@@ -17,6 +17,8 @@ source('scripts/ppr_funs.R')
 # run for all files
 for(eagnr in 17 : 17){
   
+  eagnr = 1
+  
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr,brondata = brondata, splot = TRUE)
   
@@ -24,7 +26,7 @@ for(eagnr in 17 : 17){
   outputF <- "html"
   rmarkdown::render(input = "factsheets/factsheets_html.Rmd", 
                     output_format = "flexdashboard::flex_dashboard", #pdf_document
-                    output_file = paste("FS_", out$wlname, ".html", sep=''),
+                    output_file = paste("FS_", out$my_title2, ".html", sep=''),
                     output_dir = "factsheets/output/")
   
   # save relavant output and run file for latex pdf

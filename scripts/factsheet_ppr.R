@@ -166,16 +166,17 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     } else {
       
       # als eenheid factsheet is eag
-      eagwl <- eag_wl[GAFIDENT %in% wl,]
-      
+      eagwl <- eag_wl[GAFIDENT %in% wl|substr(GAFIDENT,1,4) %in% wl,]
+               
       # extract the name and remove prefix 'NL11_'
-      wlname <- unique(EKRset[EAGIDENT %in% wl,HoortBijGeoobject.identificatie])
+      wlname <- unique(EKRset[EAGIDENT %in% eagwl$GAFIDENT,HoortBijGeoobject.identificatie])
       wlname <- gsub("NL11_","",wlname)
       
     }
     
     # get title
     my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
+    my_title2 <- gsub('\\/','',gsub(' ','',my_title))
     
     # get P load vs critical p load
     pvskpsel <- pvskp[KRW %in% wl | EAG %in% eagwl$GAFIDENT | GAF %in% c(wl,substr(eagwl$GAFIDENT, 1, 4)),] 
@@ -283,11 +284,11 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
     
     # create dir to save plots
-    if(!wlname %in% list.files('factsheets/routput')){dir.create(paste0('factsheets/routput/',wlname))}
+    if(!my_title2 %in% list.files('factsheets/routput')){dir.create(paste0('factsheets/routput/',my_title2))}
     
     # save plot, and location where map is saved
-    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',wlname,'/mapEAG.png'),width = 10,height = 10,units='cm',dpi=500)    }
-    mapEAG <- paste0('routput/',wlname,'/mapEAG.png')
+    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',my_title2,'/mapEAG.png'),width = 10,height = 10,units='cm',dpi=500)    }
+    mapEAG <- paste0('routput/',my_title2,'/mapEAG.png')
     
     ## plot locatie deelgebieden binnen EAG
     
@@ -314,8 +315,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
     
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',wlname,'/mapDEELGEBIED.png'),width = 10,height = 10,units='cm',dpi=500)}
-    mapDEELGEBIED <- paste0('routput/',wlname,'/mapDEELGEBIED.png')
+    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',my_title2,'/mapDEELGEBIED.png'),width = 10,height = 10,units='cm',dpi=500)}
+    mapDEELGEBIED <- paste0('routput/',my_title2,'/mapDEELGEBIED.png')
     
     # --- make EKR plot ------------
     
@@ -350,8 +351,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     mapEKR <- ppr_ekrplot(ekr_scores1)
     
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',wlname,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
-    mapEKR <- paste0('routput/',wlname,'/mapEKR.png')
+    if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
+    mapEKR <- paste0('routput/',my_title2,'/mapEKR.png')
     
     # --- Ecologische SleutelFactoren ----- (ESF tabel) ------
     
@@ -440,8 +441,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                   guides(colour=FALSE) 
     
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapGauge,file=paste0('factsheets/routput/',wlname,'/mapGauge.png'),width = 24,height = 5,units='cm',dpi=500)}
-    mapGauge <- paste0('routput/',wlname,'/mapGauge.png')
+    if(splot){ggplot2::ggsave(mapGauge,file=paste0('factsheets/routput/',my_title2,'/mapGauge.png'),width = 24,height = 5,units='cm',dpi=500)}
+    mapGauge <- paste0('routput/',my_title2,'/mapGauge.png')
     
     # add nieuw information to maatregelen
     maatregelen1[,Gebiedspartner := `gebiedspartner (gesprekspartner bij financiering, uitvoering of beleid)`]
@@ -487,8 +488,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     }
       
     # save plot
-    if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',wlname,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
-    plotPwbal <- paste0('routput/',wlname,'/plotPwbal.png')
+    if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',my_title2,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
+    plotPwbal <- paste0('routput/',my_title2,'/plotPwbal.png')
     
     # --- plot ESF 2: lichtklimaat
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
@@ -503,8 +504,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     }
     
     # save plot is saved 
-    if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',wlname,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
-    plotLichtklimaat <- paste0('routput/',wlname,'/plotLichtklimaat.png')
+    if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',my_title2,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
+    plotLichtklimaat <- paste0('routput/',my_title2,'/plotLichtklimaat.png')
     
     # --- plot ESF 4: waterdiepte
     if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
@@ -521,8 +522,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     }
     
     # save plot
-    if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',wlname,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
-    plotWaterdiepte <- paste0('routput/',wlname,'/plotWaterdiepte.png')
+    if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',my_title2,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
+    plotWaterdiepte <- paste0('routput/',my_title2,'/plotWaterdiepte.png')
     
     # --- plot ESF3 : waterbodem
     if(nrow(bod1) > 0) {
@@ -543,20 +544,21 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     
     # save plots
     if(splot){
-      ggplot2::ggsave(plotbodFW,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem_FW.png'),width = 13,height = 8,
+      ggplot2::ggsave(plotbodFW,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem_FW.png'),width = 13,height = 8,
                       units='cm',dpi=500)
-      ggplot2::ggsave(plotqPW,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem_qPW.png'),width = 13,height = 8,
+      ggplot2::ggsave(plotqPW,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem_qPW.png'),width = 13,height = 8,
                       units='cm',dpi=500)
-      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem.png'),width = 13,height = 10,
+      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem.png'),width = 13,height = 10,
                       units='cm',dpi=500)
       }
-    plotbodFW <- paste0('routput/',wlname,'/plotWaterbodem_FW.png')
-    plotqPW <- paste0('routput/',wlname,'/plotWaterbodem_qPW.png')
-    plotWaterbodem <- paste0('routput/',wlname,'/plotWaterbodem.png')
+    plotbodFW <- paste0('routput/',my_title2,'/plotWaterbodem_FW.png')
+    plotqPW <- paste0('routput/',my_title2,'/plotWaterbodem_qPW.png')
+    plotWaterbodem <- paste0('routput/',my_title2,'/plotWaterbodem.png')
     
     # make a list to store the output
     out <- list(waterlichamenwl = waterlichamenwl,
                 wlname = wlname,
+                my_title2 = my_title2,
                 my_title = my_title,
                 eagwl = eagwl,
                 deelgebieden = deelgebieden,

@@ -15,7 +15,7 @@ document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r out
 
 # Factsheet toestand en ecologische sleutelfactoren (DIPS)
 
-## Hoofdlijnen {data-height=250}
+## Hoofdlijnen
 
 ### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
 Het `r out$waterlichamenwl$OWMNAAM` (`r out$waterlichamenwl$OWL`) heeft watertype `r unique(out$waterlichamenwl$typebesch)` (`r unique(out$eagwl$watertype)`) en bestaat uit de deelgebieden: `r out$deelgebieden$samen`.
@@ -53,7 +53,7 @@ include_graphics(out$mapDEELGEBIED)
 
 ```
 
-## Toestand {data-height=650}
+## Toestand
 
 ### Ecologische analyse op hoofdlijnen {data-width=600}
 
@@ -86,7 +86,7 @@ include_graphics(out$mapEKR)
 ```
 
 
-## Ecologische sleutelfactoren {data-height=700}
+## Ecologische sleutelfactoren
 
 ### Ecologische sleutelfactoren
 
