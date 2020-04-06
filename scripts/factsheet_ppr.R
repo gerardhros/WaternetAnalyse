@@ -320,7 +320,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # --- make EKR plot ------------
     
     ## calculate EKR scores from EKRset1
-    ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1, eag_wl = eag_wl, doelen = doelen)
+    ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1)
     
     ## make neat titles, alleen hoofdmaatlatten
     ekr_scores[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
@@ -335,7 +335,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     d3_deel <- ekr_scores2[EKR==min(EKR,na.rm=T),]
     
     ## calculate score per deelmaatlat from EKRset2
-    ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, eag_wl = eag_wl,  doelen = doelen)
+    ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2)
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores3 <- ekr_scores[wbmethode =="Maatlatten2018 Ov. waterflora" & 

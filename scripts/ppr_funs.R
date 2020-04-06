@@ -98,7 +98,7 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   d3 <- d3[!is.na(waterlichaam),]
   
   # namen aanpassen
-  d3[,facet_wrap_code <- as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
+  d3[,facet_wrap_code := as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
   # return updated database
   return(d3)
 }
