@@ -17,7 +17,7 @@ source('scripts/ppr_funs.R')
 # run for all files
 for(eagnr in 17 : 17){
   
-  eagnr = 1
+  eagnr = 17
   
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr,brondata = brondata, splot = TRUE)

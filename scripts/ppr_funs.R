@@ -540,7 +540,7 @@ ppr_ekrplot <- function(ekr_score){
   bg_gather[,sgbp_version := fifelse(grepl('_new$',doelen),'new','old')]
   bg_gather[,varrange := fifelse(grepl('_ymin_',doelen),'ymin','ymax')]
   bg_gather[,doelen := gsub("(.+?)(\\_.*)", "\\1", doelen)]
-  bg_spr <- dcast(bg_gather,id+GEP+GEP_2022+facet_wrap_code+doelen+sgbp_version~varrange,value.var='waarde')
+  bg_spr <- dcast.data.table(bg_gather,id+GEP+GEP_2022+facet_wrap_code+doelen+sgbp_version~varrange,value.var='waarde')
   
   # update xmin, xmax and SGBP version
   bg_spr[sgbp_version=='old',c('xmin','xmax','sgbp_version') := .(0,0.5,'SGBP2')]
@@ -672,8 +672,8 @@ ppr_pvskpplot <- function(pvskpsel){
   d1 <- d1[,mget(cols)][,wp_meting_mgm2d := -wp_meting_mgm2d]
   
   # reshape data.table for figure
-  d2 <- melt(d1,id.vars = c('naam','kPDitch','pc_helder_troebel'),
-       variable.name = 'source',value.name = 'value')
+  d2 <- melt.data.table(d1,id.vars = c('naam','kPDitch','pc_helder_troebel'),
+        variable.name = 'source',value.name = 'value', variable.factor = FALSE)
   
   # plot figure
   plot <- ggplot(d2) +
@@ -710,9 +710,9 @@ plotEmpty <-function(db,type){
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
-      annotate("text", x = nrow(db) * 0.6 , y=1, 
+      annotate("text", x = max(1,nrow(db) * 0.6) , y=1, 
                label = "P-belasting en bronnen\nzijn (nog) niet bekend.",
-               hjust = 'middle',size=8,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
   }
   
@@ -727,9 +727,9 @@ plotEmpty <-function(db,type){
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
-      annotate("text", x = nrow(db) * 0.6 , y=2, 
+      annotate("text", x = max(1,nrow(db) * 0.6) , y=2, 
                label = "Gegevens over het lichtklimaat\nzijn voor deze EAGs\n(nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
   }
   
@@ -749,9 +749,9 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank() )+ 
-      annotate("text", x = nrow(db) * 0.6 , y=1.6, 
+      annotate("text", x = max(1,nrow(db) * 0.6) , y=1.6, 
                label = "Metingen waterdiepte \nzijn (nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       ggtitle('') +
       labs(x= '', y = 'waterdiepte (m)\n')
   }
@@ -771,9 +771,9 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(),
         plot.background = element_blank())+
-      annotate("text", x = nrow(db) * 0.6 , y=0, 
+      annotate("text", x = max(1,nrow(db) * 0.6) , y=0, 
                label = "Potentiele nalevering \nis (nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), 
                         labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
       ggtitle( "Potentiele nalevering") +
@@ -795,9 +795,9 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank())+
-      annotate("text", x = nrow(db) * 0.6 , y=0.8, 
+      annotate("text", x = max(1,nrow(db) * 0.6) , y=0.8, 
                label = "Actuele nalevering \nis (nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
       ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
       labs(x="",y="P mg/m2/dag\n", fill = '')
@@ -885,7 +885,7 @@ ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
 ppr_plotbod <- function(bod1, type='grid'){
   
   # dcast slootbodem 
-  selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  selb <- dcast.data.table(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
   
   # calculate relevant ratios
   selb[,FESPFWratio := (Fe_mg_l_ng_BS/55.845 - Stot_mg_l_ng_BS/32065)/(Ptot_mgP_l_ng_BS/30.974)]

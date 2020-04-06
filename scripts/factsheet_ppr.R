@@ -1,6 +1,6 @@
 # factsheet preprocess
 # authors: Laura Moria, Sven Verweij en Gerard Ros
-rm(list=ls())
+
 # load required packages for these funs
 require(sf);require(data.table)
 require(magrittr);require(ggplot2)
