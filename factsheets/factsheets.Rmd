@@ -17,10 +17,6 @@ editor_options:
 # Settings-------------------------------------------------------
 options(repos = c(CRAN = "https://cran.rstudio.com"))
 
-# Load packages and functions-------------------------------------
-source('../scripts/loadPackages.R')
-source('../scripts/factsheetfuncties.R')
-
 #  Directories and names------------------------------------------
 dirGIS <-"../data"
 dirFactsheets <- "../factsheets"
@@ -44,10 +40,9 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 # er wordt veel te veel data (meer jaren, gebieden en parameters dan nodig) geladen omdat ik lui ben
 rm(list=ls())  
 # source functions
-source('../scripts/ppr_funs.R')
 source('../scripts/loadPackages.R')
 source('../scripts/factsheetfuncties.R')
-
+source('../scripts/ppr_funs.R')
 
 #  Directories and names------------------------------------------
 dirGIS <-"../data"
@@ -138,11 +133,12 @@ wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
 # dit bestand moet af en toe geupdate obv nieuwe hybi en EAG data
 # worden correcte EST berekend?
 EST <- fread('../hydrobiologie/EST.csv')
+EST <- merge(EST, eag_wl[,c('GAFIDENT','watertype','StedelijkLandelijk')], by.x = 'EAG', by.y = 'GAFIDENT')
 ```
 
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
-for (i in 17:nrow(ESFoordelen)){
+for (i in 16:nrow(ESFoordelen)){
     #i=29 
     
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
@@ -297,7 +293,7 @@ Het waterlichaam `r waterlichamenwl$OWMNAAM` heeft de status `r waterlichamenwl$
 
 ```{r chartT, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
 if(nrow(EST_sel)>0){
-EST_sel <- merge(EST_sel, eag_wl[,c('GAFIDENT','watertype','StedelijkLandelijk')], by.x = 'EAG', by.y = 'GAFIDENT')
+
 ## gather O en W 
 dtEST4 <- EST_sel[,yearid := frank(-jaar, ties.method = 'dense')][yearid <= 1] # alleen laatste jaar meenemen
 dtEST4 <- dtEST4[,lapply(.SD, function(x) mean(as.numeric(x))),.SDcols = 3:19] # gemiddelde van alle EAGs
@@ -443,11 +439,11 @@ d3_deelptn <-  ekr_scores_sel2_deel  %>%
 `r if(!is.na(waterlichamenwl$Doelen)){waterlichamenwl$Doelen}` 
 <br>
 
-**De huidige toestand vergeleken met de doelen –**`r d3$oordeel`
+**De huidige toestand vergeleken met de doelen –**`r unique(d3$oordeel)`
 <br>
-De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast) is `r d3$oordeel`. Het slechts scorende biologische kwaliteitselement is `r as.character(d3$facet_wrap_code)`. 
-`r if(!d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",d3_deel$GHPR,".")}` 
-`r if(!d3$facet_wrap_code %in% "Macrofauna"){if(d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", d3_deelptn$GHPR,".")}}`
+De toestand in `r waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast) is `r unique(d3$oordeel)`. Het slechts scorende biologische kwaliteitselement is `r as.character(unique(d3$facet_wrap_code))`. 
+`r if(!d3$facet_wrap_code %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(d3_deel$GHPR),"."))}` 
+`r if(!unique(d3$facet_wrap_code) %in% "Macrofauna"){if(unique(d3_deel$GHPR) == 'Abundantie groeivormen macrofyten'){unique(paste0("De slechts scorende indicator van deze deelmaatlat is ", d3_deelptn$GHPR,"."))}}`
 `r if(!is.na(waterlichamenwl$Toestand)){waterlichamenwl$Toestand}`
 <br>
 
