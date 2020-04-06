@@ -4,6 +4,7 @@
 # load required packages for these funs
 require(sf);require(data.table)
 require(magrittr);require(ggplot2)
+require(gridExtra);require(grid)
 
 # source functions
 source('scripts/ppr_funs.R')
@@ -377,6 +378,10 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # select relevant columns
     ESFtab <- ESFtab[,.(esf,OORDEEL,kleur,oms,piclatex)]
     
+    # adapt text to latex format
+    ESFtab[,oms_latex := gsub('%','\\%',oms,fixed=TRUE)]
+    ESFtab[,oms_latex := gsub('  ',' ',gsub('\r\n','',oms_latex))]
+    
     # --- uitgevoerde maatregelen ----------
     
     # uitgevoerd in SGBP 1 en 2, in planvorming of in fasering dan wel ingetrokken of vervangen
@@ -542,8 +547,9 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                       units='cm',dpi=500)
       ggplot2::ggsave(plotqPW,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem_qPW.png'),width = 13,height = 8,
                       units='cm',dpi=500)
-      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem.png'),width = 13,height = 8,
-                      units='cm',dpi=500)}
+      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',wlname,'/plotWaterbodem.png'),width = 13,height = 10,
+                      units='cm',dpi=500)
+      }
     plotbodFW <- paste0('routput/',wlname,'/plotWaterbodem_FW.png')
     plotqPW <- paste0('routput/',wlname,'/plotWaterbodem_qPW.png')
     plotWaterbodem <- paste0('routput/',wlname,'/plotWaterbodem.png')

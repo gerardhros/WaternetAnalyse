@@ -769,7 +769,7 @@ plotEmpty <-function(db,type){
   
 }
 
-# functie vor lichtklimaat en waterdiepte-----------
+# functie vor lichtklimaat en waterdiepte
 ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   
   # median depth of hydrobiological data
@@ -915,8 +915,12 @@ ppr_plotbod <- function(bod1, type='grid'){
   if(is.null(selb$FESPPWratio)){out = plotFW} 
   if(!is.null(selb$FESPPWratio)){out = arrangeGrob(plotFW, qPW)}
   
+  # plot figure
   if(type=='plotFW'){out = plotFW}
   if(type=='plotqPW'){out = qPW}
+  #if(type=='grid'){grid.newpage();grid.draw(out)}
+  if(type=='grid'){out = arrangeGrob(plotFW, qPW)}
   
-  return(grid.draw(out))
+  # return output
+  return(out)
 }
