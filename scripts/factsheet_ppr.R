@@ -1,17 +1,19 @@
 # factsheet preprocess
 # authors: Laura Moria, Sven Verweij en Gerard Ros
 
+# load required packages for these funs
+require(sf);require(data.table)
+require(magrittr);require(ggplot2)
+
 # source functions
 source('scripts/ppr_funs.R')
-#source('scripts/loadPackages.R')
-#source('scripts/factsheetfuncties.R')
 
 # Directories and names------------------------------------------
 
 # other settings ---------------------------
-proj4.rd <- sp::CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
-proj4.google <- sp::CRS("+proj=longlat +datum=WGS84 +no_defs")
-proj4.osm <- sp::CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
+proj4.rd <- 28992 #sp::CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <-4326 #sp::CRS("+proj=longlat +datum=WGS84 +no_defs")
+#proj4.osm <- sp::CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
 col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
@@ -23,14 +25,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   # read in the latest version of ESFoordelen from 'data'
   ESFoordelen <- ppr_esf_oordeel() 
 
-  # maatregelen
+  # informatie over maatregelen
   maatregelen <- ppr_maatregelen()
   
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
-  
-## data voor kaart ----------
-
   # shape met alle EAGs
   gEAG <- sf::st_read("data/EAG20191205.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
   
@@ -40,85 +37,65 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
   # shape met waterschapsgebied
   waterschappen  <- sf::st_read("data/2019_gemeentegrenzen_kustlijn_simplified.shp",quiet = T) %>%sf::st_transform(proj4.rd)
 
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
-  
-# inladen hydrobiologische gegevens -----------
-  
-  # inladen gegevens hydrobiologie
-  hybi <- readRDS('data/alles_reliable.rds')
-  
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
-  
   # water types
   watertypen <- data.table::fread('data/KRWWatertype.csv')
   
   # locaties van alle metingen (water, biologie, en slootbodem)
   locaties <- data.table::fread('data/Location.csv')
-
-  ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
-  ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
-  #eag_wl <- eag_wl[is.na(eag_wl$Einddatum),] # sommige EAGs bestaan niet meer in EAGs, maar wel in krw dataset.       Deze opnieuw maken. vaarten ronde hoep, westeramstel, ronde venen en zevenhoven en vecht waterlichaam koppeling en watertype aangepast in         eag_opp-kenmerken aangepast omdat er anders geen kaart wordt weergegeven en geen ekrset data wordt geselecteerd.
-  
-  # KRW doelen 
-  doelen <- ppr_doelen()
   
   # nonogram
   nomogram <- data.table::fread('data/nomogram.csv')
   
+  # datafile with P-load PC Ditch
+  Overzicht_kP <- data.table::fread('data/Overzicht_kP.csv') 
+  Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
+  
+  # toxiciteitsdata simoni
+  simoni <- readRDS('data/simoni.rds')
+
+  ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
+  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
+  
+  # KRW doelen 
+  doelen <- ppr_doelen()
+  
+# inladen data meetnetten and clean up 
+  
+  # hydrobiologische gegevens
+  hybi <- readRDS('data/alles_reliable.rds') 
+  hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
+  
+    # show progress
+    pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  
   # waterbalans data (made by loadBalances)
-  dat <- readRDS("pbelasting/dat.rds") 
+  dat <- readRDS("pbelasting/dat.rds")  
   dat[,date := as.POSIXct(paste0(jaar,"-",maand,"-01"), format = '%Y-%m-%d')]
   
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+    # show progress
+    pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # EKR sets KRW en overig water
   EKRset1 <- readRDS('hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
+  EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2,eag_wl = eag_wl,doelen = doelen)
+  
+    # show progress
+    pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # slootbodem measurements
-  bod  <- data.table::fread("data/bodemfews.csv")
-
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+  bod <- data.table::fread("data/bodemfews.csv")
+  bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
+  
+    # show progress
+    pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
   # waterquality measurements
   wq  <- readRDS("data/ImportWQ.rds") %>% as.data.table()
-  
-  # datafile with P-load PC Ditch
-  Overzicht_kP <- data.table::fread('data/Overzicht_kP.csv') 
-  
-  # toxiciteitsdata simoni
-  simoni <- readRDS('data/simoni.rds')
-  
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
-  
-# update, filter and clean up databases -----------
-
-  # EKR measurements
-  EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2)
-  
-  # hybi measurements
-  hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
-  
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
-  
-  # slootbodemdata, hier moeten 2 verschillende datatables uitkomen
-  bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
-  
-  # water quality
   wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
-  
-  # Pload and limits from PC Ditch
-  Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
-
-  # show progress
-  pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
+    
+    # show progress
+    pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
 # data voor EST tekening ----------------------
 
@@ -251,7 +228,8 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     if(nrow(EST_sel)>0){
       
       ## merge Ecosysteemtoestanden met EAGs: er mag maar 1 watertype per factsheet zijn. Dat is zo als of KRW WL of EAG uitgangspunt zijn.
-      dtEST2 <- merge(EST_sel, eagwl, by.x = "EAG", by.y  = "GAFIDENT")
+      cols <- colnames(EST_sel)[grepl('^EAG|jaar|^O|^W',colnames(EST_sel))]
+      dtEST2 <- merge.data.table(EST_sel[,mget(cols)], eagwl, by.x = "EAG", by.y  = "GAFIDENT")
       
       ## gather O en W for the last year
       dtEST4 <- dtEST2[,yearid := frank(-jaar, ties.method = 'dense')][yearid <= 1] 
@@ -368,7 +346,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     d3_deelptn <- ekr_scores3[EKR==min(EKR,na.rm=T),]
     
     # create map
-    mapEKR <- ekrplot(ekr_scores1)
+    mapEKR <- ppr_ekrplot(ekr_scores1)
     
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',wlname,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
@@ -493,9 +471,11 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     
     # --- plot ESF1: productiviteit ----
     if(sum(is.na(pvskpsel$naam)) != length(pvskpsel$naam)){
+      
       # plot figure ESF1
       plotPwbal = ppr_pvskpplot(pvskpsel)
     } else {
+      
       # plot figure ESF1 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, pload = 0)
       plotPwbal = plotEmpty(db = plotLeegDB,type='Pwbal')
@@ -526,7 +506,7 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
       
       # plot ESF 4
       hybi2 <- hybi1[!is.na(fewsparameter == 'WATDTE_m'),]
-      plotWaterdiepte = waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
+      plotWaterdiepte = ppr_waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
       
     } else {
       
@@ -543,9 +523,9 @@ pb <- txtProgressBar(max = 11, style=3);pbc <- 0
     if(nrow(bod1) > 0) {
       
       # plot ESF 4
-      plotbodFW = plotbod(bod1,type = 'plotFW')
-      plotqPW = plotbod(bod1,type = 'plotqPW')
-      plotWaterbodem = plotbod(bod1,type='grid')
+      plotbodFW = ppr_plotbod(bod1,type = 'plotFW')
+      plotqPW = ppr_plotbod(bod1,type = 'plotqPW')
+      plotWaterbodem = ppr_plotbod(bod1,type='grid')
       
     } else {
       

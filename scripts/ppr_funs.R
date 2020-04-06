@@ -541,7 +541,7 @@ ppr_tabelPerWL3jaargemEAG_incl2022 <- function (EKRset,eag_wl, doelen){
 }
 
 # ekr-plot for factsheet
-ekrplot <- function(ekr_score){
+ppr_ekrplot <- function(ekr_score){
   
   # make local copy
   dt <- copy(ekr_score)
@@ -807,4 +807,116 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   # return plot
   return(p)
   
+}
+
+
+
+ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
+  
+  # diepte4licht <- log(25)/1.2
+  hybi2 <- hybi2[fewsparameter %in% parameter & jaar == max(jaar),]
+  
+  # remove values that cannot exists (negative depths)
+  hybi2[meetwaarde < 0, meetwaarde := NA]
+  
+  p<- ggplot(hybi2, aes(x= locatie.EAG, y= meetwaarde, col = locatie.KRW.watertype))+
+    geom_boxplot() +
+    theme_minimal()+ scale_y_reverse(limits=c(max(hybi2$meetwaarde)+0.1,0)) + 
+    guides(col=guide_legend(title="KRW watertype"))+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 7, angle=0, colour = 'black'),
+      axis.text.y = element_text(size= 7, hjust=2, colour = 'black'),
+      axis.ticks =  element_line(colour = "black"), 
+      axis.line = element_line(colour='black'),
+      panel.background = element_blank(), 
+      plot.background = element_blank()
+    )+ 
+    ggtitle('') +
+    labs(x= '', y = 'waterdiepte (m)\n')
+ 
+  # return
+  return(p)
+  
+}
+
+ppr_plotbod <- function(bod1, type='grid'){
+  
+  # dcast slootbodem 
+  selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  
+  # calculate relevant ratios
+  selb[,FESPFWratio := (Fe_mg_l_ng_BS/55.845 - Stot_mg_l_ng_BS/32065)/(Ptot_mgP_l_ng_BS/30.974)]
+  selb[,FESPDWratio := (Fe_mg_kg_dg_BS/55.845-Stot_mg_kg_dg_BS/32.065)/(Ptot_gP_kg_dg_BS*1000/30.974)]
+  
+  # add SP-ratio
+  if(is.null(selb$Stot_mg_l_PW & selb$Stot_mg_l_nf_PW)){
+    selb[!is.na(SO4_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - SO4_mg_l_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  if(is.null(selb$Stot_mg_l_nf_PW)){
+    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  if(!is.null(selb$Stot_mg_l_nf_PW)){
+    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
+  }
+  
+  # filter only op samples where FESPFWratio, FESPDWratio and FESPPWratio are present
+  selb <- selb[!(is.na(FESPFWratio)|is.na(FESPDWratio)|is.na(FESPPWratio))]
+  
+  # calculate nalevering
+  selb[,nlvrFW := 0.0247 * Ptot_mgP_l_ng_BS - 1.6035]
+  selb[,nlvrDW := 0.0077 * Ptot_gP_kg_dg_BS * 1000 - 4.7259]
+  selb[,nlvrPW := 0.8095 * Ptot_mgP_l_nf_PW - 0.2905]
+  
+  # add categories
+  selb[,classFESPFWratio := cut(FESPFWratio, breaks = c((min(FESPFWratio)-1), 1.4, 4, max(FESPFWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPDWratio := cut(FESPDWratio, breaks = c((min(FESPDWratio)-1), 1.4, 4, max(FESPDWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  selb[,classFESPPWratio := cut(FESPPWratio, breaks = c((min(FESPPWratio)-1), 1.4, 4, max(FESPPWratio)), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'))]
+  
+  plotFW <- ggplot(selb, aes(x= loc.eag, y= nlvrFW, fill = classFESPFWratio))+
+    geom_boxplot() +
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 7, angle = 0, colour='black'),
+      axis.text.y = element_text(size= 7, colour='black'),
+      axis.ticks =  element_line(colour = "black"),
+      axis.line = element_line(colour='black'),
+      panel.background = element_blank(),
+      plot.background = element_blank()
+    )+
+    scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
+    ggtitle( "Potentiele nalevering") +
+    labs(x="",y="P mg/m2/dag\n", fill = '')
+  
+  if(!is.null(selb$FESPPWratio)){
+    qPW <- ggplot(selb, aes(x= loc.eag, y= nlvrPW, fill = classFESPPWratio))+
+      geom_boxplot() +
+      theme_minimal()+
+      theme(
+        strip.background = element_blank(),
+        strip.text.x = element_text(size = 6), #EAG
+        strip.text.y = element_text(size = 5), #EKR
+        axis.text.x = element_text(size= 7, angle = 0,colour='black'),
+        axis.text.y = element_text(size= 7,colour='black'),
+        axis.ticks =  element_line(colour = "black"),
+        axis.line = element_line(colour='black'),
+        panel.background = element_blank(), 
+        plot.background = element_blank()
+      )+
+      scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
+      ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
+      labs(x="",y="P mg/m2/dag\n", fill = '')
+  }
+  if(is.null(selb$FESPPWratio)){out = plotFW} 
+  if(!is.null(selb$FESPPWratio)){out = arrangeGrob(plotFW, qPW)}
+  
+  if(type=='plotFW'){out = plotFW}
+  if(type=='plotqPW'){out = qPW}
+  
+  return(grid.draw(out))
 }

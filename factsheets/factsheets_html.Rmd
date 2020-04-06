@@ -98,14 +98,14 @@ options(knitr.table.format = "markdown")
 options(kableExtra.auto_format = FALSE)
 
 if(outputF == "word"){
-kable(pESFtab, col.names = NULL) %>% kable_styling(full_width=FALSE) %>% 
+knitr::kable(pESFtab, col.names = NULL) %>% kable_styling(full_width=FALSE) %>% 
           column_spec(1, border_right = F) %>%
           column_spec(2, width = "120em") %>%
           collapse_rows(columns=1, valign="top")
 }
 
 if(outputF == "html"){
-kable(pESFtab, format = "html",col.names = NULL) %>% 
+knitr::kable(pESFtab, format = "html",col.names = NULL) %>% 
           kable_styling(full_width=FALSE) %>% 
           column_spec(1, border_right = F) %>%
           column_spec(2, width = "120em")%>%
@@ -124,7 +124,7 @@ Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, b
 ### SGBP 1 en 2 maatregelen die (deels) zijn uitgevoerd
 ```{r, echo = FALSE}
 # show progress of measures done
-gauge(out$rates$rate_uit, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
+flexdashboard::gauge(out$rates$rate_uit, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 
 # in uitvoering toevoegen
@@ -133,21 +133,21 @@ gauge(out$rates$rate_uit, min = 0, max = out$rates$rate_max, symbol = '', gaugeS
 ### SGBP 1 en 2 maatregelen in planvorming
 ```{r, echo= FALSE}
 # show progress of measures planned
-gauge(out$rates$rate_plan, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
+flexdashboard::gauge(out$rates$rate_plan, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
 ### SGBP 1 en 2 maatregelen die zijn gefaseerd
 ```{r, echo=FALSE}
 # show progress of measures in phase
-gauge(out$rates$rate_fase, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
+flexdashboard::gauge(out$rates$rate_fase, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
 ### SGBP 1 en 2 maatregelen die zijn ingetrokken of vervangen
 ```{r, echo=FALSE}
 # show progress of measures stopped or replaced
-gauge(out$rates$rate_del, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
+flexdashboard::gauge(out$rates$rate_del, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
@@ -155,7 +155,7 @@ gauge(out$rates$rate_del, min = 0, max = out$rates$rate_max, symbol = '', gaugeS
 
 ```{r, echo = FALSE}
 # show progress of new measures 
-gauge(out$rates$rate_nieuw, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
+flexdashboard::gauge(out$rates$rate_nieuw, min = 0, max = out$rates$rate_max, symbol = '', gaugeSectors(
   success = c(80, 100), warning = c(40, 79), danger = c(0, 39)))
 ```
 
