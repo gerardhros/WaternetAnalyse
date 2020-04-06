@@ -47,7 +47,7 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   return(db)
 }
 
-ppr_ekr <- function(ekr1,ekr2){
+ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   
   # combine both EKR from KRW and overig water into one data.table
   db <- data.table::rbindlist(list(ekr1,ekr2), fill=TRUE)
@@ -61,25 +61,47 @@ ppr_ekr <- function(ekr1,ekr2){
             'GN_LAST_EDITED_USER','GN_LAST_EDITED_DATE','MEETNET_ACTUEEL','FEWSFILTER_HISTORIE',
             'FEWSFILTER_ACTUEEL','PROGRAMMA_HISTORIE','PROGRAMMA_ACTUEEL','.',
             'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer',
-            'Begintijd','Eindtijd')
+            'Begintijd','Eindtijd','Doel','bronddoel',"HandelingsperspectiefWBP",'KRWwatertype.code.y')
   # ensure that cols are present in colnames db
   cols <- cols[cols %in% colnames(db)]
   # remove columns
   db[,c(cols):=NULL]
+  db[,GHPR := gsub(' $','',GHPR)]
   
-  # add type water body
+  # make local copy (only within this function)
+  doelen1 <- copy(doelen)
+  # mean GEP per id (en niet per eag zoals in de doelenset staat)
+  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(HoortBijGeoobject.identificatie,bronddoel,GHPR)]
+  # make copy, add new id where NL11_ is removed
+  doelgeb2 <- copy(doelgeb)
+  doelgeb2[,HoortBijGeoobject.identificatie := sapply(strsplit(HoortBijGeoobject.identificatie, '_'), `[`, 2)]
+  doelgeb <- rbind(doelgeb,doelgeb2)
+  
+  # merge with doelen
+  db <- merge(db, doelgeb, by = c('HoortBijGeoobject.identificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
+  
+  # add namen per waterlichaam en eag
+  db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2) 
+  
   eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
   d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
               by.y = c('GAFIDENT'), all.x = TRUE)
+
   eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
-  
   d4 <- merge.data.table(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
               by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
   d3 <- rbind(d3,d4,fill=TRUE)
- 
+
+  # add changes of Laura (check later) 
+  d3[,waterlichaam := fifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
+  # delete visdata
+  d3 <- d3[!is.na(waterlichaam),]
+  
+  # namen aanpassen
+  d3[,facet_wrap_code <- as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
+  
   # return updated database
   return(d3)
-  
 }
 
 ppr_slootbodem_kl <- function(db, wtype = NULL,mlocs = NULL){

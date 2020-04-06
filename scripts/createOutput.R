@@ -267,35 +267,26 @@ plotEKRlijnToetsgebied <- function(z, detail = "hoofd"){
 tabelOordeelPerGebiedPerJaar <- function (EKRset, doelen){
   
   b = filter(EKRset, Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS')) %>% # alleen hoofdmaatlatten
-    dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
-                  waterlichaamcode = GeoObject.code,
+    dplyr::select(id = HoortBijGeoobject.identificatie,
+                  waterlichaamcode = KRW_SGBP3,
+                  waterlichaam,
                   eag = EAGIDENT,
+                  eagnaam = GAFNAAM,
                   watertype = KRWwatertype.code,
                   maatlat = GHPR,
                   maatlatversie = Waardebepalingsmethode.code,
                   jaar,
-                  EKR = Numeriekewaarde)%>%
-    group_by(waterlichaam,waterlichaamcode,eag,watertype,maatlat,maatlatversie,jaar)%>%
+                  EKR = Numeriekewaarde,
+                  GEP,
+                  GEP_2022)%>%
+    group_by(id,waterlichaam,waterlichaamcode,eag,eagnaam,watertype,maatlat,maatlatversie,jaar, GEP, GEP_2022)%>%
     summarise_all(mean)
   b$maatlat <- gsub(' $','',b$maatlat)
   
-  doelgeb <- dcast(doelen, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = "Doel", fun.aggregate = mean)
-  doelgeb$GEP <- doelgeb$. ; doelgeb$. <- NULL
-  tabset <- merge(b, doelgeb, by.x = c('waterlichaam','maatlat'),
-                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'), all.x = T)
-  tabset$oordeel <- ifelse(tabset$EKR < tabset$GEP/3, 'slecht',
-                           ifelse(tabset$EKR < 2*(tabset$GEP/3), 'ontoereikend',
-                                  ifelse(tabset$EKR < tabset$GEP, 'matig', 'goed')))
-  
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  tabset1 <- merge(tabset[!is.na(tabset$eag),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('eag'),
-                  by.y = c('GAFIDENT'), all.x = TRUE)
-  
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  tabset2 <- merge(tabset[is.na(tabset$eag),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('waterlichaam'),
-                   by.y = c('waterlichaam'), all.x = TRUE, all.y =F)
-  tabset <- smartbind(tabset1,tabset2)
+  #deze kan ook als aparte functie
+  tabset$oordeel <- ifelse(b$EKR < b$GEP_2022/3, 'slecht',
+                           ifelse(b$EKR < 2*(b$GEP_2022/3), 'ontoereikend',
+                                  ifelse(b$EKR < b$GEP_2022, 'matig', 'goed')))
   
   write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(tabset)
