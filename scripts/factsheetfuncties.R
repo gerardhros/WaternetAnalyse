@@ -178,8 +178,8 @@ makePmaps <- function(dat, Overzicht_kp, hybi, nomogram){
 pvskpplot <- function(pvskpsel){
     
     PvskP <- pvskpsel %>%
-      group_by(naam) %>%
-      summarise_all(mean)
+      dplyr::group_by(naam) %>%
+      dplyr::summarise_all(mean)
     
     PvskP <- PvskP[!is.na(PvskP$naam),]
     if(is.na(PvskP$wp_meting_mgm2d)){
@@ -191,11 +191,11 @@ pvskpplot <- function(pvskpsel){
     
     d <- PvskP %>%
       dplyr::select(naam, wp_meting_mgm2d, kPDitch, Helder.naar.troebel..mg.P.m2.d.,
-                    starts_with('wp_'),
-                    -one_of(c('wp_min_sum', 'wp_tot_sum', 'wp_inc_sum','wp_meting_gm3'))) %>%
+                    dplyr::starts_with('wp_'),
+                    -dplyr::one_of(c('wp_min_sum', 'wp_tot_sum', 'wp_inc_sum','wp_meting_gm3'))) %>%
       mutate(wp_meting_mgm2d = -wp_meting_mgm2d)
     
-    d2 <- gather(d,
+    d2 <- tidyr::gather(d,
                    d %>% dplyr::select( -naam, -kPDitch, -Helder.naar.troebel..mg.P.m2.d.) %>% 
                    names(),
                    key = 'source',
@@ -444,8 +444,8 @@ waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
       strip.text.y = element_text(size = 5), #EKR
       axis.text.x = element_text(size= 7, angle=0, colour = 'black'),
       axis.text.y = element_text(size= 7, hjust=2, colour = 'black'),
-      axis.ticks =  element_line (colour = "black"), 
-      axis.line = element_line (colour='black'),
+      axis.ticks =  element_line(colour = "black"), 
+      axis.line = element_line(colour='black'),
       panel.background = element_blank(), 
       plot.background = element_blank()
     )+ 

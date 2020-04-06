@@ -5,13 +5,14 @@
 rm(list=ls())  
 
 # Load packages and functions -------------------------------------
-source('scripts/loadPackages.R')
+require(rmarkdown);require(flexdashboard)
+require(knitr);require(kableExtra)
 
 # collect all input data needed to make factsheets for all EAGs
 source('scripts/factsheet_ppr.R')
 
 # add functions
-source('scripts/factsheetfuncties.R')
+source('scripts/ppr_funs.R')
 
 # run example
 out = factsheetExtract(i=12,brondata = brondata, splot = TRUE)

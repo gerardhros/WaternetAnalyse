@@ -1,0 +1,403 @@
+\documentclass[12pt]{article}
+\usepackage[a3paper]{geometry}
+\usepackage[poster]{tcolorbox}
+\usepackage{graphicx}
+\usepackage{graphbox}
+\usepackage[export]{adjustbox}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{adjustbox}
+\pagestyle{empty}
+
+\begin{document}
+
+% LOAD RELEVANT DATA AND SIMPLIFY REFERENCES
+% https://kbroman.org/knitr_knutshell/pages/latex.html
+
+<<setup,echo=FALSE,warning=FALSE,message=FALSE>>=
+
+require(knitr,quietly = TRUE)
+require(kableExtra,quietly = TRUE)
+require(data.table,quietly = TRUE)
+source('../scripts/kable_fixerror.R')
+out = readRDS('routput/out.rds')
+
+lx_title <- out$my_title
+lx_wtype <- unique(out$eagwl$watertype)
+lx_wtypeoms <- unique(out$waterlichamenwl$typebesch)
+lx_naam <- out$waterlichamenwl$OWMNAAM
+lx_code <- gsub("_", "-",out$waterlichamenwl$OWL)
+lx_deelgebied <- paste0(out$deelgebieden$samen,collapse=', ')
+lx_karakterschets <- gsub('\r\n','',out$waterlichamenwl$Karakterschets)
+lx_prov <- out$waterlichamenwl$prov
+lx_gem <- out$waterlichamenwl$gem
+lx_status <- out$waterlichamenwl$Status
+lx_owner <- out$waterlichamenwl$Eigenaren
+lx_motstat <- out$waterlichamenwl$motstat
+lx_monwens <- out$waterlichamenwl$MonitoringAnalyseWensen
+
+# text for ecologische analyse op hoofdlijnen
+eah_doel <- if(!is.na(out$waterlichamenwl$Doelen)){out$waterlichamenwl$Doelen} else {'onbekend'}
+eah_oorz <- if(!is.na(out$waterlichamenwl$Oorzaken)){out$waterlichamenwl$Oorzaken} else {'onbekend'}
+eah_maat <- if(!is.na(out$waterlichamenwl$Maatregelen)){out$waterlichamenwl$Maatregelen} else {'onbekend'}
+eah_m1 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",out$d3_deel$GHPR,".")} else {NULL} 
+eah_m2 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,".")}} else {NULL}
+eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand} else {NULL}
+eah_message <- paste(eah_m1,eah_m2,eah_m3)
+
+# prepare ESF tabel
+pESFtab <- out$ESFtab[,c('OORDEEL','oms','piclatex')]
+pESFtab$oms <- as.character(pESFtab$oms)
+
+# load maatregelentabel, and select the latex columns
+cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
+maatregelen2 <- as.data.table(out$maatregelen2)[,mget(cols)]
+# reset names
+setnames(maatregelen2,c('ESF-oordeel','Periode','Naam','Toelichting','Initiatief','Gebieds-partner','Uitvoering','Afweging'))
+
+
+#location of pictures
+mapEAG <- out$mapEAG
+mapDEELGEBIED <- out$mapDEELGEBIED
+mapEKR <-out$mapEKR
+mapGauge <- out$mapGauge
+plotPwbal = out$plotPwbal
+plotLichtklimaat = out$plotLichtklimaat
+plotWaterdiepte = out$plotWaterdiepte
+plotWaterbodem = out$plotWaterbodem
+plotbodFW = out$plotbodFW
+plotqPW = out$plotqPW
+@
+ 
+  \begin{tcbposter}[
+    coverage = {spread, interior style={top color=white, bottom color=white}},
+    poster = {showframe=false,columns=8,rows=6},
+    boxes = {
+    enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
+    colback=white,opacityback=1,colframe=black!5!white,colbacktitle=white,coltitle=blue,
+    %title style={left color=blue,right color=blue},
+    fonttitle=\bfseries\scshape,
+  }
+  ]
+  
+  % Add the top row with title
+  \posterbox[blankest,interior engine=path,height=2cm,halign=center,valign=center,fontupper=\bfseries\large,colupper=black]{name=title,column=1,span=8,below=top}{\resizebox{26cm}{!}{\bfseries \Sexpr{lx_naam}}}
+
+ % add frame for beschrijving gebied en watersysteem
+  \posterbox[adjusted title=Beschrijving van het gebied en watersysteem op hoofdlijnen]{
+    name=gb,column=1,span=8,below=title}{
+    
+  % reduce size of the font
+  \fontsize{9}{10.8}\selectfont
+  
+  % add descriptive text for this water body
+Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Onze gebiedspartners zijn provincie \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
+   
+  % add frame for figuur Ecosysteem in beeld 
+  \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gb}{
+  \centering \includegraphics[height = 4cm,keepaspectratio]{\Sexpr{as.character(out$ESTnaam)}}
+  }
+
+ % add frame for figuur Ligging waterlichaam (if not saved earlier, use: routput/figure/plot_wlligging-1.pdf)
+  \posterbox[adjusted title=Ligging waterlichaam,height = 6cm,valign=center]{name=fig2,column=3,span=2,below=gb}{
+     \centering \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{mapEAG}}
+  }
+  
+  % add frame plot Ligging deelgebieden (if not saved earlier, use: routput/figure/plot_deelgebiedligging-1.pdf)
+  \posterbox[adjusted title=Ligging deelgebieden,height = 6cm,valign=center]{name=fig3,column=5,span=2,below=gb}{
+    \centering \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{mapDEELGEBIED}}
+  }
+
+  % add frame for figuur EKR score huidige toestand (routput/figure/plot_ekrtoestand-1.pdf)
+  \posterbox[adjusted title=Huidige toestand,height = 6cm,valign=center]{name=fig4,column=7,span=2,below=gb}{
+    \centering
+    \includegraphics[height = 3.5cm,keepaspectratio]{\Sexpr{mapEKR}}
+  }
+
+ %add reference methodology information in the bottom
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=8,above=bottom}{
+  
+   % reduce size of the font
+  \fontsize{8}{9.6}\selectfont Auteur: laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}.
+    }  
+  
+  % add frame for the ESF tabel plus explanation
+  \posterbox[adjusted title=Ecologische Sleutelfactoren]{name=esf,column=1,span=8,above=ref}{
+  
+  % reduce size of the font
+  \fontsize{9}{10.8}\selectfont
+  
+  % top strut
+  \newcommand\T{\rule{0pt}{0.5cm}}
+  
+  % start table over the widt of the page
+  \noindent\begin{tabular}{p{0.05\textwidth}m{0.9\textwidth}}
+  
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[1]}} & \Sexpr{pESFtab$oms[1]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[2]}} & \Sexpr{pESFtab$oms[2]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[3]}} & \Sexpr{pESFtab$oms[3]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[4]}} & \Sexpr{pESFtab$oms[4]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[5]}} & \Sexpr{pESFtab$oms[5]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[6]}} & \Sexpr{pESFtab$oms[6]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[7]}} & \Sexpr{pESFtab$oms[7]}\\
+  \T\includegraphics[height = 0.8cm,keepaspectratio,valign=M]{\Sexpr{pESFtab$piclatex[8]}} & \Sexpr{pESFtab$oms[8]}\\
+  \end{tabular}
+  }
+
+   % add frame for Ecologische Analyse op hoofdlijnen
+  \posterbox[adjusted title=Ecologische Analyse of Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
+  
+  % reduce size of the font
+  \fontsize{9}{10.8}\selectfont
+  
+  % add text voor de doelen
+    \textbf{Doel: } \Sexpr{eah_doel}
+    \vspace{5mm}
+    
+    % huidige toestand vergeleken met doel
+    \textbf{De huidige toestand: } \Sexpr{out$d3$oordeel}
+    \vspace{5mm}
+    De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hierboven) is \Sexpr{out$d3$oordeel}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. \Sexpr{eah_message}\\
+
+    % add oorzaken
+    \textbf{Oorzaken:} \Sexpr{eah_oorz}
+    \vspace{5mm}
+    
+    % add Maatregelen op hoofdlijnen
+    \textbf{Maatregelen:} \Sexpr{eah_maat}
+    \vspace{5mm}
+  }
+  
+  \end{tcbposter}
+  
+  \newpage
+  
+  \begin{tcbposter}[
+    coverage = {spread, interior style={top color=white, bottom color=white}},
+    poster = {showframe=false,columns=10,rows=6},
+    boxes = {
+    enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
+    colback=white,opacityback=1,colframe=black!5!white,colbacktitle=white,coltitle=blue,
+    %title style={left color=blue,right color=blue},
+    fonttitle=\bfseries\Large\scshape
+  }
+  ]
+  
+  % Add the top row with title
+  \posterbox[blankest,interior engine=path,height=2.6cm,halign=center,valign=center,fontupper=\bfseries,colupper=black]{name=title,column=1,span=10,below=top}{
+  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_naam}}\\[3mm]
+  Maatregelen om de waterkwaliteit te verbeteren.
+  \vspace{5mm}
+  
+  }
+  
+  % add frame for figure with gauges (routput/figure/plot_ekrtoestand-1.pdf)
+  \posterbox[skin=standard,colframe=white,sharp corners = all,height = 6cm,boxrule=0.5mm,valign=center]{name=maatregelen,column=1,span=10,below=title}{
+    \centering
+    \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{mapGauge}}
+  }
+  
+   % add frame for the ESF tabel plus explanation
+  \posterbox[adjusted title=Overzicht van maatregelen,fonttitle=\bfseries\scshape,sharp corners = all,boxrule = 0.5mm]{name=esf,column=1,span=10,between = maatregelen and ref}{
+  
+    % add empty row
+    \vspace{5mm}
+    % reduce size of the font
+    \fontsize{9}{10.8}\selectfont
+    % top strut
+    \newcommand\T{\rule{0pt}{0.5cm}}
+ 
+ 
+<<boring-random2,echo=FALSE,message=FALSE,collapse=TRUE,warning=FALSE>>=
+
+# make table
+knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>% 
+          kable_styling(full_width=FALSE, position = "left",latex_options = "scale_down") %>% 
+          column_spec(1, width = "1cm", border_right = F,color = "black") %>%          
+          column_spec(2, width = "1.5cm", border_right = F,color = "black") %>%        
+          column_spec(3, width = "5cm",border_right = F,color = "black") %>%
+          column_spec(4, width = "13cm",border_right = F,color = "black") %>%
+          column_spec(5:8, width = "2cm", border_right = F,color = "black")  %>%
+          collapse_rows_gr(columns=1, valign="top")
+
+@
+
+  \vspace{5mm}
+  Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen nog worden gewijzigd.
+  }
+  
+ %add reference methodology information in the bottom
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=10,above=bottom}{
+  
+   % reduce size of the font
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}. The R- and LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+    }  
+    
+  \end{tcbposter}
+  
+  
+  \newpage
+  
+  \begin{tcbposter}[
+    coverage = {spread, interior style={top color=white, bottom color=white}},
+    poster = {showframe=false,columns=6,rows=6},
+    boxes = {
+    enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
+    colback=white,opacityback=1,colframe=black!5!white,colbacktitle=white,coltitle=blue,
+    %title style={left color=blue,right color=blue},
+    fonttitle=\bfseries\Large\scshape
+  }
+  ]
+  
+   % Add the top row with title
+  \posterbox[blankest,interior engine=path,height=2.6cm,halign=center,valign=center,fontupper=\bfseries,colupper=black]{name=title,column=1,span=6,below=top}{
+  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_naam}}\\[3mm]
+  Toelichting en onderbouwing ESF-en, monitoring en begrenzing.
+  \vspace{5mm}
+  }
+  
+  % add frame for Motivering KRW status en herbegrenzing
+  \posterbox[adjusted title=Motivering KRW status en herbegrenzing,fonttitle=\bfseries\scshape,valign=top,height = 8cm]{name=krwstatus,column=1,span=3,below=title}{
+    \vspace{5mm}
+    \Sexpr{lx_motstat}
+    \vspace{5mm}
+  }
+  
+  % add frame for Monitoringswensen
+  \posterbox[adjusted title=Monitoringswensen,fonttitle=\bfseries\scshape,valign=top,height = 8cm]{name=monwens,column=4,span=3,below=title}{
+  \vspace{5mm}
+  \Sexpr{lx_monwens}
+  \vspace{5mm}
+  }  
+   
+  % add frame for ESF1 productiviteit
+  \posterbox[adjusted title=ESF1 productiviteit,fonttitle=\bfseries\scshape,valign=center,height = 9cm]{name=p3fig1,column=1,span=2,below=monwens}{
+  \centering
+    \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotPwbal}}
+    \vspace{5mm}
+    Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).\\
+    Bron: water- en stoffenbalansen
+  }
+  
+  % add frame for ESF2 lichtklimaat
+  \posterbox[adjusted title=ESF2 lichtklimaat,fonttitle=\bfseries\scshape,valign=center,height = 9cm]{name=p3fig2,column=3,span=2,below=monwens}{
+  \centering
+    \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotLichtklimaat}}
+    \vspace{5mm}
+    Lichtklimaat in plassen obv extinctie tussen 2010 en 2019 of Waterdiepte in sloten.\\
+    Bron: monitoringsresultaten uit meetprogramma's fysisch-chemie en hydrobiologie.
+  }
+  
+  % add frame for ESF4 Waterdiepte
+  \posterbox[adjusted title=ESF4 Waterdiepte,fonttitle=\bfseries\scshape,valign=center,height = 9cm]{name=p3fig3,column=5,span=2,below=monwens}{
+  \centering
+    \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotWaterdiepte}}
+    \vspace{5mm}
+     Waterdiepte in sloten.\\
+     Bron: monitoringsresultaten uit meetprogramma's fysisch-chemie en hydrobiologie.
+  }
+  
+   
+  % add frame for ESF1 en 3 waterbodem
+  \posterbox[adjusted title=ESF1 en 3 waterbodem,fonttitle=\bfseries\scshape,valign=center,height = 9cm]{name=p3fig4,column=1,span=2,below=p3fig1}{
+  \centering
+    \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotbodFW}}
+    \vspace{5mm}
+    Voedselrijkdom waterbodem.\\
+    Bron: Monitoringsresultaten uit meetprogramma waterbodemchemie.
+  }
+  
+   % add frame for ESF1 en 3 waterbodem
+  \posterbox[adjusted title=ESF1 en 3 waterbodem,fonttitle=\bfseries\scshape,valign=center,height = 9cm]{name=p3fig5,column=3,span=2,below=p3fig1}{
+  \centering
+    \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotqPW}}
+    \vspace{5mm}
+    Nalevering waterbodem.\\
+    Bron: Monitoringsresultaten uit meetprogramma waterbodemchemie.
+  } 
+    
+   
+  
+  %add reference methodology information in the bottom
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=6,above=bottom}{
+  
+   % reduce size of the font
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}. The R- and LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+    }  
+  \end{tcbposter}
+  
+  
+  \newpage
+  
+   \begin{tcbposter}[
+    coverage = {spread, interior style={top color=white, bottom color=white}},
+    poster = {showframe=false,columns=6,rows=6},
+    boxes = {
+    enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
+    colback=white,opacityback=1,colframe=black!5!white,colbacktitle=white,coltitle=blue,
+    %title style={left color=blue,right color=blue},
+    fonttitle=\bfseries\Large\scshape
+  }
+  ]
+  
+   % Add the top row with title
+  \posterbox[blankest,interior engine=path,height=2.6cm,halign=center,valign=center,fontupper=\bfseries,colupper=black]{name=title,column=1,span=6,below=top}{
+  \resizebox{24cm}{!}{\bfseries \Sexpr{lx_naam}}\\[3mm]
+  Begrippenlijst en afkortingen.
+  \vspace{5mm}
+  }
+  
+   % reduce size of the font
+  \fontsize{11}{13.3}\selectfont
+  
+    % add frame for Motivering KRW status en herbegrenzing
+  \posterbox[adjusted title=Begrippen en afkortingen,valign=top]{name=krwstatus,column=1,span=6,between=title and ref}{
+  
+\vskip 1cm
+  
+    \textbf{Waterlichaam} De waterlichamen vormen de basisrapportageeenheden van de KRW. Op basis van artikel 5 KRW zijn in 2004 Nederlandse oppervlaktewateren aangewezen als KRW-waterlichamen: natuurlijk, kunstmatig of sterk veranderd. Een oppervlaktewaterlichaam kan als kunstmatig of sterk veranderd worden aangewezen vanwege ingrepen in de hydromorfologie (art. 4 lid 3 KRW), die het bereiken van de Goede Ecologische Toe-stand verhinderen. In Nederland zijn vrijwel alle waterlichamen kunstmatig of sterk veranderd.\\
+    
+    \textbf{Emerse waterplanten} Emerse waterplanten steken gedeeltelijk boven het wateroppervlak uit en wortelen in de (water)bodem.\\
+    
+    \textbf{Helofyten} De moerasplanten of helofyten kan men vinden in vochtige gebieden, oevers, tijdelijke wateren en overstromingsgebieden. Typerend voor vele moerasplanten is dat ze zich hebben aangepast aan een droge periode (zoals het uitdrogen van een rivierbedding) en een periode van gedeeltelijke of volledige onderdompeling. Voor sommige soorten is deze afwisseling noodzakelijk voor het bestaan. Terwijl de 'echte' waterplanten niet in de bodem wortelen en vaak onder water kunnen leven (met uitzondering van de bloeiwijzen), wortelen de helofyten of moerasplanten in de bodem en steken gewoonlijk boven de wateroppervlakte uit.\\
+    
+    \textbf{Submerse waterplanten} De term submers (ondergedoken) wordt gebruikt voor waterplanten die geheel onder water groeien. Alleen de bloeiwijze kan bij sommige soorten boven het water uitsteken.\\
+    
+    \textbf{Hydrofyten} De 'echte waterplanten' of hydrofyten komen voor in stilstaande of traag stromende permanente meren of rivieren. Deze planten zijn aangepast aan een submers leven. Indien het biotoop uitdroogt wordt het voortbestaan van deze planten bedreigd. De wortels dienen tot verankering van de plant. De stengels kunnen tot tien meter lang worden en zijn soepel en buigbaar. De drijvende bladeren kunnen hierdoor aanpassen aan de waterstand, waardoor de lichtopname niet in het gedrang komt. Andere soorten drijven, onafhankelijk van de bodem, net onder of boven het wateroppervlak. Er bestaan dus hydrofyten met zowel een submerse als emerse groeivorm. In beide gevallen zullen de voedingstoffen hoofdzakelijk via het blad opgenomen worden.\\
+    
+    \textbf{GAF} Een afvoergebied of een cluster van peilgebieden met als gemeenschappelijk kenmerk dat ze via een gemeenschappelijk punt hun water lozen op een hoofdsysteem.\\
+    
+    \textbf{EAG} Ecologische analysegebieden zijn nieuwe opdelingen van de bestaande af- en aanvoergebieden (GAF’s), meestal (delen van) polders. De opdeling in EAG’s is gemaakt op basis van een aantal kenmerken zoals vorm, verblijftijd, waterdiepte, strijklengte, de aanwezigheid van kwel of wegzijging en de afvoerrichting van het water. Een EAG valt altijd volledig binnen een afvoergebied. Af-en aanvoergebieden, maar ook KRW-waterlichamen, zijn dus opgebouwd uit één of meer EAG’s.\\
+    
+    \textbf{KRW} Kaderrichtlijn water\\
+    
+    \textbf{N2000} Natura 2000 De verzameling van Nederlandse natuurgebieden die in Europees verband een beschermde status genieten (Vogel- en habitatrichtlijngebieden).\\
+    
+    \textbf{EKR} Ecologische kwaliteitratio, een getal tussen 0 en 1 waarmee de kwaliteit van een ecologische parameter wordt aangegeven. 0 is zeer slecht, 1 is zeer goed. De grens voor het GEP wordt gewoonlijk bij een EKR van 0,6 gelegd.\\
+    
+    \textbf{Biologisch kwaliteitselement} Een ecologische groep de waarmee de situatie van het waterlichaam wordt beoordeeld. Gebruikt worden: fytoplankton en diatomeeën (algen), waterplanten, macrofauna (waterdieren) en vissen.\\
+    
+    \textbf{Maatlat} Een schaal die gebruikt wordt om de situatie van een ecologische parameter te beoordelen. De uitkomst is een EKR. \\
+    
+    \textbf{Deelmaatlat} Voor elk biologisch kwaliteitselement zijn één of meerdere deelmaatlattenonderscheiden op basis van de soortsamenstelling en de (relatieve) aanwezigheidvan soorten, en voor vis de leeftijdsopbouw. De uitkomst is een EKR. \\
+    
+    \textbf{Indicator} Een verder opdeling van biologische deelmaatlatten. De uitkomst is in een aantal gevallen een EKR. \\
+    
+    \textbf{GEP of KRW doel} De KRW heeft voor natuurlijke waterlichamen als doel dat een goede toestand (zowel ecologisch als che-misch) moet worden gehaald (GET). Voor de kunstmatig of sterk veranderde oppervlaktewaterlichamen moet een goed ecologisch potentieel (GEP) en een goede chemische toestand worden bereikt. Het GEP voor rijkswateren wordt afgeleid door Rijkswaterstaat namens de Ministers van Infrastructuur en Waterstaat, Economische Zaken en Klimaat (en mogelijk Landbouw, Visserij en Voedselveiligheid) en gepresenteerd in het Beheerplan rijkswateren (BPRW, vastgesteld door de ministers). De provincies zijn verantwoordelijk voor het afleiden van het GEP voor regionale wateren. Dit gebeurt in regionale waterplannen. Hoewel de provincie formeel het GEP moet vaststellen in het regionaal waterplan, levert het waterschap vanwege de kennis over watersystemen meestal het GEP aan, als beheerder van het regionaal oppervlaktewaterlichaam. Beide kunnen hierbij de Handreiking KRW-doelen volgen. De KRW biedt uitzonderingsmogelijkheden waarbij het doel later (doelvertraging) of niet (minder streng doel) gehaald hoeft te worden. Alleen in het laatste geval is het GEP niet meer het doel. In deze handreiking is het GEP-synoniem voor het doel, tenzij anders aangegeven. In hoofdstuk 3 en 4 wordt het afleiden van de doelen technisch beschreven.\\
+    
+    
+    \textbf{SGBP} Naast het definiëren van waterlichamen en doelen schrijft de KRW voor dat er stroomgebiedbeheerplan-nen (SGBP) worden opgesteld (art. 13 KRW). De bouwstenen van de stroomgebiedbeheerplannen staan in de waterplannen van het Rijk en de provincies en in de beheerplannen van de waterbeheerders. De SGBP’s geven een overzicht van de toestand, de problemen, de doelen en de maatregelen voor het verbeteren van de waterkwaliteit voor de inliggende waterlichamen. Nederland kent vier stroomgebieden: Rijn, Maas, Schelde, en Eems. De beheerplannen voor de stroomgebie-den worden iedere zes jaar geactualiseerd. Volgens bijlage VII van de KRW bevatten de SGBP’s onder andere:de beschrijving van de kenmerken van het stroomgebieddistrict;de ligging, begrenzing en typering van waterlichamen (voor sterk veranderd en kunstmatig inclusief een motivering); de huidige toestand op basis van de resultaten van de monitoring over de afgelopen periode;de doelen voor waterlichamen en een eventueel beroep op uitzonderingsmogelijkheden inclusief motivering; een samenvatting van de te nemen maatregelen om de doelen te bereiken.\\
+    
+    \textbf{Watersysteemanalyse} Om goede keuzes te maken voor doelen en maatregelen is het essentieel te weten hoe een waterlichaam werkt. De systeemanalyse heeft als doel inzicht te verschaffen in het systeemfunctioneren, wat via verschillende methoden bereikt kan worden. Dit vormt het vertrekpunt voor het antwoord op de vraag hoe (met welke maatregelen) kan worden gekomen tot een betere toestand. Zonder goed inzicht in het systeem-functioneren is het risico groot dat niet de juiste maatregelen in beeld zijn, of dat maatregelen uiteindelijk niet opleveren wat ervan wordt verwacht.\\
+
+  }
+  
+  %add reference methodology information in the bottom
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=6,above=bottom}{
+  
+   % reduce size of the font
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}. The R- and LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+    }  
+  \end{tcbposter}
+  
+\end{document}
