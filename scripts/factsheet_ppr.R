@@ -4,6 +4,8 @@
 # load required packages for these funs
 require(sf);require(data.table)
 require(magrittr);require(ggplot2)
+require(grid)
+require(gridExtra)
 
 # source functions
 source('scripts/ppr_funs.R')
@@ -98,7 +100,6 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
 # data voor EST tekening ----------------------
-
   # dit bestand moet af en toe geupdate obv nieuwe hybi en EAG data
   EST <- data.table::fread('hydrobiologie/EST.csv')
 
@@ -327,7 +328,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # subset 1, en zoek laagste score (old: ekr_scores_sel2)
     ekr_scores1 <- ekr_scores[!wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & level == 1]
     ekr_scores1[,oordeelsort := EKR/GEP]
-    d3 <- ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),]
+    d3 <- unique(ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),])
     
     # subset 2, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores2 <- ekr_scores[facet_wrap_code %in% d3$facet_wrap_code & level == 2,]

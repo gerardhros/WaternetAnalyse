@@ -12,7 +12,8 @@ editor_options:
 
 ```{r preprocessing, eval = TRUE, message=FALSE, warning=FALSE, include=FALSE}
 # Deze chunck runnen in console of als apart script met iteratie: data staat nu niveau hoger dan script
-# p belasting GMP mist, en blokje achter bodemplaatje
+# p belasting GMP mist
+
 
 # Settings-------------------------------------------------------
 options(repos = c(CRAN = "https://cran.rstudio.com"))
@@ -40,7 +41,7 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 # er wordt veel te veel data (meer jaren, gebieden en parameters dan nodig) geladen omdat ik lui ben
 rm(list=ls())  
 # source functions
-source('../scripts/loadPackages.R')
+source('../scripts/loadPackagesFS.R')
 source('../scripts/factsheetfuncties.R')
 source('../scripts/ppr_funs.R')
 
@@ -121,7 +122,7 @@ simoni <- readRDS('../data/simoni.rds')
 # hybi measurements
 hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)   
 # EKR measurements
-EKRset <- ppr_ekr(ekr1 = EKRset1, ekr2 = EKRset2, eag_wl, doelen)
+EKRset <- ppr_ekr(ekr1 = EKRset1, ekr2 = EKRset2, eag_wl = eag_wl, doelen)
 # alleen nieuwe maatlatten
 EKRset <- EKRset[!EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
 # slootbodemdata, hier moeten 2 verschillende datatables uitkomen
@@ -138,7 +139,7 @@ EST <- merge(EST, eag_wl[,c('GAFIDENT','watertype','StedelijkLandelijk')], by.x 
 
 ```{r iterate, eval = FALSE, include = FALSE, message= FALSE, warning=FALSE}
 # itereren over een rmd voorbeeld--------------
-for (i in 1:nrow(ESFoordelen)){
+for (i in 16:nrow(ESFoordelen)){
     #i=29 
     
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
@@ -186,7 +187,8 @@ for (i in 1:nrow(ESFoordelen)){
     EKRset2 <- EKRset[EKRset$EAGIDENT %in% eagwl$GAFIDENT,]
     gEAG_sel <- gEAG[gEAG$GAFIDENT %in% eagwl$GAFIDENT, ]
     waterpereag_sel <- waterpereag1[waterpereag1$GAFIDENT %in% eagwl$GAFIDENT, ]
-    deelgebieden <- unique(as.data.table(gEAG_sel[,c('GAFIDENT','GAFNAAM')])[,geom:=NULL], sorted=TRUE,
+    deelgebieden <- unique(as.data.table(gEAG_sel[,c('GAFIDENT','GAFNAAM')])[,geom:=NULL],
+                           sorted=TRUE,
                            keep.rownames=FALSE)
     deelgebieden <- as.data.frame(deelgebieden)
     deelgebieden$samen <- paste0(deelgebieden$GAFIDENT," (",deelgebieden$GAFNAAM,")")
@@ -401,7 +403,7 @@ ekr_scores_sel2$oordeelsort <- ekr_scores_sel2$EKR/ekr_scores_sel2$GEP_2022
 if(nrow(ekr_scores_sel2)>1){
 d3 <-  ekr_scores_sel2  %>%
         dplyr::arrange(facet_wrap_code, desc(oordeelsort)) %>% 
-        dplyr::top_n(-1, wt = oordeelsort) 
+        dplyr::top_n(-1, wt = oordeelsort)
 }
 
 if(nrow(ekr_scores_sel2)<=1){
@@ -422,10 +424,8 @@ ekr_scores_sel_deel <- tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset2, eag_wl =
 ekr_scores_sel2_deel <- ekr_scores_sel_deel[ekr_scores_sel_deel$wbmethode == 
                                               "Maatlatten2018 Ov. waterflora" & ekr_scores_sel_deel$level == 3 & !(ekr_scores_sel_deel$GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),]
 ## make neat titles, alleen hoofdmaatlatten
-ekr_scores_sel2_deel$GHPR <- as.factor(mapvalues(ekr_scores_sel2_deel$GHPR, 
-                               from = c("Waterdiepte"),
-                               to = c("Vestigingsdiepte waterplanten")))
-
+ekr_scores_sel_deel[GHPR == 'Waterdiepte',GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten",GHPR))]
+    
 d3_deelptn <-  ekr_scores_sel2_deel  %>%
         dplyr::arrange(facet_wrap_code, desc(EKR)) %>% 
         dplyr::top_n(-1, wt = EKR) 
@@ -442,7 +442,7 @@ d3_deelptn <-  ekr_scores_sel2_deel  %>%
 **De huidige toestand vergeleken met de doelen –**`r unique(d3$oordeel)`
 <br>
 De toestand in `r waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur hiernaast) is `r unique(d3$oordeel)`. Het slechts scorende biologische kwaliteitselement is `r as.character(unique(d3$facet_wrap_code))`. 
-`r if(!d3$facet_wrap_code %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(d3_deel$GHPR),"."))}` 
+`r if(!unique(d3$facet_wrap_code) %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(d3_deel$GHPR),"."))}` 
 `r if(!unique(d3$facet_wrap_code) %in% "Macrofauna"){if(unique(d3_deel$GHPR) == 'Abundantie groeivormen macrofyten'){unique(paste0("De slechts scorende indicator van deze deelmaatlat is ", d3_deelptn$GHPR,"."))}}`
 `r if(!is.na(waterlichamenwl$Toestand)){waterlichamenwl$Toestand}`
 <br>
@@ -510,7 +510,7 @@ kable(ESFtab, format = "html",col.names = NULL) %>%
 ## Bron {data-height=50}
 Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2020, begrenzing waterlichamen 2022-2027, hydrobiologische data 2006-2019, conceptmaatregelen en doelen voor SGBP3 en `r waterlichamenwl$Literatuurverwijzing`.
 
-# Maatregelen `r waterlichamenwl$Naam` (R)
+# Maatregelen (R)
 
 ## {data-height=150}
 
@@ -623,8 +623,6 @@ if(outputF == "html" & nrow(maatregelen2)>0){
 
 ## {data-height=50}
 Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen nog worden gewijzigd.
-
-
 
 # Toelichting en onderbouwing ESF-en, monitoring en begrenzing
 

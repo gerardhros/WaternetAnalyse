@@ -82,8 +82,8 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   
   # add namen per waterlichaam en eag
   db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2) 
-  
   eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
+  
   d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
               by.y = c('GAFIDENT'), all.x = TRUE)
 
@@ -93,12 +93,12 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   d3 <- rbind(d3,d4,fill=TRUE)
 
   # add changes of Laura (check later) 
-  d3[,waterlichaam := ifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
+  d3[,waterlichaam := fifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
   # delete visdata
   d3 <- d3[!is.na(waterlichaam),]
   
   # namen aanpassen
-  d3[,facet_wrap_code <- as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
+  d3[,facet_wrap_code := as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
   # return updated database
   return(d3)
 }
@@ -546,7 +546,7 @@ ppr_ekrplot <- function(ekr_score){
   # make local copy
   dt <- copy(ekr_score)
   
-  ## build background [Kan eleganter..]
+  ## build background 
   bg <- unique(dt[, c("id", "GEP", "GEP_2022", "facet_wrap_code")])
   
   # add boundaries for old GEP
@@ -808,8 +808,6 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   return(p)
   
 }
-
-
 
 ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   
