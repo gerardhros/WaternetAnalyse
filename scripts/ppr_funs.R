@@ -579,6 +579,73 @@ ppr_ekrplot <- function(ekr_score){
   return(plot)
 }
 
+# plot EKR versie 2
+ppr_ekrplot2 <- function(ekr_score){
+  
+  # make local copy
+  dt <- copy(ekr_score)
+  
+  # facet per maatlat en EAG (als FS niveau is GAF en meerdere EAGs)
+  dt[KRW_SGBP3 == "",KRW_SGBP3 := NA]
+  dt[,facet_wrap_code := as.character(facet_wrap_code)]
+  dt[,wlmt := fifelse(is.na(KRW_SGBP3), paste0(EAGIDENT," ",facet_wrap_code), facet_wrap_code)]
+  
+  # build background [Kan eleganter..]
+  bg <- unique(dt[, c("id", "GEP_2022", "wlmt")])
+  
+  # add boundaries for new GEP
+  bg[,c('goed_ymin_new','goed_ymax_new') := .(GEP_2022,1)]
+  bg[,c('matig_ymin_new','matig_ymax_new') := .(GEP_2022 / 3 * 2,GEP_2022)]
+  bg[,c('ontoereikend_ymin_new','ontoereikend_ymax_new') := .(GEP_2022 / 3,GEP_2022 / 3 * 2)]
+  bg[,c('slecht_ymin_new','slecht_ymax_new') := .(0,GEP_2022 / 3)]
+  
+  # reformat 
+  bg_gather <- melt(bg,id.vars = c('id','GEP_2022','wlmt'),
+                    variable.name = 'doelen',value.name = 'waarde')
+  bg_gather[,sgbp_version := fifelse(grepl('_new$',doelen),'new','old')]
+  bg_gather[,varrange := fifelse(grepl('_ymin_',doelen),'ymin','ymax')]
+  bg_gather[,doelen := gsub("(.+?)(\\_.*)", "\\1", doelen)]
+  bg_spr <- dcast.data.table(bg_gather,id+GEP_2022+wlmt+doelen+sgbp_version~varrange,value.var='waarde')
+  
+  # add sgbp version
+  bg_spr[sgbp_version=='new',sgbp_version := 'SGBP3']
+  bg_spr[,Oordeel := as.factor(doelen)]
+  
+  #Create a custom color scale
+  myColors <- c("#00FF00", "#FFFF33", "#FF8000", "#FF0000")
+  names(myColors) <- levels(bg_spr$doelen)
+  
+  ## make plot
+  plot <- ggplot(dt, aes(x = id, y = EKR)) +
+    geom_rect(data = bg_spr, inherit.aes = FALSE,
+              aes(xmin = 0, xmax = 1, ymin = ymin, ymax = ymax, 
+                  fill = Oordeel), alpha = 0.3) +
+    scale_fill_manual(values = myColors) +
+    geom_segment(aes(x = 0, xend = 1, 
+                     y = EKR, yend = EKR, linetype = "Huidige toestand"), 
+                 col = "black", cex = 1.4) + # linetype = 2 -> dashed
+    scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1)) +
+    scale_linetype_manual("",values= c("Huidige toestand" = 1))+
+    facet_grid(cols = vars(wlmt)) +
+    theme_minimal()+ 
+    theme(axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          strip.text.x = element_text(size = 11), # maatlat
+          strip.text.y = element_text(size = 9), #
+          axis.text.x = element_blank(), #
+          axis.text.y = element_text(size= 9), # ekrscores
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_line(),
+          panel.grid.minor.y = element_line(),
+          panel.ontop = F,
+          legend.title = element_text(size = 11), 
+          legend.text  = element_text(size = 10),
+          legend.position = "bottom")
+  return(plot)
+}
+
+
 # maak plot van p VS Kp
 ppr_pvskpplot <- function(pvskpsel){
   

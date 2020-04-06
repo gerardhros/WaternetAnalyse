@@ -1,6 +1,6 @@
 # factsheet preprocess
 # authors: Laura Moria, Sven Verweij en Gerard Ros
-
+rm(list=ls())
 # load required packages for these funs
 require(sf);require(data.table)
 require(magrittr);require(ggplot2)
@@ -81,6 +81,9 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
   EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2,eag_wl = eag_wl,doelen = doelen)
   
+  # alleen nieuwe maatlatten
+  EKRset <- EKRset[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
+    
     # show progress
     pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
@@ -323,14 +326,11 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     ## calculate EKR scores from EKRset1
     ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1)
     
-    ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
-    
     # subset 1, en zoek laagste score (old: ekr_scores_sel2)
-    ekr_scores1 <- ekr_scores[!wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & level == 1]
-    ekr_scores1[,oordeelsort := EKR/GEP]
+    ekr_scores1 <- ekr_scores[!is.na(id) & level == 1]
+    ekr_scores1[,oordeelsort := EKR / GEP_2022]
     d3 <- ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),]
-    
+  
     # subset 2, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores2 <- ekr_scores[facet_wrap_code %in% d3$facet_wrap_code & level == 2,]
     d3_deel <- ekr_scores2[EKR==min(EKR,na.rm=T),]
@@ -342,13 +342,12 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     ekr_scores3 <- ekr_scores[wbmethode =="Maatlatten2018 Ov. waterflora" & 
                               level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),]
     ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores3[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
     ekr_scores3[GHPR == 'Waterdiepte',GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten",GHPR))]
     
     d3_deelptn <- ekr_scores3[EKR==min(EKR,na.rm=T),]
     
     # create map
-    mapEKR <- ppr_ekrplot(ekr_scores1)
+    mapEKR <- ppr_ekrplot2(ekr_scores1)
     
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
