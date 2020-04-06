@@ -13,12 +13,12 @@ source('scripts/factsheet_ppr.R')
 # add functions
 source('scripts/factsheetfuncties.R')
 
-i = 37
-out = factsheetExtract(i=37,brondata = brondata, splot = TRUE)
+# run example
+out = factsheetExtract(i=12,brondata = brondata, splot = TRUE)
 
 # deze render werkt nog als splot=FALSE => referentie aanpassen
 outputF <- "html"
-rmarkdown::render(input = "factsheets/factsheets_new.Rmd", 
+rmarkdown::render(input = "factsheets/factsheets_html.Rmd", 
                   output_format = "flexdashboard::flex_dashboard", #pdf_document
                   output_file = paste("FS_", out$wlname, ".html", sep=''),
                   output_dir = "output/")
@@ -27,8 +27,8 @@ rmarkdown::render(input = "factsheets/factsheets_new.Rmd",
 saveRDS(out,'factsheets/routput/out.rds')
 setwd("factsheets")
 
-knitr::knit2pdf("factsheets_test.Rnw",compiler = 'pdflatex')
-file.rename(from = 'factsheets_test.pdf',to = paste0("output/FS_", out$wlname, ".pdf"))
+knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
+file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$wlname, ".pdf"))
 
 
 
