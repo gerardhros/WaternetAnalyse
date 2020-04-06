@@ -814,7 +814,7 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
 ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
   
   # diepte4licht <- log(25)/1.2
-  hybi2 <- hybi2[fewsparameter %in% parameter & jaar == max(jaar),]
+  hybi2 <- hybi[fewsparameter %in% parameter & jaar == max(jaar),]
   
   # remove values that cannot exists (negative depths)
   hybi2[meetwaarde < 0, meetwaarde := NA]

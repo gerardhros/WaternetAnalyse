@@ -18,7 +18,7 @@ col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
 # set progress bar
-pb <- txtProgressBar(max = 11, style=3);pbc <- 0
+pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 
 # inladen basis bestanden ----
 
