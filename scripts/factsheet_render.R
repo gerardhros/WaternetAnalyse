@@ -31,18 +31,21 @@ for(eagnr in 1 : nrow(brondata$ESFoordelen)){
   #saveRDS(out,'factsheets/routput/out.rds')
   
   # change working directory (needed for knit2pdf)
-  #setwd("factsheets")
+  setwd("factsheets")
   
   # make the pdf file
-  #knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
+  knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
   
   # copy the pdf to the correct directory (factsheets/output)
-  #file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$wlname, ".pdf"))
-  #setwd('../')
+  file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$my_title2, ".pdf"))
+  
+  # reset working directory
+  setwd('../')
   
 }
 
 
+# helper functie (not used yet)
 rm_factsheets <- function(x, brondata){
   
   # make local extraction for a polder/ water body

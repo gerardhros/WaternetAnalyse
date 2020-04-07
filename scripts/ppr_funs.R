@@ -699,6 +699,9 @@ ppr_pvskpplot <- function(pvskpsel){
 # make empty plots for factsheets when data is missing
 plotEmpty <-function(db,type){
   
+  # middle x-axis
+  midax = if(nrow(db)==1) 1 else nrow(db)*0.5 + 0.5
+  
   # plot Pwbal
   if(type=='Pwbal'){
     plot <-  ggplot(db) +
@@ -710,7 +713,7 @@ plotEmpty <-function(db,type){
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
-      annotate("text", x = max(1,nrow(db) * 0.6) , y=1, 
+      annotate("text", x = midax , y=1, 
                label = "P-belasting en bronnen\nzijn (nog) niet bekend.",
                hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
@@ -727,7 +730,7 @@ plotEmpty <-function(db,type){
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
-      annotate("text", x = max(1,nrow(db) * 0.6) , y=2, 
+      annotate("text", x = midax , y=2, 
                label = "Gegevens over het lichtklimaat\nzijn voor deze EAGs\n(nog) niet bekend.",
                hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
@@ -749,7 +752,7 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank() )+ 
-      annotate("text", x = max(1,nrow(db) * 0.6) , y=1.6, 
+      annotate("text", x = midax , y=1.6, 
                label = "Metingen waterdiepte \nzijn (nog) niet bekend.",
                hjust = 'middle',size=5,color='blue') +
       ggtitle('') +
@@ -771,7 +774,7 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(),
         plot.background = element_blank())+
-      annotate("text", x = max(1,nrow(db) * 0.6) , y=0, 
+      annotate("text", x = midax , y=0, 
                label = "Potentiele nalevering \nis (nog) niet bekend.",
                hjust = 'middle',size=5,color='blue') +
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), 
@@ -795,7 +798,7 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank())+
-      annotate("text", x = max(1,nrow(db) * 0.6) , y=0.8, 
+      annotate("text", x = midax , y=0.8, 
                label = "Actuele nalevering \nis (nog) niet bekend.",
                hjust = 'middle',size=5,color='blue') +
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+

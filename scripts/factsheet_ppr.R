@@ -478,6 +478,16 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen2[,Gebiedspartner := gsub('\\?','onbekend',Gebiedspartner)]
     maatregelen2[, Naam := gsub('%','\\%',Naam,fixed=TRUE)]
     
+    # make empty table to be used in rnw file
+    if(nrow(maatregelen2)==0){
+      
+      maatregelen2 <- data.table(ESFoordeel = '', ESFoordeel_latex = '', SGBPPeriode = '',
+                                 Naam = '',Toelichting = '',Initiatiefnemer = 'waterschap',
+                                 BeoogdInitiatiefnemer = '', Gebiedspartner = '',UitvoeringIn = '',
+                                 afweging = '',Toelichting_latex ='')
+      
+    }
+    
     # --- plot ESF1: productiviteit ----
     plotPwbal.ref <- paste0('routput/',my_title2,'/plotPwbal.png')
     if(sum(is.na(pvskpsel$naam)) != length(pvskpsel$naam)){
