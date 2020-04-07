@@ -475,62 +475,80 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen2[, Naam := gsub('%','\\%',Naam,fixed=TRUE)]
     
     # --- plot ESF1: productiviteit ----
+    plotPwbal.ref <- paste0('routput/',my_title2,'/plotPwbal.png')
     if(sum(is.na(pvskpsel$naam)) != length(pvskpsel$naam)){
       
       # plot figure ESF1
       plotPwbal = ppr_pvskpplot(pvskpsel)
+      class(plotPwbal.ref) <- 'plotref'
+    
     } else {
       
       # plot figure ESF1 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, pload = 0)
       plotPwbal = plotEmpty(db = plotLeegDB,type='Pwbal')
+      class(plotPwbal.ref) <- 'plotempty'
     }
       
     # save plot
     if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',my_title2,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
-    plotPwbal <- paste0('routput/',my_title2,'/plotPwbal.png')
+    
     
     # --- plot ESF 2: lichtklimaat
+    plotLichtklimaat.ref <- paste0('routput/',my_title2,'/plotLichtklimaat.png') 
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
       
       # plot ESF 2
       plotLichtklimaat = ppr_extinctie1(wq = wq1, hybi = hybi1,parameter = c('VEC','WATDTE_m'))
+      class(plotLichtklimaat.ref) <- 'plotref'
     } else {
       
       # plot figure ESF2 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, Lext = 0)
       plotLichtklimaat = plotEmpty(db = plotLeegDB,type='plotLichtklimaat')
+      class(plotLichtklimaat.ref) <- 'plotempty'
     }
     
     # save plot is saved 
     if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',my_title2,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
-    plotLichtklimaat <- paste0('routput/',my_title2,'/plotLichtklimaat.png')
+    
     
     # --- plot ESF 4: waterdiepte
+    plotWaterdiepte.ref <- paste0('routput/',my_title2,'/plotWaterdiepte.png')
+    
     if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
       
       # plot ESF 4
       hybi2 <- hybi1[!is.na(fewsparameter == 'WATDTE_m'),]
       plotWaterdiepte = ppr_waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
-      
+      class(plotWaterdiepte.ref) <- 'plotref'
     } else {
       
       # plot figure ESF4 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, wd = 0,krwwt ='onbekend')
       plotWaterdiepte = plotEmpty(db = plotLeegDB,type='plotWaterdiepte')
+      class(plotWaterdiepte.ref) <- 'plotempty'
+      
     }
     
     # save plot
     if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',my_title2,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
-    plotWaterdiepte <- paste0('routput/',my_title2,'/plotWaterdiepte.png')
+   
     
     # --- plot ESF3 : waterbodem
+    plotbodFW.ref <- paste0('routput/',my_title2,'/plotWaterbodem_FW.png')
+    plotqPW.ref <- paste0('routput/',my_title2,'/plotWaterbodem_qPW.png')
+    plotWaterbodem.ref <- paste0('routput/',my_title2,'/plotWaterbodem.png')
+    
     if(nrow(bod1) > 0) {
       
       # plot ESF 4
       plotbodFW = ppr_plotbod(bod1,type = 'plotFW')
       plotqPW = ppr_plotbod(bod1,type = 'plotqPW')
       plotWaterbodem = ppr_plotbod(bod1,type='grid')
+      class(plotbodFW.ref) <- 'plotref'
+      class(plotqPW.ref) <- 'plotref'
+      class(plotWaterbodem.ref) <- 'plotref'
       
     } else {
       
@@ -539,6 +557,10 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       plotbodFW = plotEmpty(db = plotLeegDB,type='plotbodFW')
       plotqPW = plotEmpty(db = plotLeegDB,type='plotqPW')
       plotWaterbodem = plotbodFW
+      class(plotbodFW.ref) <- 'plotempty'
+      class(plotqPW.ref) <- 'plotempty'
+      class(plotWaterbodem.ref) <- 'plotempty'
+      
     }
     
     # save plots
@@ -550,10 +572,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem.png'),width = 13,height = 10,
                       units='cm',dpi=500)
       }
-    plotbodFW <- paste0('routput/',my_title2,'/plotWaterbodem_FW.png')
-    plotqPW <- paste0('routput/',my_title2,'/plotWaterbodem_qPW.png')
-    plotWaterbodem <- paste0('routput/',my_title2,'/plotWaterbodem.png')
-    
+      
     # make a list to store the output
     out <- list(waterlichamenwl = waterlichamenwl,
                 wlname = wlname,
@@ -566,12 +585,12 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                 mapDEELGEBIED = mapDEELGEBIED,
                 mapEKR = mapEKR,
                 mapGauge = mapGauge,
-                plotPwbal = plotPwbal,
-                plotLichtklimaat = plotLichtklimaat,
-                plotWaterdiepte = plotWaterdiepte,
-                plotWaterbodem = plotWaterbodem,
-                plotbodFW = plotbodFW,
-                plotqPW = plotqPW,
+                plotPwbal = plotPwbal.ref,
+                plotLichtklimaat = plotLichtklimaat.ref,
+                plotWaterdiepte = plotWaterdiepte.ref,
+                plotWaterbodem = plotWaterbodem.ref,
+                plotbodFW = plotbodFW.ref,
+                plotqPW = plotqPW.ref,
                 ESFtab = ESFtab,
                 maatregelen1 = maatregelen1,
                 maatregelen2 = maatregelen2,

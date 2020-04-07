@@ -210,20 +210,20 @@ Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen no
 ## Indicatoren ESF {data-height=500}
 ### ESF 1: Productiviteit
 ```{r chartP, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = 'Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).'}
-if(!is.null(out$plotPwbal)){include_graphics(out$plotPwbal)}
+include_graphics(out$plotPwbal)
 
 ```
 
 ### ESF 2 en 4: Lichtklimaat en waterdiepte
 ```{r licht2, echo= FALSE, warning = FALSE, message = FALSE, fig.cap= "Lichtklimaat in plassen obv extinctie tussen 2010 en 2019 of Waterdiepte in sloten."}
-if(!is.null(out$plotLichtklimaat)){include_graphics(out$plotLichtklimaat)}
-if(!is.null(out$plotWaterdiepte)){include_graphics(out$plotWaterdiepte)}
+if(class(out$plotLichtklimaat)=='plotref'){include_graphics(out$plotLichtklimaat)}
+if(class(out$plotWaterdiepte)=='plotref'){include_graphics(out$plotWaterdiepte)}
 
 ```
 
 ### ESF 1 en 3: Waterbodem
 ```{r watbodem, echo= FALSE, warning = FALSE, message = FALSE, fig.cap = 'Nalevering en voedselrijkdom waterbodem.', echo = FALSE, message = FALSE, warning = FALSE}
-if(!is.null(out$plotWaterbodem)){include_graphics(out$plotWaterbodem)}
+include_graphics(out$plotWaterbodem)
 ```
 
 ## {data-height=50}
