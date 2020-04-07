@@ -191,7 +191,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     waterlichamenwl[,motstat := MotiveringBegrenzing]
     waterlichamenwl[,prov := Provincies]
     waterlichamenwl[,gem := Gemeenten]
-    waterlichamenwl[,typebesch := watertypen[Code %in% unique(eagwl$watertype),Omschrijving]]
+    waterlichamenwl[,typebesch := paste0(tolower(watertypen[Code %in% unique(eagwl$watertype),Omschrijving]),collapse = ', ')]
     
     # get water quality for relevant EAG
     wq1 <- wq[EAGIDENT %in% eagwl$GAFIDENT,]
