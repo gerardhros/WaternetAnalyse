@@ -15,9 +15,7 @@ source('scripts/factsheet_ppr.R')
 source('scripts/ppr_funs.R')
 
 # run for all files
-for(eagnr in 17 : 17){
-  
-  eagnr = 17
+for(eagnr in 1 : nrow(brondata$ESFoordelen)){
   
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr,brondata = brondata, splot = TRUE)
@@ -30,20 +28,37 @@ for(eagnr in 17 : 17){
                     output_dir = "factsheets/output/")
   
   # save relavant output and run file for latex pdf
-  saveRDS(out,'factsheets/routput/out.rds')
+  #saveRDS(out,'factsheets/routput/out.rds')
   
   # change working directory (needed for knit2pdf)
-  setwd("factsheets")
+  #setwd("factsheets")
   
   # make the pdf file
-  knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
+  #knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
   
   # copy the pdf to the correct directory (factsheets/output)
-  file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$wlname, ".pdf"))
-  setwd('../')
+  #file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$wlname, ".pdf"))
+  #setwd('../')
   
 }
 
+
+rm_factsheets <- function(x, brondata){
+  
+  # make local extraction for a polder/ water body
+  suppressWarnings(
+  out = factsheetExtract(i=x,brondata = brondata, splot = TRUE)
+  )
+  # render the html flexdashboard
+  outputF <- "html"
+  rmarkdown::render(input = "factsheets/factsheets_html.Rmd", 
+                    output_format = "flexdashboard::flex_dashboard", #pdf_document
+                    output_file = paste("FS_", out$my_title2, ".html", sep=''),
+                    output_dir = "factsheets/output/", quiet = TRUE)
+  
+  print(paste0('factsheet for polder ',out$my_title2,' is finished'))
+  
+}
 
 
 outputF <- "word"

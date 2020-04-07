@@ -233,8 +233,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(nrow(EST_sel)>0){
       
       ## merge Ecosysteemtoestanden met EAGs: er mag maar 1 watertype per factsheet zijn. Dat is zo als of KRW WL of EAG uitgangspunt zijn.
-      cols <- colnames(EST_sel)[grepl('^EAG|jaar|^O|^W',colnames(EST_sel))]
-      dtEST2 <- merge.data.table(EST_sel[,mget(cols)], eagwl, by.x = "EAG", by.y  = "GAFIDENT")
+      cols <- colnames(EST_sel)[grepl('^EAG|jaar|^O|^W|SGBP3|GAFNAAM|KRW',colnames(EST_sel))]
+      dtEST2 <- merge.data.table(EST_sel[,mget(cols)], eagwl[,c('GAFIDENT','watertype','StedelijkLandelijk')], by.x = "EAG", by.y  = "GAFIDENT")
       
       ## gather O en W for the last year
       dtEST4 <- dtEST2[,yearid := frank(-jaar, ties.method = 'dense')][yearid <= 1] 
@@ -249,11 +249,15 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       # make selection name for esticons
       ESTnaam1 <- paste0(c('W','O'),c(dtEST4[,.(W,O)]),collapse = '_')
       ESTnaam2 <- unique(dtEST2$watertype)
-      ESTnaam2 <- ifelse(ESTnaam2 == 'M20','DM',ifelse(ESTnaam2 %in% c('M14','M27',"M25"),'OM',ifelse(ESTnaam2 %in% c('M1a','M8',"M10"),'Sl','K')))
+      ESTnaam2 <- ifelse(ESTnaam2 == 'M20','DM',
+                         ifelse(ESTnaam2 %in% c('M14','M27',"M25"),'OM',
+                                ifelse(ESTnaam2 %in% c('M1a','M8',"M10"),'Sl','K')))
       ESTnaam3 <- ifelse(unique(dtEST2$StedelijkLandelijk) == 'Stedelijk','St','L') 
       
       # final ESTnaam
       ESTnaam <- paste0("esticon/",ESTnaam1,'_',ESTnaam2,'_', ESTnaam3, ".jpg")
+      ESTnaam <- ESTnaam[1]
+      
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_3_8')){ESTnaam <- "esticon/W6_O7_DM_L.jpg"} 
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_5_1')){ESTnaam <- "esticon/W4_O6_OM_L.jpg"} 
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_2')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
@@ -362,7 +366,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # make data.table
     ESFtab = data.table(esf = paste0('ESF',1:8),
                         kleur = as.numeric(ESF[,.SD,.SDcols=cols[cols_nchar==1]]),
-                        oms = as.factor(ESF[,.SD,.SDcols=cols[cols_nchar>1]]))
+                        oms = as.factor(ESF[,.SD,.SDcols=cols[cols_nchar>1|cols_nchar==0]]))
     
     # add oordeel
     ESFtab[kleur==1,OORDEEL := 'groennummer.jpg']

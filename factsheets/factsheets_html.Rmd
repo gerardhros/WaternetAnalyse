@@ -1,4 +1,5 @@
 ---
+title: "krw factsheets AGV"
 date: "`r Sys.Date()`"
 output: 
   flexdashboard::flex_dashboard:
@@ -64,10 +65,11 @@ include_graphics(out$mapDEELGEBIED)
 
 **De huidige toestand vergeleken met de doelen –**`r out$d3$oordeel`
 <br>
-De toestand in `r out$waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast) is `r out$d3$oordeel`. Het slechts scorende biologische kwaliteitselement is `r as.character(out$d3$facet_wrap_code)`. 
-`r if(!out$d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",out$d3_deel$GHPR,".")}` 
-`r if(!out$d3$facet_wrap_code %in% "Macrofauna"){if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,".")}}`
+De toestand in `r out$waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur hiernaast) is `r unique(out$d3$oordeel)`. Het slechts scorende biologische kwaliteitselement is `r as.character(unique(out$d3$facet_wrap_code))`. 
+`r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(out$d3_deel$GHPR),"."))}` 
+`r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){if(unique(out$d3_deel$GHPR) == 'Abundantie groeivormen macrofyten'){unique(paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,"."))}}`
 `r if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand}`
+
 <br>
 
 **Oorzaken op hoofdlijnen**
