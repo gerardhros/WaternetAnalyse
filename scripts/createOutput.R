@@ -101,6 +101,7 @@ plotEKRlijn <- function(z){
   #z<- EKRset1 z2 <-
   z <- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
   # z <- z[!is.na(z$CODE),] # geen totaal scores per toetsgeied meenemen
+  z<- z[!z$Grootheid.code %in% c("AANTPVLME"),]
   # wat wil ik: set start niet met NL11
   z$waterlichaam <- sapply(strsplit(z$HoortBijGeoobject.identificatie, '_'), `[`, 2)
   z$waterlichaam[is.na(z$waterlichaam)] <- paste0('gewogen_',z$HoortBijGeoobject.identificatie[is.na(z$waterlichaam)])
@@ -110,7 +111,7 @@ plotEKRlijn <- function(z){
   
   z$jaar <- as.numeric(z$jaar)
   
-  plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= waterlichaam, group = waterlichaam))+
+  plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= HoortBijGeoobject.identificatie, group = HoortBijGeoobject.identificatie))+
     stat_summary(fun.y = "mean", geom = "point") + 
     stat_summary(fun.y = "mean", geom = "line") +
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
@@ -129,6 +130,7 @@ plotEKRlijn <- function(z){
     )
   ggplotly(plot)
 }
+
 plotEKRlijn2 <- function(z){
   z<- EKRset1
   z <- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
@@ -284,53 +286,68 @@ tabelOordeelPerGebiedPerJaar <- function (EKRset, doelen){
   b$maatlat <- gsub(' $','',b$maatlat)
   
   #deze kan ook als aparte functie
-  tabset$oordeel <- ifelse(b$EKR < b$GEP_2022/3, 'slecht',
+  b$oordeel <- ifelse(b$EKR < b$GEP_2022/3, 'slecht',
                            ifelse(b$EKR < 2*(b$GEP_2022/3), 'ontoereikend',
                                   ifelse(b$EKR < b$GEP_2022, 'matig', 'goed')))
   
-  write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-  return(tabset)
+  write.table(b, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  return(b)
 }
-
 tabelOordeelPerGebiedPerJaarDeel <- function (EKRset, eag_wl, doelen){
   
   b = EKRset %>% 
-    dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
-                  waterlichaamcode = GeoObject.code,
+    dplyr::select(id = HoortBijGeoobject.identificatie,
+                  waterlichaamcode = KRW_SGBP3,
+                  waterlichaam,
                   eag = EAGIDENT,
+                  eagnaam = GAFNAAM,
                   watertype = KRWwatertype.code,
                   maatlat = GHPR,
                   maatlatversie = Waardebepalingsmethode.code,
                   jaar,
-                  EKR = Numeriekewaarde)%>%
-    group_by(waterlichaam,waterlichaamcode,eag,watertype,maatlat,maatlatversie,jaar)%>%
+                  EKR = Numeriekewaarde,
+                  GEP,
+                  GEP_2022)%>%
+    group_by(id,waterlichaam,waterlichaamcode,eag,eagnaam,watertype,maatlat,maatlatversie,jaar, GEP, GEP_2022)%>%
     summarise_all(mean)
   b$maatlat <- gsub(' $','',b$maatlat)
   
-  doelgeb <- dcast(doelen, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = "Doel", fun.aggregate = mean)
-  doelgeb$GEP <- doelgeb$. ; doelgeb$. <- NULL
-  tabset <- merge(b, doelgeb, by.x = c('waterlichaam','maatlat'),
-                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'), all.x = T)
-  tabset$oordeel <- ifelse(tabset$EKR < tabset$GEP/3, 'slecht',
-                           ifelse(tabset$EKR < 2*(tabset$GEP/3), 'ontoereikend',
-                                  ifelse(tabset$EKR < tabset$GEP, 'matig', 'goed')))
-  
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  tabset1 <- merge(tabset[!is.na(tabset$eag),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('eag'),
-                   by.y = c('GAFIDENT'), all.x = TRUE)
-  
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  tabset2 <- merge(tabset[is.na(tabset$eag),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('waterlichaam'),
-                   by.y = c('waterlichaam'), all.x = TRUE, all.y =F)
-  tabset <- smartbind(tabset1,tabset2)
-  
-  write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLongDeelMtlt",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-  return(tabset)
+  b$oordeel <- ifelse(b$EKR < b$GEP_2022/3, 'slecht',
+                          ifelse(b$EKR < 2*(b$GEP_2022/3), 'ontoereikend',
+                                 ifelse(b$EKR < b$GEP_2022, 'matig', 'goed')))
+  write.table(b, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLongDeelMtlt",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  return(b)
 }
 # long format hoofdmtlt, eag, waterlichaam, locatie
 tabelOordeelPerMeetlocatiePerJaar <- function (EKRset, doelen){
   
+  b = filter(EKRset, Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS')) %>% # alleen hoofdmaatlatten
+    dplyr::select(Identificatie,
+                  id = HoortBijGeoobject.identificatie,
+                  waterlichaamcode = KRW_SGBP3,
+                  waterlichaam,
+                  eag = EAGIDENT,
+                  eagnaam = GAFNAAM,
+                  watertype = KRWwatertype.code,
+                  maatlat = GHPR,
+                  maatlatversie = Waardebepalingsmethode.code,
+                  jaar,
+                  EKR = Numeriekewaarde,
+                  GEP,
+                  GEP_2022)%>%
+    group_by(Identificatie,id,waterlichaam,waterlichaamcode,eag,eagnaam,watertype,maatlat,maatlatversie,jaar, GEP, GEP_2022)%>%
+    summarise_all(mean)
+  b$maatlat <- gsub(' $','',b$maatlat)
+  
+  b$oordeel <- ifelse(b$EKR < b$GEP_2022/3, 'slecht',
+                     ifelse(b$EKR < 2*(b$GEP_2022/3), 'ontoereikend',
+                            ifelse(b$EKR < b$GEP_2022, 'matig', 'goed')))
+  
+  write.table(b, file = paste(getwd(),"/output/EKROordeelPerLocatieJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  return(b)
+}
+# wide format hoofdmtlt, eag, waterlichaam
+tabelEKRPerWLEnEAGPerJaar <- function (EKRset, doelen){
   b = filter(EKRset, Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS')) %>% # alleen hoofdmaatlatten
     dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
                   waterlichaamcode = GeoObject.code,
@@ -342,83 +359,24 @@ tabelOordeelPerMeetlocatiePerJaar <- function (EKRset, doelen){
                   jaar,
                   EKR = Numeriekewaarde)
   b$maatlat <- gsub(' $','',b$maatlat)
+  tabset <- reshape2::dcast(b, waterlichaam+eag+watertype+maatlat+maatlatversie ~ jaar, value.var = "EKR", fun.aggregate = mean)
   
-  doelgeb <- dcast(doelen, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = "Doel", fun.aggregate = mean)
-  doelgeb$GEP <- doelgeb$. ; doelgeb$. <- NULL
-  tabset <- merge(b, doelgeb, by.x = c('waterlichaam','maatlat'),
-                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'), all.x = T)
-  tabset$oordeel <- ifelse(tabset$EKR < tabset$GEP/3, 'slecht',
-                           ifelse(tabset$EKR < 2*(tabset$GEP/3), 'ontoereikend',
-                                  ifelse(tabset$EKR < tabset$GEP, 'matig', 'goed')))
-  
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  tabset1 <- merge(tabset[!is.na(tabset$eag),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('eag'),
-                   by.y = c('GAFIDENT'), all.x = TRUE)
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  tabset2 <- merge(tabset[is.na(tabset$eag),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('waterlichaam'),
-                   by.y = c('waterlichaam'), all.x = TRUE, all.y =F)
-  tabset <- smartbind(tabset1,tabset2)
-  
-  write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerLocatieJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-  return(tabset)
-}
-# wide format hoofdmtlt, eag, waterlichaam
-tabelEKRPerWLEnEAGPerJaar <- function (EKRset, doelen){
-  b = filter(EKRset, Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS')) %>% # alleen hoofdmaatlatten
-    dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
-           eag = EAGIDENT,
-           watertype = KRWwatertype.code,
-           maatlat = GHPR,
-           maatlatversie = Waardebepalingsmethode.code,
-           jaar,
-           EKR = Numeriekewaarde)
-  b$maatlat <- gsub(' $','',b$maatlat)
-  tabset <- dcast(b, waterlichaam+eag+watertype+maatlat+maatlatversie ~ jaar, value.var = "EKR", fun.aggregate = mean)
-  doelgeb <- dcast(doelen, HoortBijGeoobject.identificatie+bronddoel+GHPR ~ ., value.var = "Doel", fun.aggregate = mean)
-  doelgeb$GEP <- doelgeb$. ; doelgeb$. <- NULL
-  tabset <- merge(tabset, doelgeb, by.x = c('waterlichaam','maatlat'),
-                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'))
-  
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  tabset1 <- merge(tabset[!is.na(tabset$eag),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('eag'),
-                   by.y = c('GAFIDENT'), all.x = TRUE)
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  tabset2 <- merge(tabset[is.na(tabset$eag),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('waterlichaam'),
-                   by.y = c('waterlichaam'), all.x = TRUE, all.y =F)
-  tabset <- smartbind(tabset1,tabset2)
   write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 }
-# deelmtlt, eag, waterlichaam
+# wide format, deelmtlt, eag, waterlichaam
 tabelPerWLEnEAGPerJaarDeel <- function (EKRset, doelen, eag_wl){
   b = filter(EKRset) %>% 
-    dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
-           eag = EAGIDENT,
-           watertype = KRWwatertype.code,
-           maatlat = GHPR,
-           maatlatsort = GHPR_level,
-           maatlatversie = Waardebepalingsmethode.code,
-           jaar,
-           EKR = Numeriekewaarde)
+  dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
+                    waterlichaamcode = GeoObject.code,
+                    locatie = CODE,
+                    eag = EAGIDENT,
+                    watertype = KRWwatertype.code,
+                    maatlat = GHPR,
+                    maatlatversie = Waardebepalingsmethode.code,
+                    jaar,
+                    EKR = Numeriekewaarde)
   b$maatlat <- gsub(' $','',b$maatlat)
   tabset <- dcast(b, waterlichaam+eag+watertype+maatlat+maatlatsort+maatlatversie ~ jaar, value.var = "EKR", fun.aggregate = mean)
- 
-  # mean GEP per object
-  doelgeb <- doelen[,.(GEP = mean(Doel,na.rm=TRUE)),by =.(HoortBijGeoobject.identificatie,bronddoel,GHPR)]
-  
-  # merge with doelen
-  tabset <- merge(tabset, doelgeb, by.x = c('waterlichaam','maatlat'),
-                  by.y = c('HoortBijGeoobject.identificatie', 'GHPR'), all.x = TRUE)
-  
-  # add type water body
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  tabset1 <- merge(tabset[!is.na(tabset$eag),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('eag'),
-                   by.y = c('GAFIDENT'), all.x = TRUE)
-  eag_wl2 <- dcast(eag_wl, KRW_SGBP3+KRWmonitoringslocatie_SGBP3+SGBP3_NAAM+waterlichaam~., fun.aggregate = mean)
-  tabset2 <- merge(tabset[is.na(tabset$eag),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('waterlichaam'),
-                   by.y = c('waterlichaam'), all.x = TRUE, all.y =F)
-  tabset <- smartbind(tabset1,tabset2)
   
   write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWideDeelmtlt",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(tabset)
@@ -450,29 +408,24 @@ draaitaxa <- function (EKRlijst1){
 
 vispivot <- function (EKRlijst){
   
-  selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","Identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code")
-  
+  selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","HoortBijGeoobject.identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code")
   sel <- is.na(EKRlijst$HoortBijGeoObjectCode)
   sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl)#als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
   sel <- sel & EKRlijst$Eenheid.code %in% "kg/ha"
   EKRlijst1 <- EKRlijst[sel,]
-  EKRlijst1$toetsjaar <- EKRlijst1$Waardebepalingsmethode.code
-  
+ 
   if(nrow(EKRlijst1)>0){
-  xagg <- aggregate(Numeriekewaarde ~ Biotaxon.naam.nl+jaar+Identificatie+toetsjaar,EKRlijst1,FUN=sum)
+  xagg <- aggregate(Numeriekewaarde ~ Biotaxon.naam.nl+jaar+HoortBijGeoobject.identificatie,EKRlijst1,FUN=sum)
+  xagg$jaar <- as.character(xagg$jaar)
+  xagg <- as.data.frame(xagg)
   
-  
-  #sel <- xagg$Biotaxon.naam.nl%in%c("Giebel")#eruit halen, want deze komt alleen voor in toetsjaar 2019 en daardoor wordt kleuring van de staafjes anders per soort.
-  xagg <- xagg[!sel,] 
-  
-  #rpivotTable(xagg[xagg$toetsjaar%in%2018,],rows=c("Meetobject.lokaalID"),cols="Biotaxon.naam.nl",vals="Numeriekewaarde",aggregatorName= "Sum",rendererName="Horizontal Stacked Bar Chart", width="100%", height="4000px")
   rpivotTable(
     xagg,
-    rows=c("Identificatie","jaar","toetsjaar"),
-    cols="Biotaxon.naam.nl",
+    rows=c("HoortBijGeoobject.identificatie","jaar"),
+    cols= "Biotaxon.naam.nl",
     aggregatorName = "Sum",
-    inclusions = list(HoortBijGeoobject.identificatie = list("NL11_Botshol")),
-    exclusions= list( Grootheid.code = list( "BEDKG")),
+    # inclusions = list(HoortBijGeoobject.identificatie = list("NL11_Botshol")),
+    # exclusions= list( Grootheid.code = list( "BEDKG")),
     vals = "Numeriekewaarde",
     rendererName = "Horizontal Stacked Bar Chart",
     width="100%"
@@ -1079,24 +1032,23 @@ plottrend2 <- function(gebiedData){
   
   ggplotly(p=zw) 
 }
-plottrend3 <- function(mfatrend){
+plottrend3 <- function(gebiedData){
   # gebiedData <- vegtrend
-  gebiedData<- mfatrend[!mfatrend$EAGIDENT %in% c('2220-EAG-1','1000-EAG-1','2000-EAG-1'),] 
+  # gebiedData<- mfatrend[!mfatrend$EAGIDENT %in% c('2220-EAG-1','1000-EAG-1','2000-EAG-1'),] 
   # Gaasperplas verkeerde trend berekend door fout in monitoringslocatie emerse zone,
   # grachten fout in monsterlocaties 2012. Te weinig data voor trend.
   # ams zuid, de schommeling zit in drijfbladplanten en die zijn niet eenduidig bemonsterd, terwijl klassegrenzen smal zijn.
   
   #gebiedData$klasse <- gebiedData[order(gebiedData$klasse),]
-  '1' -> gebiedData$klasse[gebiedData$estimate < -0.15]
-  '2' -> gebiedData$klasse[gebiedData$estimate >= -0.15 & gebiedData$estimate < -0.1]
-  '3' -> gebiedData$klasse[gebiedData$estimate >= -0.1 & gebiedData$estimate < 0]
-  '4' -> gebiedData$klasse[gebiedData$estimate >= 0 & gebiedData$estimate < 0.1]
-  '5' -> gebiedData$klasse[gebiedData$estimate >= 0.1 & gebiedData$estimate < 0.15]
-  '6' -> gebiedData$klasse[gebiedData$estimate >= 0.2]
-  gebiedData$klasse[is.na(gebiedData$p.value)] <- '8'# slechts 1 of 2 jaar data
-  gebiedData$klasse[gebiedData$p.value > 0.4] <- "7" # geen trend
-  gebiedData$klasse[gebiedData$r.squared == 1] <- "8" 
-  gebiedData$klasse <- factor(gebiedData$klasse, levels = c("1", "2", "3", "4","5","6","7","8"))
+  '1' -> gebiedData$klasse[gebiedData$estimate < -0.03]
+  '2' -> gebiedData$klasse[gebiedData$estimate >= -0.03 & gebiedData$estimate < -0.007]
+  '3' -> gebiedData$klasse[gebiedData$estimate >= -0.007 & gebiedData$estimate < 0.007]
+  '5' -> gebiedData$klasse[gebiedData$estimate >= 0.007 & gebiedData$estimate < 0.03]
+  '6' -> gebiedData$klasse[gebiedData$estimate >= 0.03]
+  #gebiedData$klasse[is.na(gebiedData$p.value)] <- '8'# slechts 1 of 2 jaar data
+  #gebiedData$klasse[gebiedData$p.value > 0.4] <- "7" # geen trend
+  #gebiedData$klasse[gebiedData$r.squared == 1] <- "8" 
+  gebiedData$klasse <- factor(gebiedData$klasse, levels = c("1", "2", "3", "5","6"))
   
   #KRW <- as.data.frame(gKRW)
   #KRW$eag <- sapply(strsplit(as.character(KRW$OWAIDENT), '_'), `[`, 2)
@@ -1104,10 +1056,9 @@ plottrend3 <- function(mfatrend){
   #            'EAGIDENT', all.y = TRUE)
   #write.table(gebiedData, file = paste(getwd(),"/output/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
   
-  col <- c('1'= 'darkred','2'="red", '3'="salmon",'4'="lightgreen",'5'="green",'6'="darkgreen", 
-           '7' ="yellow", '8' ="grey")
-  labels <- c('1'="-0.02 - -0.15",'2'="-0.15 - -0.1" ,'3'="-0.1 - 0",'4'="0 - 0.15",'5'="0.15 - 0.02",
-              '6'="0.2 - 0.5", '7' = 'geen trend', '8' = 'berekening niet mogelijk')
+  col <- c('1'= 'darkred','2'="red", '3'="#fff7bc",'5'="green",'6'="darkgreen")
+  labels <- c('1'="< -0.2",'2'="-0.2 - -0.1" ,'3'="geen trend",'5'="0.1 - 0.2",
+              '6'=">0.2")
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
   
   map <- sp::merge(gEAG, gebiedData[, c('klasse','estimate','p.value','r.squared','group','EAGIDENT', 'KRWwatertype.code',
@@ -1123,7 +1074,7 @@ plottrend3 <- function(mfatrend){
                                                      ),
                 stroke = T, color= 'black', opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
-    addLegend("bottomright", colors = col, labels = labels, title = "Lineaire trend EKR score")%>%
+    addLegend("bottomright", colors = col, labels = labels, title = "Lineaire trend EKR score per planperiode")%>%
     addTiles()
 }
 
@@ -3191,7 +3142,7 @@ hybisam <- function(hybi){
 }
 
 calcMeanHybiY <- function(hybi, eenheid = 'KRW'){
-  
+  #naameag, vaste bodem
   # make local copy
   b = copy(hybi) 
   
@@ -3213,7 +3164,7 @@ calcMeanHybiY <- function(hybi, eenheid = 'KRW'){
   b[,DTEZICHTfac := cut(DTEZICHT, breaks = c('0.1','0.2','0.3','0.4','0.6', '0.8','1.0'))]
   
   # filter and sort database
-  b <- b[!is.na(DTEZICHTfac) & !is.na(jaar),]
+  # b <- b[!is.na(DTEZICHTfac) & !is.na(jaar),]
   setorder(b,jaar)
   
   # rename relevant columns # toevoegen kroos
@@ -3242,6 +3193,15 @@ calcMeanHybiY <- function(hybi, eenheid = 'KRW'){
   # return database
   return(b)
 }
+
+wdOpmaatmatrix <- function(hybi, eenheid = 'KRW'){
+  calcMeanHybiY
+  #veranderingwaterdiepte
+  #ekr
+  #handelingsperspectief
+  #doorzichtbijdiepte50cmOfmaxdiepte
+}
+
 
 # waterkwaliteit
 wqsamKRW <- function(wq, locset = locKRW){

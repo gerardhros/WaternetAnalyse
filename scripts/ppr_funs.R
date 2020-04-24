@@ -49,8 +49,20 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
 
 ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   
+  #correctie verschillende namen zelfde waterlichaam: let op ekr1 moet krw waterlichamen set zijn!!!!!!
+  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
+  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
+  ekr1$waterlichaam <- eag_wl2$waterlichaam[sapply(ekr1$HoortBijGeoobject.identificatie, 
+                                                 function(x) {which.min(stringdist::stringdist(x, eag_wl2$waterlichaam))}
+  )]
+  ekr1$HoortBijGeoobject.identificatie[is.na(ekr1$EAGIDENT)] <- ekr1$waterlichaam[is.na(ekr1$EAGIDENT)]
+  ekr1$HoortBijGeoobject.identificatie[!is.na(ekr1$EAGIDENT)] <- paste0("NL11_", ekr1$waterlichaam[!is.na(ekr1$EAGIDENT)])
+  
   # combine both EKR from KRW and overig water into one data.table
   db <- data.table::rbindlist(list(ekr1,ekr2), fill=TRUE)
+  
+  # rijen weg zonder informatie
+  db <- db[!is.na(db$Numeriekewaarde),]
   
   # remove columns without information
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
@@ -82,12 +94,9 @@ ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
   
   # add namen per waterlichaam en eag
   db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2) 
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  
   d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
               by.y = c('GAFIDENT'), all.x = TRUE)
 
-  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
   d4 <- merge.data.table(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
               by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
   d3 <- rbind(d3,d4,fill=TRUE)
@@ -319,6 +328,7 @@ ppr_esf_oordeel <- function(){
   
   # trim character columns from starting and ending space
   d1[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
+  d1[,MotiveringWijzigingToestandWKP:=NULL]
   
   # hier later ook eags of gafs aan toevoegen
   

@@ -59,6 +59,8 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 # inladen basis bestanden ----
 ESFoordelen <- fread('../data/esfKRW_20200331.csv') # hier later ook eags of gafs aan toevoegen
 ESFoordelen[,ToestandChemie:=NULL]
+ESFoordelen[,MotiveringWijzigingToestandWKP:=NULL]
+
 # which colnames are character
 cols <- colnames(ESFoordelen)[sapply(ESFoordelen, is.character)]
 # trim character columns from starting and ending space
@@ -187,7 +189,7 @@ for (i in 16:nrow(ESFoordelen)){
     EKRset2 <- EKRset[EKRset$EAGIDENT %in% eagwl$GAFIDENT,]
     gEAG_sel <- gEAG[gEAG$GAFIDENT %in% eagwl$GAFIDENT, ]
     waterpereag_sel <- waterpereag1[waterpereag1$GAFIDENT %in% eagwl$GAFIDENT, ]
-    deelgebieden <- unique(as.data.table(gEAG_sel[,c('GAFIDENT','GAFNAAM')])[,geom:=NULL],
+    deelgebieden <- unique(as.data.table(eagwl[,c('GAFIDENT','GAFNAAM')])[,geom:=NULL],
                            sorted=TRUE,
                            keep.rownames=FALSE)
     deelgebieden <- as.data.frame(deelgebieden)

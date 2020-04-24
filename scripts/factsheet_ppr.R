@@ -391,7 +391,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen1[,Gefaseerd := as.numeric(Gefaseerd)]
    
     # percentage per type
-    periode <- c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015")
+    periode <- c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015") # hier mis een periode (niet insgbp)
     rates <- list(
       rate_uit = nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode & Uitgevoerd1 > 0,]),
       rate_max = nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode]),

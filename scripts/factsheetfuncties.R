@@ -401,9 +401,10 @@ extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   
   p<- ggplot(wq1, aes(x= locatie.EAG, y= meetwaarde))+
     geom_boxplot() +
-    geom_hline(aes(yintercept = 3.22, col = '1 meter'), show.legend = T)+ #vec voor 1 meter >4%
+    geom_hline(aes(yintercept = log(25)/0.5, col = '0.5 meter'), show.legend = T)+
+    geom_hline(aes(yintercept = log(25), col = '1 meter'), show.legend = T)+ #vec voor 1 meter >4%
     geom_hline(aes(yintercept = log(25)/median(hybi$meetwaarde), col = paste0(medianewd, ' meter (mediane diepte)')), show.legend = T)+ #vec voor 4 meter >4%
-    geom_hline(aes(yintercept = 0.46, col = '7 meter'), show.legend = T)+ #vec+ voor 7 meter 4%
+    geom_hline(aes(yintercept = log(25)/7, col = '7 meter'), show.legend = T)+ #vec+ voor 7 meter 4%
     guides(col=guide_legend(title="4 % licht voor waterplanten op"))+
     theme_minimal()+
     theme(
@@ -810,7 +811,7 @@ plotEKRlijnfs <- function(z){
 
 trend <- function(z, detail = "hoofd"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
-  #z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
+  z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
   z<- z[is.na(z$Monster.lokaalID),] # alleen scores per meetlocatie per jaar
   setnames(z,c('HoortBijGeoobject.identificatie'),c('id'))
   
@@ -818,7 +819,7 @@ trend <- function(z, detail = "hoofd"){
     z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
   }
   
-  tabset2 <- dcast(z, id+KRWwatertype.code+Waardebepalingsmethode.code+GHPR_level ~ jaar, 
+  tabset2 <- dcast(z, id+KRWwatertype.code+Waardebepalingsmethode.code+facet_wrap_code+GHPR_level ~ jaar, 
                    value.var = "Numeriekewaarde", fun.aggregate = mean)
   tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
   tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
@@ -837,6 +838,36 @@ trend <- function(z, detail = "hoofd"){
   gebiedData$group <- 'grey'# 1 jaar data
   return(gebiedData)
 } 
+
+# subset locaties voor KRW selecteren: moet kolom CODE bevatten met locatiecodes
+# locKRW <- fread('./atlasKRW/input/NL11_relatieKRWmonitoringslocatiesEnWerkelijkeMeetpunten.csv')
+# wqmeanK <- trendfychem(wq, param = c("P","N","NH3","ZICHT","PH","ZVP","T","CL","CHLFa"), locset = locaties)
+trendfychem <- function(wq1, param = c("P","N","NH3","ZICHT","PH","ZVP","T","CL","CHLFa"),locset = locKRW){
+  # subset locaties voor KRW selecteren: moet kolom CODE bevatten met locatiecodes
+  z<- wq1[wq1$locatiecode %in% locset$CODE,]
+  z<- z[z$fewsparameter %in% param ,]
+  z<- z[grep('*VAST*',z$locatie.meetnethistorie),]
+  
+  tabset2 <- dcast(z, fewsparametercode+locatie.KRWmeetpuntlocatie ~ jaar, 
+                   value.var = "meetwaarde", fun.aggregate = mean)
+  tb <- melt(tabset2, variable.name = "jaar", na.rm = TRUE, value.name = "JGM") # omgekeerde draaitabel voor correct format lm
+  tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
+  
+  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en gebied
+    group_by(fewsparametercode, locatie.KRWmeetpuntlocatie) %>% 
+    filter(length(unique(jaar)) > 1) %>% 
+    do(model = lm(JGM ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per gebied
+  
+  COF <- fitted_models %>% tidy(model) 
+  R2 <- fitted_models %>% glance(model) 
+  trtabset <- merge(COF[,c("locatie.KRWmeetpuntlocatie",'fewsparametercode','estimate',"term")], tabset2, by =
+                      c('fewsparametercode','locatie.KRWmeetpuntlocatie')) # data trend samenvoegen met resultaten
+  gebiedData  <- merge(trtabset, R2, by = c('fewsparametercode','locatie.KRWmeetpuntlocatie')) # data trend samenvoegen met resultaten
+  gebiedData <- gebiedData[!is.na(gebiedData$locatie.KRWmeetpuntlocatie),]
+  gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
+  write.table(gebiedData, file = paste(getwd(),"KRWTrendfychem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  return(gebiedData)
+}
 
 
 

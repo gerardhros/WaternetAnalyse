@@ -74,9 +74,9 @@ kopDat <- function(x , y , z){
   x<- x[!is.na(x$Identificatie),]
   # check <- table(x$Identificatie)
   # check <- as.data.frame(check)
-  loc <- merge(y[,c('CODE','EAGIDENT','OWMIDENT')], x, by.x = 'CODE', by.y='locatie', all.x = FALSE, all.y = TRUE) 
+  loc <- merge(y[,c('CODE','EAGIDENT','OWMIDENT','XCOORD','YCOORD')], x, by.x = 'CODE', by.y='locatie', all.x = FALSE, all.y = TRUE) 
   loc <- loc[!is.na(loc$Identificatie),]
-  z <- merge(loc[,c('CODE','EAGIDENT','OWMIDENT','Identificatie','HoortBijGeoobject.identificatie')], z, by.x = 'Identificatie', by.y = 'Meetobject.lokaalID', all.x = FALSE, all.y = TRUE)
+  z <- merge(loc[,c('CODE','EAGIDENT','OWMIDENT','XCOORD','YCOORD','Identificatie','HoortBijGeoobject.identificatie')], z, by.x = 'Identificatie', by.y = 'Meetobject.lokaalID', all.x = FALSE, all.y = TRUE)
   z <- z%>%as.data.table()
   #toevoegen unieke ID voor geaggregeerde toetsing
   z$HoortBijGeoobject.identificatie[is.na(z$HoortBijGeoobject.identificatie)] <- z$Identificatie[is.na(z$HoortBijGeoobject.identificatie)]
