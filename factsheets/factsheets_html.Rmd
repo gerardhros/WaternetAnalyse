@@ -1,4 +1,5 @@
 ---
+title: "krw factsheets AGV"
 date: "`r Sys.Date()`"
 output: 
   flexdashboard::flex_dashboard:
@@ -64,10 +65,11 @@ include_graphics(out$mapDEELGEBIED)
 
 **De huidige toestand vergeleken met de doelen –**`r out$d3$oordeel`
 <br>
-De toestand in `r out$waterlichamenwl$OWMNAAM` (zwarte lijnen in de figuur hiernaast) is `r out$d3$oordeel`. Het slechts scorende biologische kwaliteitselement is `r as.character(out$d3$facet_wrap_code)`. 
-`r if(!out$d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",out$d3_deel$GHPR,".")}` 
-`r if(!out$d3$facet_wrap_code %in% "Macrofauna"){if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,".")}}`
+De toestand in `r out$waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur hiernaast) is `r unique(out$d3$oordeel)`. Het slechts scorende biologische kwaliteitselement is `r as.character(unique(out$d3$facet_wrap_code))`. 
+`r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(out$d3_deel$GHPR),"."))}` 
+`r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){if(unique(out$d3_deel$GHPR) == 'Abundantie groeivormen macrofyten'){unique(paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,"."))}}`
 `r if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand}`
+
 <br>
 
 **Oorzaken op hoofdlijnen**
@@ -210,20 +212,20 @@ Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen no
 ## Indicatoren ESF {data-height=500}
 ### ESF 1: Productiviteit
 ```{r chartP, echo = FALSE, warning = FALSE, message = FALSE, fig.cap = 'Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).'}
-if(!is.null(out$plotPwbal)){include_graphics(out$plotPwbal)}
+include_graphics(out$plotPwbal)
 
 ```
 
 ### ESF 2 en 4: Lichtklimaat en waterdiepte
 ```{r licht2, echo= FALSE, warning = FALSE, message = FALSE, fig.cap= "Lichtklimaat in plassen obv extinctie tussen 2010 en 2019 of Waterdiepte in sloten."}
-if(!is.null(out$plotLichtklimaat)){include_graphics(out$plotLichtklimaat)}
-if(!is.null(out$plotWaterdiepte)){include_graphics(out$plotWaterdiepte)}
+if(class(out$plotLichtklimaat)=='plotref'){include_graphics(out$plotLichtklimaat)}
+if(class(out$plotWaterdiepte)=='plotref'){include_graphics(out$plotWaterdiepte)}
 
 ```
 
 ### ESF 1 en 3: Waterbodem
 ```{r watbodem, echo= FALSE, warning = FALSE, message = FALSE, fig.cap = 'Nalevering en voedselrijkdom waterbodem.', echo = FALSE, message = FALSE, warning = FALSE}
-if(!is.null(out$plotWaterbodem)){include_graphics(out$plotWaterbodem)}
+include_graphics(out$plotWaterbodem)
 ```
 
 ## {data-height=50}

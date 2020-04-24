@@ -82,6 +82,9 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
   EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2,eag_wl = eag_wl,doelen = doelen)
   
+  # alleen nieuwe maatlatten
+  EKRset <- EKRset[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
+    
     # show progress
     pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
@@ -188,7 +191,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     waterlichamenwl[,motstat := MotiveringBegrenzing]
     waterlichamenwl[,prov := Provincies]
     waterlichamenwl[,gem := Gemeenten]
-    waterlichamenwl[,typebesch := watertypen[Code %in% unique(eagwl$watertype),Omschrijving]]
+    waterlichamenwl[,typebesch := paste0(tolower(watertypen[Code %in% unique(eagwl$watertype),Omschrijving]),collapse = ', ')]
     
     # get water quality for relevant EAG
     wq1 <- wq[EAGIDENT %in% eagwl$GAFIDENT,]
@@ -230,8 +233,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(nrow(EST_sel)>0){
       
       ## merge Ecosysteemtoestanden met EAGs: er mag maar 1 watertype per factsheet zijn. Dat is zo als of KRW WL of EAG uitgangspunt zijn.
-      cols <- colnames(EST_sel)[grepl('^EAG|jaar|^O|^W',colnames(EST_sel))]
-      dtEST2 <- merge.data.table(EST_sel[,mget(cols)], eagwl, by.x = "EAG", by.y  = "GAFIDENT")
+      cols <- colnames(EST_sel)[grepl('^EAG|jaar|^O|^W|SGBP3|GAFNAAM|KRW',colnames(EST_sel))]
+      dtEST2 <- merge.data.table(EST_sel[,mget(cols)], eagwl[,c('GAFIDENT','watertype','StedelijkLandelijk')], by.x = "EAG", by.y  = "GAFIDENT")
       
       ## gather O en W for the last year
       dtEST4 <- dtEST2[,yearid := frank(-jaar, ties.method = 'dense')][yearid <= 1] 
@@ -246,11 +249,15 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       # make selection name for esticons
       ESTnaam1 <- paste0(c('W','O'),c(dtEST4[,.(W,O)]),collapse = '_')
       ESTnaam2 <- unique(dtEST2$watertype)
-      ESTnaam2 <- ifelse(ESTnaam2 == 'M20','DM',ifelse(ESTnaam2 %in% c('M14','M27',"M25"),'OM',ifelse(ESTnaam2 %in% c('M1a','M8',"M10"),'Sl','K')))
+      ESTnaam2 <- ifelse(ESTnaam2 == 'M20','DM',
+                         ifelse(ESTnaam2 %in% c('M14','M27',"M25"),'OM',
+                                ifelse(ESTnaam2 %in% c('M1a','M8',"M10"),'Sl','K')))
       ESTnaam3 <- ifelse(unique(dtEST2$StedelijkLandelijk) == 'Stedelijk','St','L') 
       
       # final ESTnaam
       ESTnaam <- paste0("esticon/",ESTnaam1,'_',ESTnaam2,'_', ESTnaam3, ".jpg")
+      ESTnaam <- ESTnaam[1]
+      
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_3_8')){ESTnaam <- "esticon/W6_O7_DM_L.jpg"} 
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_5_1')){ESTnaam <- "esticon/W4_O6_OM_L.jpg"} 
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_2')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
@@ -323,14 +330,10 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     ## calculate EKR scores from EKRset1
     ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1)
     
-    ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
-    
     # subset 1, en zoek laagste score (old: ekr_scores_sel2)
-    ekr_scores1 <- ekr_scores[!wbmethode %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis") & level == 1]
-    ekr_scores1[,oordeelsort := EKR/GEP]
-    d3 <- unique(ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),])
-    
+    ekr_scores1[,oordeelsort := EKR / GEP_2022]
+    ekr_scores1 <- ekr_scores[!is.na(id) & level == 1]
+    d3 <- ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),]
     # subset 2, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores2 <- ekr_scores[facet_wrap_code %in% d3$facet_wrap_code & level == 2,]
     d3_deel <- ekr_scores2[EKR==min(EKR,na.rm=T),]
@@ -342,13 +345,12 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     ekr_scores3 <- ekr_scores[wbmethode =="Maatlatten2018 Ov. waterflora" & 
                               level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),]
     ## make neat titles, alleen hoofdmaatlatten
-    ekr_scores3[,facet_wrap_code := as.factor(gsub('Maatlatten2018 ','',wbmethode))]
     ekr_scores3[GHPR == 'Waterdiepte',GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten",GHPR))]
     
     d3_deelptn <- ekr_scores3[EKR==min(EKR,na.rm=T),]
     
     # create map
-    mapEKR <- ppr_ekrplot(ekr_scores1)
+    mapEKR <- ppr_ekrplot2(ekr_scores1)
     
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
@@ -363,7 +365,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # make data.table
     ESFtab = data.table(esf = paste0('ESF',1:8),
                         kleur = as.numeric(ESF[,.SD,.SDcols=cols[cols_nchar==1]]),
-                        oms = as.factor(ESF[,.SD,.SDcols=cols[cols_nchar>1]]))
+                        oms = as.factor(ESF[,.SD,.SDcols=cols[cols_nchar>1|cols_nchar==0]]))
     
     # add oordeel
     ESFtab[kleur==1,OORDEEL := 'groennummer.jpg']
@@ -475,63 +477,91 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen2[,Gebiedspartner := gsub('\\?','onbekend',Gebiedspartner)]
     maatregelen2[, Naam := gsub('%','\\%',Naam,fixed=TRUE)]
     
+    # make empty table to be used in rnw file
+    if(nrow(maatregelen2)==0){
+      
+      maatregelen2 <- data.table(ESFoordeel = '', ESFoordeel_latex = '', SGBPPeriode = '',
+                                 Naam = '',Toelichting = '',Initiatiefnemer = 'waterschap',
+                                 BeoogdInitiatiefnemer = '', Gebiedspartner = '',UitvoeringIn = '',
+                                 afweging = '',Toelichting_latex ='')
+      
+    }
+    
     # --- plot ESF1: productiviteit ----
+    plotPwbal.ref <- paste0('routput/',my_title2,'/plotPwbal.png')
     if(sum(is.na(pvskpsel$naam)) != length(pvskpsel$naam)){
       
       # plot figure ESF1
       plotPwbal = ppr_pvskpplot(pvskpsel)
+      class(plotPwbal.ref) <- 'plotref'
+    
     } else {
       
       # plot figure ESF1 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, pload = 0)
       plotPwbal = plotEmpty(db = plotLeegDB,type='Pwbal')
+      class(plotPwbal.ref) <- 'plotempty'
     }
       
     # save plot
     if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',my_title2,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
-    plotPwbal <- paste0('routput/',my_title2,'/plotPwbal.png')
+    
     
     # --- plot ESF 2: lichtklimaat
+    plotLichtklimaat.ref <- paste0('routput/',my_title2,'/plotLichtklimaat.png') 
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
       
       # plot ESF 2
       plotLichtklimaat = ppr_extinctie1(wq = wq1, hybi = hybi1,parameter = c('VEC','WATDTE_m'))
+      class(plotLichtklimaat.ref) <- 'plotref'
     } else {
       
       # plot figure ESF2 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, Lext = 0)
       plotLichtklimaat = plotEmpty(db = plotLeegDB,type='plotLichtklimaat')
+      class(plotLichtklimaat.ref) <- 'plotempty'
     }
     
     # save plot is saved 
     if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',my_title2,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
-    plotLichtklimaat <- paste0('routput/',my_title2,'/plotLichtklimaat.png')
+    
     
     # --- plot ESF 4: waterdiepte
+    plotWaterdiepte.ref <- paste0('routput/',my_title2,'/plotWaterdiepte.png')
+    
     if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
       
       # plot ESF 4
       hybi2 <- hybi1[!is.na(fewsparameter == 'WATDTE_m'),]
       plotWaterdiepte = ppr_waterdieptesloot(hybi2, parameter = c('WATDTE_m'))  
-      
+      class(plotWaterdiepte.ref) <- 'plotref'
     } else {
       
       # plot figure ESF4 when no data is available
       plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, wd = 0,krwwt ='onbekend')
       plotWaterdiepte = plotEmpty(db = plotLeegDB,type='plotWaterdiepte')
+      class(plotWaterdiepte.ref) <- 'plotempty'
+      
     }
     
     # save plot
     if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',my_title2,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
-    plotWaterdiepte <- paste0('routput/',my_title2,'/plotWaterdiepte.png')
+   
     
     # --- plot ESF3 : waterbodem
+    plotbodFW.ref <- paste0('routput/',my_title2,'/plotWaterbodem_FW.png')
+    plotqPW.ref <- paste0('routput/',my_title2,'/plotWaterbodem_qPW.png')
+    plotWaterbodem.ref <- paste0('routput/',my_title2,'/plotWaterbodem.png')
+    
     if(nrow(bod1) > 0) {
       
       # plot ESF 4
       plotbodFW = ppr_plotbod(bod1,type = 'plotFW')
       plotqPW = ppr_plotbod(bod1,type = 'plotqPW')
       plotWaterbodem = ppr_plotbod(bod1,type='grid')
+      class(plotbodFW.ref) <- 'plotref'
+      class(plotqPW.ref) <- 'plotref'
+      class(plotWaterbodem.ref) <- 'plotref'
       
     } else {
       
@@ -540,6 +570,10 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       plotbodFW = plotEmpty(db = plotLeegDB,type='plotbodFW')
       plotqPW = plotEmpty(db = plotLeegDB,type='plotqPW')
       plotWaterbodem = plotbodFW
+      class(plotbodFW.ref) <- 'plotempty'
+      class(plotqPW.ref) <- 'plotempty'
+      class(plotWaterbodem.ref) <- 'plotempty'
+      
     }
     
     # save plots
@@ -551,10 +585,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem.png'),width = 13,height = 10,
                       units='cm',dpi=500)
       }
-    plotbodFW <- paste0('routput/',my_title2,'/plotWaterbodem_FW.png')
-    plotqPW <- paste0('routput/',my_title2,'/plotWaterbodem_qPW.png')
-    plotWaterbodem <- paste0('routput/',my_title2,'/plotWaterbodem.png')
-    
+      
     # make a list to store the output
     out <- list(waterlichamenwl = waterlichamenwl,
                 wlname = wlname,
@@ -567,12 +598,12 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                 mapDEELGEBIED = mapDEELGEBIED,
                 mapEKR = mapEKR,
                 mapGauge = mapGauge,
-                plotPwbal = plotPwbal,
-                plotLichtklimaat = plotLichtklimaat,
-                plotWaterdiepte = plotWaterdiepte,
-                plotWaterbodem = plotWaterbodem,
-                plotbodFW = plotbodFW,
-                plotqPW = plotqPW,
+                plotPwbal = plotPwbal.ref,
+                plotLichtklimaat = plotLichtklimaat.ref,
+                plotWaterdiepte = plotWaterdiepte.ref,
+                plotWaterbodem = plotWaterbodem.ref,
+                plotbodFW = plotbodFW.ref,
+                plotqPW = plotqPW.ref,
                 ESFtab = ESFtab,
                 maatregelen1 = maatregelen1,
                 maatregelen2 = maatregelen2,

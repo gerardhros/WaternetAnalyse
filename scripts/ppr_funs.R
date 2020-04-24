@@ -550,7 +550,7 @@ ppr_ekrplot <- function(ekr_score){
   bg_gather[,sgbp_version := fifelse(grepl('_new$',doelen),'new','old')]
   bg_gather[,varrange := fifelse(grepl('_ymin_',doelen),'ymin','ymax')]
   bg_gather[,doelen := gsub("(.+?)(\\_.*)", "\\1", doelen)]
-  bg_spr <- dcast(bg_gather,id+GEP+GEP_2022+facet_wrap_code+doelen+sgbp_version~varrange,value.var='waarde')
+  bg_spr <- dcast.data.table(bg_gather,id+GEP+GEP_2022+facet_wrap_code+doelen+sgbp_version~varrange,value.var='waarde')
   
   # update xmin, xmax and SGBP version
   bg_spr[sgbp_version=='old',c('xmin','xmax','sgbp_version') := .(0,0.5,'SGBP2')]
@@ -589,6 +589,73 @@ ppr_ekrplot <- function(ekr_score){
   return(plot)
 }
 
+# plot EKR versie 2
+ppr_ekrplot2 <- function(ekr_score){
+  
+  # make local copy
+  dt <- copy(ekr_score)
+  
+  # facet per maatlat en EAG (als FS niveau is GAF en meerdere EAGs)
+  dt[KRW_SGBP3 == "",KRW_SGBP3 := NA]
+  dt[,facet_wrap_code := as.character(facet_wrap_code)]
+  dt[,wlmt := fifelse(is.na(KRW_SGBP3), paste0(EAGIDENT," ",facet_wrap_code), facet_wrap_code)]
+  
+  # build background [Kan eleganter..]
+  bg <- unique(dt[, c("id", "GEP_2022", "wlmt")])
+  
+  # add boundaries for new GEP
+  bg[,c('goed_ymin_new','goed_ymax_new') := .(GEP_2022,1)]
+  bg[,c('matig_ymin_new','matig_ymax_new') := .(GEP_2022 / 3 * 2,GEP_2022)]
+  bg[,c('ontoereikend_ymin_new','ontoereikend_ymax_new') := .(GEP_2022 / 3,GEP_2022 / 3 * 2)]
+  bg[,c('slecht_ymin_new','slecht_ymax_new') := .(0,GEP_2022 / 3)]
+  
+  # reformat 
+  bg_gather <- melt(bg,id.vars = c('id','GEP_2022','wlmt'),
+                    variable.name = 'doelen',value.name = 'waarde')
+  bg_gather[,sgbp_version := fifelse(grepl('_new$',doelen),'new','old')]
+  bg_gather[,varrange := fifelse(grepl('_ymin_',doelen),'ymin','ymax')]
+  bg_gather[,doelen := gsub("(.+?)(\\_.*)", "\\1", doelen)]
+  bg_spr <- dcast.data.table(bg_gather,id+GEP_2022+wlmt+doelen+sgbp_version~varrange,value.var='waarde')
+  
+  # add sgbp version
+  bg_spr[sgbp_version=='new',sgbp_version := 'SGBP3']
+  bg_spr[,Oordeel := as.factor(doelen)]
+  
+  #Create a custom color scale
+  myColors <- c("#00FF00", "#FFFF33", "#FF8000", "#FF0000")
+  names(myColors) <- levels(bg_spr$doelen)
+  
+  ## make plot
+  plot <- ggplot(dt, aes(x = id, y = EKR)) +
+    geom_rect(data = bg_spr, inherit.aes = FALSE,
+              aes(xmin = 0, xmax = 1, ymin = ymin, ymax = ymax, 
+                  fill = Oordeel), alpha = 0.3) +
+    scale_fill_manual(values = myColors) +
+    geom_segment(aes(x = 0, xend = 1, 
+                     y = EKR, yend = EKR, linetype = "Huidige toestand"), 
+                 col = "black", cex = 1.4) + # linetype = 2 -> dashed
+    scale_y_continuous(expand = c(0, 0), limits = c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1)) +
+    scale_linetype_manual("",values= c("Huidige toestand" = 1))+
+    facet_grid(cols = vars(wlmt)) +
+    theme_minimal()+ 
+    theme(axis.title.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          strip.text.x = element_text(size = 11), # maatlat
+          strip.text.y = element_text(size = 9), #
+          axis.text.x = element_blank(), #
+          axis.text.y = element_text(size= 9), # ekrscores
+          panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank(),
+          panel.grid.major.y = element_line(),
+          panel.grid.minor.y = element_line(),
+          panel.ontop = F,
+          legend.title = element_text(size = 11), 
+          legend.text  = element_text(size = 10),
+          legend.position = "bottom")
+  return(plot)
+}
+
+
 # maak plot van p VS Kp
 ppr_pvskpplot <- function(pvskpsel){
   
@@ -615,8 +682,8 @@ ppr_pvskpplot <- function(pvskpsel){
   d1 <- d1[,mget(cols)][,wp_meting_mgm2d := -wp_meting_mgm2d]
   
   # reshape data.table for figure
-  d2 <- melt(d1,id.vars = c('naam','kPDitch','pc_helder_troebel'),
-       variable.name = 'source',value.name = 'value')
+  d2 <- melt.data.table(d1,id.vars = c('naam','kPDitch','pc_helder_troebel'),
+        variable.name = 'source',value.name = 'value', variable.factor = FALSE)
   
   # plot figure
   plot <- ggplot(d2) +
@@ -642,6 +709,9 @@ ppr_pvskpplot <- function(pvskpsel){
 # make empty plots for factsheets when data is missing
 plotEmpty <-function(db,type){
   
+  # middle x-axis
+  midax = if(nrow(db)==1) 1 else nrow(db)*0.5 + 0.5
+  
   # plot Pwbal
   if(type=='Pwbal'){
     plot <-  ggplot(db) +
@@ -653,9 +723,9 @@ plotEmpty <-function(db,type){
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
-      annotate("text", x = nrow(db) * 0.6 , y=1, 
+      annotate("text", x = midax , y=1, 
                label = "P-belasting en bronnen\nzijn (nog) niet bekend.",
-               hjust = 'middle',size=8,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
   }
   
@@ -670,9 +740,9 @@ plotEmpty <-function(db,type){
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
-      annotate("text", x = nrow(db) * 0.6 , y=2, 
+      annotate("text", x = midax , y=2, 
                label = "Gegevens over het lichtklimaat\nzijn voor deze EAGs\n(nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
   }
   
@@ -692,9 +762,9 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank() )+ 
-      annotate("text", x = nrow(db) * 0.6 , y=1.6, 
+      annotate("text", x = midax , y=1.6, 
                label = "Metingen waterdiepte \nzijn (nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       ggtitle('') +
       labs(x= '', y = 'waterdiepte (m)\n')
   }
@@ -714,9 +784,9 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(),
         plot.background = element_blank())+
-      annotate("text", x = nrow(db) * 0.6 , y=0, 
+      annotate("text", x = midax , y=0, 
                label = "Potentiele nalevering \nis (nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), 
                         labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
       ggtitle( "Potentiele nalevering") +
@@ -738,9 +808,9 @@ plotEmpty <-function(db,type){
         axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank())+
-      annotate("text", x = nrow(db) * 0.6 , y=0.8, 
+      annotate("text", x = midax , y=0.8, 
                label = "Actuele nalevering \nis (nog) niet bekend.",
-               hjust = 'middle',size=6,color='blue') +
+               hjust = 'middle',size=5,color='blue') +
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
       ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
       labs(x="",y="P mg/m2/dag\n", fill = '')
@@ -826,7 +896,7 @@ ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
 ppr_plotbod <- function(bod1, type='grid'){
   
   # dcast slootbodem 
-  selb <- dcast(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  selb <- dcast.data.table(bod1, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
   
   # calculate relevant ratios
   selb[,FESPFWratio := (Fe_mg_l_ng_BS/55.845 - Stot_mg_l_ng_BS/32065)/(Ptot_mgP_l_ng_BS/30.974)]
