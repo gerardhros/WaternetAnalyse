@@ -147,7 +147,7 @@ for (i in 16:nrow(ESFoordelen)){
     waterlichamenwl <- ESFoordelen[i,] # i als iteratie aan, anders nummer waterlichaam
     wl <- waterlichamenwl$OWL_SGBP3 # of waterlichaam of eagcode of gafcode
     
-    # als eenheid factsheet KRW wl of GAF of meerdere EAGs
+    # als eenheid factsheet KRW wl 
     if(nrow(eag_wl[eag_wl$KRW_SGBP3 %in% wl,])>0){ 
       eagwl <- eag_wl[eag_wl$KRW_SGBP3 %in% wl,]
       wlname <- unique(eagwl$KRWmonitoringslocatie_SGBP3[(eagwl$KRW_SGBP3 %in% wl)])

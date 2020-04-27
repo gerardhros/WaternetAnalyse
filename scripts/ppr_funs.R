@@ -328,7 +328,7 @@ ppr_esf_oordeel <- function(){
   
   # trim character columns from starting and ending space
   d1[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
-  d1[,MotiveringWijzigingToestandWKP:=NULL]
+  #d1[,MotiveringWijzigingToestandWKP:=NULL]
   
   # hier later ook eags of gafs aan toevoegen
   
@@ -655,6 +655,48 @@ ppr_ekrplot2 <- function(ekr_score){
   return(plot)
 }
 
+# plot EKR background
+plotEKRlijnfs <- function(z){
+  
+  z <- z %>%
+    dplyr::arrange(GHPR_level) %>%               # sort your dataframe
+    dplyr::mutate(GHPR = factor(GHPR, unique(GHPR))) # reset your factor-column based on that order
+  z$jaar <- as.numeric(z$jaar)
+  z$Numeriekewaarde <- as.numeric(z$Numeriekewaarde)
+  z$facet_wrap_code <- as.character(z$facet_wrap_code)
+  z$wlmt <- ifelse(is.na(z$KRW_SGBP3)|z$KRW_SGBP3 == "", paste0(z$EAGIDENT," ",z$facet_wrap_code), z$facet_wrap_code)
+  
+  z <- z %>%
+    dplyr::group_by(waterlichaam, wlmt ,GHPR , GHPR_level, level, jaar)%>%
+    dplyr::summarise_at(c('Numeriekewaarde'),mean) 
+  
+  z <- z %>%
+    ungroup(waterlichaam)
+  
+  ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col = GHPR, group = GHPR))+
+    stat_summary(fun.y = "mean", geom = "point") + 
+    stat_summary(fun.y = "mean", geom = "line") +
+    scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
+    scale_x_continuous(limits= c(2006, 2020), breaks=c(2006, 2008, 2010, 2012, 2014,2016,2018))+
+    facet_grid(vars(level),vars(wlmt))+
+    ylab('')+xlab('')+
+    guides(col=guide_legend(title=""))+
+    ggtitle("", subtitle = z$waterlichaam)+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 7), #waardebepmethode
+      strip.text.y = element_text(size = 2), #level
+      axis.text.x = element_text(size= 5, angle=90), #jaar
+      axis.text.y = element_text(size= 5),
+      axis.ticks =  element_line(colour = "black"), 
+      panel.background = element_blank(), 
+      plot.background = element_blank(),
+      legend.title = element_text(size = 7), 
+      legend.text  = element_text(size = 6),
+      legend.key.size = unit(0.9, "lines"),
+      legend.position = "right")
+}
 
 # maak plot van p VS Kp
 ppr_pvskpplot <- function(pvskpsel){
@@ -827,6 +869,8 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   
   # median depth of hydrobiological data
   medianewd <- as.character(median(hybi[fewsparameter %in% parameter,meetwaarde],na.rm = T))
+  # meax depth of hydrobiological data
+  maxwd <- as.character(max(hybi[fewsparameter %in% parameter,meetwaarde],na.rm = T))
   
   # mean extinctie
   wq1 <- wq[fewsparameter %in% parameter & jaar > 2015 & meetwaarde > 0,]
@@ -836,9 +880,11 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   # plot figure
   p <- ggplot(wq1, aes(x= locatie.EAG, y= meetwaarde))+
     geom_boxplot() +
-    geom_hline(aes(yintercept = 3.22, col = '1 meter'), show.legend = T)+ #vec voor 1 meter >4%
+    geom_hline(aes(yintercept = log(25)/0.5, col = '0.5 meter'), show.legend = T)+
+    geom_hline(aes(yintercept = log(25), col = '1 meter'), show.legend = T)+ #vec voor 1 meter >4%
+    geom_hline(aes(yintercept = log(25)/max(hybi$meetwaarde), col = paste0(maxwd, ' meter (max diepte bemonsterd)')), show.legend = T)+ #vec voor 4 meter >4%
     geom_hline(aes(yintercept = log(25)/median(hybi$meetwaarde), col = paste0(medianewd, ' meter (mediane diepte)')), show.legend = T)+ #vec voor 4 meter >4%
-    geom_hline(aes(yintercept = 0.46, col = '7 meter'), show.legend = T)+ #vec+ voor 7 meter 4%
+    geom_hline(aes(yintercept = log(25)/7, col = '7 meter'), show.legend = T)+ #vec+ voor 7 meter 4%
     guides(col=guide_legend(title="4 % licht voor waterplanten op"))+
     theme_minimal()+
     theme(

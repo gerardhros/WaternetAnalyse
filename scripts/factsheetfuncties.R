@@ -869,10 +869,6 @@ trendfychem <- function(wq1, param = c("P","N","NH3","ZICHT","PH","ZVP","T","CL"
   return(gebiedData)
 }
 
-
-
-
-
 # deze functie werkt alleen als alle 4 de maatlatten significante trend wordt berekend
 # trendkrw <- trendEAG(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "deel") # juist trend per waterlichaam berekenen
 # write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE) # wegschrijven als csv

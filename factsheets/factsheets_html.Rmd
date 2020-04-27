@@ -19,7 +19,11 @@ document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r out
 ## Hoofdlijnen
 
 ### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
-Het `r out$waterlichamenwl$OWMNAAM` (`r out$waterlichamenwl$OWL`) heeft watertype `r unique(out$waterlichamenwl$typebesch)` (`r unique(out$eagwl$watertype)`) en bestaat uit de deelgebieden: `r out$deelgebieden$samen`.
+`r out$waterlichamenwl$OWMNAAM_SGBP3` (`r out$waterlichamenwl$OWL_SGBP3`) heeft watertype "`r unique(out$waterlichamenwl$typebesch)`" (`r unique(out$eagwl$watertype)`) en het wateroppervlak van het waterlichaam is `r round(sum(out$eagwl$OppWater)/10000, 0)` hectare.
+<br>
+Het waterlichaam bestaat uit de deelgebieden: 
+<br> 
+`r out$deelgebieden$samen`
 <br>
 `r out$waterlichamenwl$Karakterschets`
 <br>
@@ -63,13 +67,12 @@ include_graphics(out$mapDEELGEBIED)
 `r if(!is.na(out$waterlichamenwl$Doelen)){out$waterlichamenwl$Doelen}` 
 <br>
 
-**De huidige toestand vergeleken met de doelen –**`r out$d3$oordeel`
+**De huidige toestand vergeleken met de doelen –**`r unique(out$d3$oordeel)`
 <br>
 De toestand in `r out$waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur hiernaast) is `r unique(out$d3$oordeel)`. Het slechts scorende biologische kwaliteitselement is `r as.character(unique(out$d3$facet_wrap_code))`. 
 `r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(out$d3_deel$GHPR),"."))}` 
 `r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){if(unique(out$d3_deel$GHPR) == 'Abundantie groeivormen macrofyten'){unique(paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,"."))}}`
 `r if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand}`
-
 <br>
 
 **Oorzaken op hoofdlijnen**
@@ -79,11 +82,11 @@ De toestand in `r out$waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur
 
 **Maatregelen op hoofdlijnen**
 <br>
-`r if(!is.na(out$waterlichamenwl$Maatregelen)){out$waterlichamenwl$Maatregelen}` 
+`r if(!is.na(out$waterlichamenwl$Maatregelen)){out$waterlichamenwl$Maatregelen}`
 
 ### Toestand {data-width=400}
 
-```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen.De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel in de linkerbalk (SGBP2) en het technisch aangepaste CONCEPTdoel voor SGBP3 rechts. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
+```{r ekr, echo = FALSE, fig.cap="Huidige toestand vergeleken met doelen. De achtergrondkleuren in het figuur staan voor de klasseindeling van het huidige doel. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel gehaald.",message = FALSE, warning=FALSE}
 include_graphics(out$mapEKR)
 ```
 
@@ -201,7 +204,7 @@ Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen no
 
 # Toelichting en onderbouwing ESF-en, monitoring en begrenzing
 
-## {data-height=250}
+##
 
 ### Motivering KRW status en herbegrenzing
 `r out$waterlichamenwl$motstat` 
@@ -228,11 +231,23 @@ if(class(out$plotWaterdiepte)=='plotref'){include_graphics(out$plotWaterdiepte)}
 include_graphics(out$plotWaterbodem)
 ```
 
-## {data-height=50}
+## {data-height=10}
 
 ### Brondata: water- en stoffenbalansen
 ### Brondata: Monitoringsresultaten uit meetprogramma`s fysisch-chemie en hydrobiologie
 ### Brondata: Monitoringsresultaten uit meetprogramma waterbodemchemie
+
+## {data-height=800}
+### EKR scores op alle deelmaatlatten in de tijd {data-height=700}
+```{r ekrtijd, echo= FALSE, warning = FALSE, message = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
+if(outputF == "html"){  
+  plotly::ggplotly(out$plotEKRlijn)%>%
+    plotly::layout(legendgroup='GHPR', showlegend = T, legend = list(font = list(size = 9)))
+}
+if(outputF == "word"){
+    out$plotEKRlijn
+}
+```
 
 # Begrippenlijst en afkortingen
 

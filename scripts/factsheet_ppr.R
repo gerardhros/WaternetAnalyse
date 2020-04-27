@@ -1,15 +1,6 @@
 # factsheet preprocess
 # authors: Laura Moria, Sven Verweij en Gerard Ros
 
-# load required packages for these funs
-require(sf);require(data.table)
-require(magrittr);require(ggplot2)
-require(grid)
-require(gridExtra)
-
-# source functions
-source('scripts/ppr_funs.R')
-
 # Directories and names------------------------------------------
 
 # other settings ---------------------------
@@ -80,7 +71,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   # EKR sets KRW en overig water
   EKRset1 <- readRDS('hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
-  EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2,eag_wl = eag_wl,doelen = doelen)
+  EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2,eag_wl = eag_wl, doelen = doelen)
   
   # alleen nieuwe maatlatten
   EKRset <- EKRset[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
@@ -109,7 +100,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   # show progress
   pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 
   
-  # data voor P belasting (override the existing ones, this need to be updated)
+# data voor P belasting (override the existing ones, this need to be updated) ----------------------
   #nomogram <- importCSV('pbelasting/input/nomogram.csv', path = getwd())
   #Overzicht_kP <- importCSV('pbelasting/input/Overzicht_kP.csv', path = getwd()) 
   #pvskp <- makePmaps(dat, Overzicht_kp, hybi, nomogram) 
@@ -146,7 +137,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
    # send message to console
   print('Thanks for waiting. all data is succesfully loaded and saved in object brondata')
   
-# --- extractfunctie for relevant properties needed for factsheet ----
+# --- extractfunctie for relevant properties needed for single factsheet ----
   
   factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
     
@@ -160,7 +151,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # select data for water body and extract name
     if(wl %in% eag_wl$KRW_SGBP3){
       
-      # als eenheid factsheet KRW wl of GAF of meerdere EAGs
+      # als eenheid factsheet KRW wl 
       eagwl <- eag_wl[KRW_SGBP3 %in% wl|substr(GAFIDENT,1,4) %in% wl,]
       
       # extract the name as text after the first underscore
@@ -174,7 +165,6 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       # extract the name and remove prefix 'NL11_'
       wlname <- unique(EKRset[EAGIDENT %in% eagwl$GAFIDENT,HoortBijGeoobject.identificatie])
       wlname <- gsub("NL11_","",wlname)
-      
     }
     
     # get title
@@ -331,8 +321,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     ekr_scores <- ppr_tabelPerWL3jaargemEAG_incl2022(EKRset = EKRset1)
     
     # subset 1, en zoek laagste score (old: ekr_scores_sel2)
-    ekr_scores1[,oordeelsort := EKR / GEP_2022]
     ekr_scores1 <- ekr_scores[!is.na(id) & level == 1]
+    ekr_scores1[,oordeelsort := EKR / GEP_2022]
     d3 <- ekr_scores1[oordeelsort==min(oordeelsort,na.rm=T),]
     # subset 2, en zoek laagste score (old: ekr_scores_sel2_deel)
     ekr_scores2 <- ekr_scores[facet_wrap_code %in% d3$facet_wrap_code & level == 2,]
@@ -349,14 +339,19 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     
     d3_deelptn <- ekr_scores3[EKR==min(EKR,na.rm=T),]
     
-    # create map
+    # create plt met ekr scores en doelen
     mapEKR <- ppr_ekrplot2(ekr_scores1)
+    
+    # create plt met ekr scores in de tijd
+    # ongewogen scores obv koppeling locatie en EAG
+    z <- rbind(EKRset1,EKRset2[EKRset2$level == 3,])
+    plotEKRlijn <- plotEKRlijnfs(z)
     
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
     mapEKR <- paste0('routput/',my_title2,'/mapEKR.png')
     
-    # --- Ecologische SleutelFactoren ----- (ESF tabel) ------
+    # --- Ecologische SleutelFactoren (ESF tabel) ------
     
     # ESF is doubled in columns: one string and one number, detect via lenght of the first row
     cols <- which(grepl('ESF',colnames(ESF)))
@@ -507,7 +502,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',my_title2,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
     
     
-    # --- plot ESF 2: lichtklimaat
+    # --- plot ESF 2: lichtklimaat ----
     plotLichtklimaat.ref <- paste0('routput/',my_title2,'/plotLichtklimaat.png') 
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
       
@@ -526,7 +521,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',my_title2,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
     
     
-    # --- plot ESF 4: waterdiepte
+    # --- plot ESF 4: waterdiepte ----
     plotWaterdiepte.ref <- paste0('routput/',my_title2,'/plotWaterdiepte.png')
     
     if(nrow(hybi1[fewsparameter == 'WATDTE_m',])>0){
@@ -548,7 +543,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',my_title2,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
    
     
-    # --- plot ESF3 : waterbodem
+    # --- plot ESF3 : waterbodem ----
     plotbodFW.ref <- paste0('routput/',my_title2,'/plotWaterbodem_FW.png')
     plotqPW.ref <- paste0('routput/',my_title2,'/plotWaterbodem_qPW.png')
     plotWaterbodem.ref <- paste0('routput/',my_title2,'/plotWaterbodem.png')
@@ -610,7 +605,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                 rates = rates,
                 d3 = d3,
                 d3_deel = d3_deel,
-                d3_deelptn = d3_deelptn
+                d3_deelptn = d3_deelptn,
+                plotEKRlijn = plotEKRlijn
                 )
     
     # return list with relevant properties
