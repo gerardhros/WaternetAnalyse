@@ -104,7 +104,7 @@ cf_tit <- min(1,12 / nchar(lx_title)) * c(108,99,96,88)
   \fontsize{9}{10.8}\selectfont
   
   % add descriptive text for this water body
-Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Onze gebiedspartners zijn provincie \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
+Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
    
   % add frame for figuur Ecosysteem in beeld 
   \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gb}{
@@ -168,9 +168,9 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
     \vspace{5mm}
     
     % huidige toestand vergeleken met doel
-    \textbf{De huidige toestand: } \Sexpr{out$d3$oordeel}
+    \textbf{De huidige toestand: } \Sexpr{out$d3$oordeel_2022}
     \vspace{5mm}
-    De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hierboven) is \Sexpr{out$d3$oordeel}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. \Sexpr{eah_message}\\
+    De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hierboven) is \Sexpr{out$d3$oordeel_2022}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. \Sexpr{eah_message}\\
 
     % add oorzaken
     \textbf{Oorzaken:} \Sexpr{eah_oorz}

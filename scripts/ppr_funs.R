@@ -647,17 +647,17 @@ ppr_ekrplot2 <- function(ekr_score){
     theme(axis.title.x=element_blank(),
           axis.ticks.x=element_blank(),
           strip.text.x = element_text(size = 8), # maatlat
-          strip.text.y = element_text(size = 6), # y as
+          #strip.text.y = element_text(size = 6), # y as
           axis.text.x = element_blank(), #
-          axis.text.y = element_text(size= 6), # ekrscores
-          axis.title = element_text(size= 6),
+          axis.text.y = element_text(size= 7), # ekrscores
+          axis.title = element_text(size= 7),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.grid.major.y = element_line(),
           panel.grid.minor.y = element_line(),
           panel.ontop = F,
           legend.title = element_text(size = 8), 
-          legend.text  = element_text(size = 6),
+          legend.text  = element_text(size = 7),
           legend.position = "bottom")
   return(plot)
 }
@@ -715,7 +715,7 @@ ppr_pvskpplot <- function(pvskpsel){
   cols <- colnames(d1)[!grepl('^a_in|^a_uit|EAG|GAF|KRW|pol|watertype|^bodem|^naam|^namen|watdteF|lake_ditch',colnames(d1))]
   
   # estimate mean by name and select only those with a name
-  d1 <- d1[,lapply(.SD,mean,na.rm=T),.SDcols = cols,by='naam'][!is.na(naam)]
+  d1 <- d1[,lapply(.SD,mean,na.rm=T),.SDcols = cols, by=c('naam','watertype')][!is.na(naam)]
   
   # set measurement to zero when not available
   d1[is.na(wp_meting_mgm2d), wp_meting_mgm2d := 0]
@@ -726,30 +726,32 @@ ppr_pvskpplot <- function(pvskpsel){
   colWat <- paste(c(colWat2,"yellow", colWat1))
   
   # select columns
-  cols <- colnames(d1)[grepl('^naam|^wp_|^kPDi|^pc_helder',colnames(d1))]
+  cols <- colnames(d1)[grepl('^naam|^wp_|^kPDi|^pc_helder|^watertype',colnames(d1))]
   cols <- cols[!grepl('_sum$|_gm3$',cols)]
   d1 <- d1[,mget(cols)][,wp_meting_mgm2d := -wp_meting_mgm2d]
   
   # reshape data.table for figure
-  d2 <- melt.data.table(d1,id.vars = c('naam','kPDitch','pc_helder_troebel'),
+  d2 <- melt.data.table(d1,id.vars = c('naam','kPDitch','pc_helder_troebel','watertype'),
         variable.name = 'source',value.name = 'value', variable.factor = FALSE)
+  d2$kP <- ifelse(d2$watertype %in% c('M14','M27','M20','M25','M11'), d2$pc_helder_troebel, d2$kPDitch)
+  d2$naam <- str_squish(d2$naam)
+  d2$naam <- str_trunc(d2$naam, 15, "left")
   
   # plot figure
   plot <- ggplot(d2) +
     geom_bar(aes(x = naam, y = value, fill = source), stat = 'identity') +
-    geom_point(aes(x = naam, y= kPDitch), shape = 20, size = 6, fill = "red", colour = "red")+
-    geom_point(aes(x = naam, y= pc_helder_troebel), shape = 20, size = 6, fill = "salmon",
-               colour = "salmon")+
-    xlab('') + ylab('mg P/m2/dag') +
+    geom_point(aes(x = naam, y= kP), shape = 20, size = 6, fill = "salmon",
+                 colour = "red")+
+    xlab('') + ylab('mg P/m2/dag')+
     #ggtitle("Fosfor- en kritische belasting per deelgebied")+
     theme_classic() +
     guides(shape = guide_legend(override.aes = list(size = 4)),
            color = guide_legend(override.aes = list(size = 4))) +
     theme(legend.title = element_blank(), 
-          legend.text  = element_text(size = 6),
+          legend.text  = element_text(size = 7),
           legend.key.size = unit(0.9, "lines"),
           legend.position = "right")+
-    theme(axis.text.x = element_text(angle = 30, hjust =1))+
+    theme(axis.text.x = element_text(size = 7, angle = 30, hjust = 1))+
     scale_fill_manual(values = colWat)
  
   return(plot)
@@ -773,7 +775,7 @@ plotEmpty <-function(db,type){
             legend.position = "right")+
       theme(axis.text.x = element_text(angle = 30, hjust =1)) +
       annotate("text", x = midax , y=1, 
-               label = "P-belasting en bronnen\nzijn (nog) niet bekend.",
+               label = "P-belasting en bronnen\nzijn (nog) niet beschikbaar.",
                hjust = 'middle',size=5,color='blue') +
       theme(axis.text =element_text(colour="black"))
   }
@@ -788,7 +790,9 @@ plotEmpty <-function(db,type){
             legend.text  = element_text(size = 6),
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
-      theme(axis.text.x = element_text(angle = 30, hjust =1)) +
+      theme(axis.text.x = element_text(angle = 30, hjust =1),
+            axis.ticks =  element_line(colour = "black"), 
+            axis.line = element_line(colour='black')) +
       annotate("text", x = midax , y=2, 
                label = "Gegevens over het lichtklimaat\nzijn voor deze EAGs\n(nog) niet bekend.",
                hjust = 'middle',size=5,color='blue') +
@@ -803,8 +807,6 @@ plotEmpty <-function(db,type){
       guides(col=guide_legend(title="KRW watertype"))+
       theme(
         strip.background = element_blank(),
-        strip.text.x = element_text(size = 6), #EAG
-        strip.text.y = element_text(size = 5), #EKR
         axis.text.x = element_text(size= 7, angle=0,colour = 'black'),
         axis.text.y = element_text(size= 7, hjust=2,colour = 'black'),
         axis.ticks =  element_line(colour = "black"), 
@@ -827,7 +829,7 @@ plotEmpty <-function(db,type){
         strip.background = element_blank(),
         strip.text.x = element_text(size = 6), #EAG
         strip.text.y = element_text(size = 5), #EKR
-        axis.text.x = element_text(size= 7, angle = 0,colour = 'black'),
+        axis.text.x = element_text(size= 7, angle = 30, hjust = 1, colour = 'black'),
         axis.text.y = element_text(size= 7,colour = 'black'),
         axis.ticks =  element_line(colour = "black"),
         axis.line = element_line(colour='black'),
@@ -851,7 +853,7 @@ plotEmpty <-function(db,type){
         strip.background = element_blank(),
         strip.text.x = element_text(size = 6), #EAG
         strip.text.y = element_text(size = 5), #EKR
-        axis.text.x = element_text(size= 7, angle = 0,colour='black'),
+        axis.text.x = element_text(size= 7, angle = 30, hjust = 1, colour='black'),
         axis.text.y = element_text(size= 7, colour='black'),
         axis.ticks =  element_line(colour = "black"),
         axis.line = element_line(colour='black'),
@@ -896,12 +898,13 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
     theme_minimal()+
     theme(
       strip.background = element_blank(),
-      axis.text.x = element_text(size= 6), # labels
-      axis.text.y = element_text(size= 6),
+      axis.text.x = element_text(size= 7), # labels
+      axis.text.y = element_text(size= 7),
       axis.ticks =  element_line(colour = "black"), 
+      axis.line = element_line(colour='black'),
       panel.background = element_blank(), 
-      plot.background = element_blank(),
-      axis.title=element_text(size=6) )+
+      plot.background = element_blank())+
+    theme(axis.text.x = element_text(angle = 30, hjust =1)) +
     theme(legend.title = element_text(size = 6, face = 'bold'), 
           legend.text  = element_text(size = 6),
           legend.key.size = unit(0.9, "lines"),
@@ -927,14 +930,15 @@ ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
     guides(col=guide_legend(title="KRW watertype"))+
     theme(
       strip.background = element_blank(),
-      axis.text.x = element_text(size= 6),
-      axis.text.y = element_text(size= 6),
-      axis.ticks =  element_line(colour = "black"), 
+      axis.text.x = element_text(size= 7),
+      axis.text.y = element_text(size= 7),
       panel.background = element_blank(), 
       plot.background = element_blank(),
-      axis.title=element_text(size=6) )+
-    theme(legend.title = element_text(size = 6, face = 'bold'), 
-          legend.text  = element_text(size = 6),
+      axis.title = element_text(size=7),
+      axis.ticks =  element_line(colour = "black"), 
+      axis.line = element_line(colour='black'))+
+    theme(legend.title = element_text(size = 7, face = 'bold'), 
+          legend.text  = element_text(size = 7),
           legend.key.size = unit(0.9, "lines"),
           legend.position = "right")+
     ggtitle('') +
@@ -983,15 +987,16 @@ ppr_plotbod <- function(bod1, type='grid'){
     theme_minimal()+
     theme(
       strip.background = element_blank(),
-      title = element_text(size= 6),
-      axis.text.x = element_text(size= 6),
-      axis.text.y = element_text(size= 6),
-      axis.ticks =  element_line(colour = "black"), 
+      title = element_text(size= 7),
+      axis.text.x = element_text(size= 7),
+      axis.text.y = element_text(size= 7),
+      axis.ticks =  element_line(colour = "black"),
+      axis.line = element_line(colour='black'), 
       panel.background = element_blank(), 
       plot.background = element_blank(),
-      axis.title=element_text(size=6) )+
-    theme(legend.title = element_text(size = 6, face = 'bold'), 
-          legend.text  = element_text(size = 6),
+      axis.title=element_text(size=7) )+
+    theme(legend.title = element_text(size = 7, face = 'bold'), 
+          legend.text  = element_text(size = 7),
           legend.key.size = unit(0.9, "lines"),
           legend.position = "right")+
     scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
@@ -1004,15 +1009,16 @@ ppr_plotbod <- function(bod1, type='grid'){
       theme_minimal()+
       theme(
         strip.background = element_blank(),
-        title = element_text(size= 6),
-        axis.text.x = element_text(size= 6),
-        axis.text.y = element_text(size= 6),
-        axis.ticks =  element_line(colour = "black"), 
+        title = element_text(size= 7),
+        axis.text.x = element_text(size= 7),
+        axis.text.y = element_text(size= 7),
+        axis.ticks =  element_line(colour = "black"),
+        axis.line = element_line(colour='black'),
         panel.background = element_blank(), 
         plot.background = element_blank(),
-        axis.title=element_text(size=6) )+
-      theme(legend.title = element_text(size = 6, face = 'bold'), 
-            legend.text  = element_text(size = 6),
+        axis.title=element_text(size=7) )+
+      theme(legend.title = element_text(size = 7, face = 'bold'), 
+            legend.text  = element_text(size = 7),
             legend.key.size = unit(0.9, "lines"),
             legend.position = "right")+
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+

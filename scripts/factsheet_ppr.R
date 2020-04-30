@@ -290,7 +290,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(!my_title2 %in% list.files('factsheets/routput')){dir.create(paste0('factsheets/routput/',my_title2))}
     
     # save plot, and location where map is saved
-    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',my_title2,'/mapEAG.png'),width = 10,height = 10,units='cm',dpi=500)    }
+    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',my_title2,'/mapEAG.png'),
+                              width = 11,height = 10,units='cm',dpi=500)    }
     mapEAG <- paste0('routput/',my_title2,'/mapEAG.png')
     
     ## plot locatie deelgebieden binnen EAG
@@ -318,7 +319,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
     
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',my_title2,'/mapDEELGEBIED.png'),width = 10,height = 10,units='cm',dpi=500)}
+    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',my_title2,'/mapDEELGEBIED.png'), units='cm',dpi=600)}
     mapDEELGEBIED <- paste0('routput/',my_title2,'/mapDEELGEBIED.png')
     
     # --- make EKR plot ------------
@@ -355,7 +356,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'), 
-                              width = 13, height = 8,units='cm',dpi=800)}
+                              width = 14, height = 10,units='cm',dpi=1000)}
     mapEKR <- paste0('routput/',my_title2,'/mapEKR.png')
     
     # --- Ecologische SleutelFactoren (ESF tabel) ------

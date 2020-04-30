@@ -27,7 +27,7 @@ Het waterlichaam bestaat uit de deelgebieden:
 <br>
 `r out$waterlichamenwl$Karakterschets`
 <br>
-Het waterlichaam ligt in de provincie(s) `r out$waterlichamenwl$prov` en gemeente(n) `r out$waterlichamenwl$gem`. `r if(!is.null(unique(out$waterlichamenwl$Gebiedpartners)){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}`
+Het waterlichaam ligt in de provincie(s) `r out$waterlichamenwl$prov` en gemeente(n) `r out$waterlichamenwl$gem`. `r if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}`
 Het waterlichaam `r out$waterlichamenwl$OWMNAAM` heeft de status `r out$waterlichamenwl$Status` en is in eigendom van `r out$waterlichamenwl$Eigenaren`. 
 
 ## Ligging en beeld {data-height=400}
@@ -67,7 +67,7 @@ include_graphics(out$mapDEELGEBIED)
 `r if(!is.na(out$waterlichamenwl$Doelen)){out$waterlichamenwl$Doelen}` 
 <br>
 
-**De huidige toestand vergeleken met de doelen –**`r unique(out$d3$oordeel)`
+**De huidige toestand vergeleken met de doelen –**`r unique(out$d3$oordeel_2022)`
 <br>
 De toestand in `r out$waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur hiernaast) is `r unique(out$d3$oordeel_2022)`. Het biologische kwaliteitselement met het laagste oordeel is `r as.character(unique(out$d3$facet_wrap_code))`. 
 `r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){unique(paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",unique(out$d3_deel$GHPR),"."))}` 

@@ -7,7 +7,7 @@ rm(list=ls())
 # Load packages and functions -------------------------------------
 require(rmarkdown);require(flexdashboard)
 require(knitr);require(kableExtra)
-require(dplyr) 
+require(dplyr) ;require(stringr)
 # load required packages for these factsheetppr
 require(sf);require(data.table)
 require(magrittr);require(ggplot2)
