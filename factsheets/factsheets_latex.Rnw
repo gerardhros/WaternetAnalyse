@@ -27,8 +27,8 @@ out = readRDS('routput/out.rds')
 lx_title <- out$my_title
 lx_wtype <- unique(out$eagwl$watertype)
 lx_wtypeoms <- unique(out$waterlichamenwl$typebesch)
-lx_naam <- out$waterlichamenwl$OWMNAAM
-lx_code <- gsub("_", "-",out$waterlichamenwl$OWL)
+lx_naam <- out$waterlichamenwl$OWMNAAM_SGBP3
+lx_code <- gsub("_", "-",out$waterlichamenwl$OWL_SGBP3)
 lx_deelgebied <- gsub('_','-',gsub('&','en',paste0(out$deelgebieden$samen,collapse=', ')))
 lx_karakterschets <- gsub('&','en',gsub('%','\\%',gsub('\r\n','',out$waterlichamenwl$Karakterschets),fixed=TRUE))
 lx_prov <- out$waterlichamenwl$prov

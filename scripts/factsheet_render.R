@@ -10,14 +10,18 @@ require(knitr);require(kableExtra)
 require(dplyr) 
 # load required packages for these factsheetppr
 require(sf);require(data.table)
-require(magrittr);require(ggplot2);require(ggplotly)
+require(magrittr);require(ggplot2)
+require(plotly)
 require(grid)
 require(gridExtra)
+
+# add functions
+source('scripts/ppr_funs.R')
 
 # collect all input data needed to make factsheets for all EAGs
 source('scripts/factsheet_ppr.R')
 
-# add functions
+# add functions again omdat factsheets.ppr ze weer wist
 source('scripts/ppr_funs.R')
 
 # run for all files
@@ -41,13 +45,13 @@ for(eagnr in 1 : nrow(brondata$ESFoordelen)){
   #setwd("factsheets")
   
   # make the pdf file
- # knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
+  # knitr::knit2pdf("factsheets_latex.Rnw",compiler = 'pdflatex')
   
   # copy the pdf to the correct directory (factsheets/output)
   #file.rename(from = 'factsheets_latex.pdf',to = paste0("output/FS_", out$my_title2, ".pdf"))
   
   # reset working directory
- # setwd('../')
+  # setwd('../')
 }
 
 

@@ -29,7 +29,7 @@ packages(rpivotTable)
 # packages(stringr)
 # packages(plyr)
 packages(dplyr)
-# packages(sp) # zit ook in raster
+packages(sp) # zit ook in raster # voor CRS projectie functie
 # packages(ggthemes)
 # packages(mapproj)
 # packages(knitr)# pdf maken van tabellen

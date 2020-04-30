@@ -47,19 +47,25 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   return(db)
 }
 
-ppr_ekr <- function(ekr1, ekr2, eag_wl, doelen){
+ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   
   #correctie verschillende namen zelfde waterlichaam: let op ekr1 moet krw waterlichamen set zijn!!!!!!
   eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
   eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
-  ekr1$waterlichaam <- eag_wl2$waterlichaam[sapply(ekr1$HoortBijGeoobject.identificatie, 
+  krwset$waterlichaam <- eag_wl2$waterlichaam[sapply(krwset$HoortBijGeoobject.identificatie, 
                                                  function(x) {which.min(stringdist::stringdist(x, eag_wl2$waterlichaam))}
   )]
-  ekr1$HoortBijGeoobject.identificatie[is.na(ekr1$EAGIDENT)] <- ekr1$waterlichaam[is.na(ekr1$EAGIDENT)]
-  ekr1$HoortBijGeoobject.identificatie[!is.na(ekr1$EAGIDENT)] <- paste0("NL11_", ekr1$waterlichaam[!is.na(ekr1$EAGIDENT)])
+  krwset$HoortBijGeoobject.identificatie[is.na(krwset$EAGIDENT)] <- krwset$waterlichaam[is.na(krwset$EAGIDENT)]
+  krwset$HoortBijGeoobject.identificatie[!is.na(krwset$EAGIDENT)] <- paste0("NL11_", krwset$waterlichaam[!is.na(krwset$EAGIDENT)])
+  
+  # correctie toetsresultaten van KRW waterlichamen weg uit de set van overig water obv EAG
+  # er zitten foutieve watertypen in de bronbestanden, dit heb ik nog niet opgelost
+  tomatch <- unique(krwset$EAG) ; tomatch <- tomatch[!is.na(tomatch)]
+  pattern <- paste(tomatch, collapse = "|")
+  ovwatset <- ovwatset[!grepl(pattern, ovwatset$HoortBijGeoobject.identificatie),]
   
   # combine both EKR from KRW and overig water into one data.table
-  db <- data.table::rbindlist(list(ekr1,ekr2), fill=TRUE)
+  db <- data.table::rbindlist(list(krwset,ovwatset), fill=TRUE)
   
   # rijen weg zonder informatie
   db <- db[!is.na(db$Numeriekewaarde),]
@@ -640,17 +646,18 @@ ppr_ekrplot2 <- function(ekr_score){
     theme_minimal()+ 
     theme(axis.title.x=element_blank(),
           axis.ticks.x=element_blank(),
-          strip.text.x = element_text(size = 11), # maatlat
-          strip.text.y = element_text(size = 9), #
+          strip.text.x = element_text(size = 8), # maatlat
+          strip.text.y = element_text(size = 6), # y as
           axis.text.x = element_blank(), #
-          axis.text.y = element_text(size= 9), # ekrscores
+          axis.text.y = element_text(size= 6), # ekrscores
+          axis.title = element_text(size= 6),
           panel.grid.major.x = element_blank(),
           panel.grid.minor.x = element_blank(),
           panel.grid.major.y = element_line(),
           panel.grid.minor.y = element_line(),
           panel.ontop = F,
-          legend.title = element_text(size = 11), 
-          legend.text  = element_text(size = 10),
+          legend.title = element_text(size = 8), 
+          legend.text  = element_text(size = 6),
           legend.position = "bottom")
   return(plot)
 }
@@ -868,9 +875,9 @@ plotEmpty <-function(db,type){
 ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
   
   # median depth of hydrobiological data
-  medianewd <- as.character(median(hybi[fewsparameter %in% parameter,meetwaarde],na.rm = T))
+  medianewd <- median(hybi[fewsparameter %in% parameter,meetwaarde],na.rm = T)
   # meax depth of hydrobiological data
-  maxwd <- as.character(max(hybi[fewsparameter %in% parameter,meetwaarde],na.rm = T))
+  maxwd <- max(hybi[fewsparameter %in% parameter,meetwaarde],na.rm = T)
   
   # mean extinctie
   wq1 <- wq[fewsparameter %in% parameter & jaar > 2015 & meetwaarde > 0,]
@@ -882,23 +889,21 @@ ppr_extinctie1 <- function(wq, hybi, parameter = c('VEC', 'WATDTE_m')){
     geom_boxplot() +
     geom_hline(aes(yintercept = log(25)/0.5, col = '0.5 meter'), show.legend = T)+
     geom_hline(aes(yintercept = log(25), col = '1 meter'), show.legend = T)+ #vec voor 1 meter >4%
-    geom_hline(aes(yintercept = log(25)/max(hybi$meetwaarde), col = paste0(maxwd, ' meter (max diepte bemonsterd)')), show.legend = T)+ #vec voor 4 meter >4%
-    geom_hline(aes(yintercept = log(25)/median(hybi$meetwaarde), col = paste0(medianewd, ' meter (mediane diepte)')), show.legend = T)+ #vec voor 4 meter >4%
+    geom_hline(aes(yintercept = log(25)/maxwd, col = paste0(as.character(maxwd), ' meter (max diepte bemonsterd)')), show.legend = T)+ #vec voor 4 meter >4%
+    geom_hline(aes(yintercept = log(25)/medianewd, col = paste0(as.character(medianewd), ' meter (mediane diepte)')), show.legend = T)+ #vec voor 4 meter >4%
     geom_hline(aes(yintercept = log(25)/7, col = '7 meter'), show.legend = T)+ #vec+ voor 7 meter 4%
     guides(col=guide_legend(title="4 % licht voor waterplanten op"))+
     theme_minimal()+
     theme(
       strip.background = element_blank(),
-      strip.text.x = element_text(size = 6), #EAG
-      strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 9, angle=40),
-      axis.text.y = element_text(size= 9, hjust=2),
+      axis.text.x = element_text(size= 6), # labels
+      axis.text.y = element_text(size= 6),
       axis.ticks =  element_line(colour = "black"), 
       panel.background = element_blank(), 
       plot.background = element_blank(),
-      axis.title=element_text(size=9) )+
-    theme(legend.title = element_text(size = 10, face = 'bold'), 
-          legend.text  = element_text(size = 10),
+      axis.title=element_text(size=6) )+
+    theme(legend.title = element_text(size = 6, face = 'bold'), 
+          legend.text  = element_text(size = 6),
           legend.key.size = unit(0.9, "lines"),
           legend.position = "right")+
     ggtitle('') +
@@ -922,15 +927,16 @@ ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
     guides(col=guide_legend(title="KRW watertype"))+
     theme(
       strip.background = element_blank(),
-      strip.text.x = element_text(size = 6), #EAG
-      strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 7, angle=0, colour = 'black'),
-      axis.text.y = element_text(size= 7, hjust=2, colour = 'black'),
+      axis.text.x = element_text(size= 6),
+      axis.text.y = element_text(size= 6),
       axis.ticks =  element_line(colour = "black"), 
-      axis.line = element_line(colour='black'),
       panel.background = element_blank(), 
-      plot.background = element_blank()
-    )+ 
+      plot.background = element_blank(),
+      axis.title=element_text(size=6) )+
+    theme(legend.title = element_text(size = 6, face = 'bold'), 
+          legend.text  = element_text(size = 6),
+          legend.key.size = unit(0.9, "lines"),
+          legend.position = "right")+
     ggtitle('') +
     labs(x= '', y = 'waterdiepte (m)\n')
  
@@ -977,15 +983,17 @@ ppr_plotbod <- function(bod1, type='grid'){
     theme_minimal()+
     theme(
       strip.background = element_blank(),
-      strip.text.x = element_text(size = 6), #EAG
-      strip.text.y = element_text(size = 5), #EKR
-      axis.text.x = element_text(size= 7, angle = 0, colour='black'),
-      axis.text.y = element_text(size= 7, colour='black'),
-      axis.ticks =  element_line(colour = "black"),
-      axis.line = element_line(colour='black'),
-      panel.background = element_blank(),
-      plot.background = element_blank()
-    )+
+      title = element_text(size= 6),
+      axis.text.x = element_text(size= 6),
+      axis.text.y = element_text(size= 6),
+      axis.ticks =  element_line(colour = "black"), 
+      panel.background = element_blank(), 
+      plot.background = element_blank(),
+      axis.title=element_text(size=6) )+
+    theme(legend.title = element_text(size = 6, face = 'bold'), 
+          legend.text  = element_text(size = 6),
+          legend.key.size = unit(0.9, "lines"),
+          legend.position = "right")+
     scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
     ggtitle( "Potentiele nalevering") +
     labs(x="",y="P mg/m2/dag\n", fill = '')
@@ -996,17 +1004,19 @@ ppr_plotbod <- function(bod1, type='grid'){
       theme_minimal()+
       theme(
         strip.background = element_blank(),
-        strip.text.x = element_text(size = 6), #EAG
-        strip.text.y = element_text(size = 5), #EKR
-        axis.text.x = element_text(size= 7, angle = 0,colour='black'),
-        axis.text.y = element_text(size= 7,colour='black'),
-        axis.ticks =  element_line(colour = "black"),
-        axis.line = element_line(colour='black'),
+        title = element_text(size= 6),
+        axis.text.x = element_text(size= 6),
+        axis.text.y = element_text(size= 6),
+        axis.ticks =  element_line(colour = "black"), 
         panel.background = element_blank(), 
-        plot.background = element_blank()
-      )+
+        plot.background = element_blank(),
+        axis.title=element_text(size=6) )+
+      theme(legend.title = element_text(size = 6, face = 'bold'), 
+            legend.text  = element_text(size = 6),
+            legend.key.size = unit(0.9, "lines"),
+            legend.position = "right")+
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
-      ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
+      ggtitle( "Actuele nalevering uit de waterbodem obv poriewatermetingen") +
       labs(x="",y="P mg/m2/dag\n", fill = '')
   }
   if(is.null(selb$FESPPWratio)){out = plotFW} 

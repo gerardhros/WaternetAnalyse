@@ -48,6 +48,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 
   ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
   eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
+  eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
   
   # KRW doelen 
   doelen <- ppr_doelen()
@@ -71,7 +72,10 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   # EKR sets KRW en overig water
   EKRset1 <- readRDS('hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
-  EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2,eag_wl = eag_wl, doelen = doelen)
+  EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen = doelen)
+  # noodgreep omdat er fouten zitten in de toetsgegevens
+  EKRset$KRWwatertype.code[EKRset$Identificatie == 'VaartenRondeHoep'] <- 'M8'
+  EKRset$KRWwatertype.code[EKRset$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
   
   # alleen nieuwe maatlatten
   EKRset <- EKRset[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
@@ -140,7 +144,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 # --- extractfunctie for relevant properties needed for single factsheet ----
   
   factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
-    
+    # Naardermeer i <- 28
+    # subset data ----
     # subset ESFoordelen and get ESF
     waterlichamenwl <- ESFoordelen[i,] 
     ESF <- ESFoordelen[i,] 
@@ -152,14 +157,14 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(wl %in% eag_wl$KRW_SGBP3){
       
       # als eenheid factsheet KRW wl 
-      eagwl <- eag_wl[KRW_SGBP3 %in% wl|substr(GAFIDENT,1,4) %in% wl,]
+      eagwl <- eag_wl[KRW_SGBP3 %in% wl,]
       
       # extract the name as text after the first underscore
       wlname <- sub('.*_', '',unique(eagwl[,KRWmonitoringslocatie_SGBP3]))
       
     } else {
       
-      # als eenheid factsheet is eag
+      # als eenheid factsheet is eag of gaf
       eagwl <- eag_wl[GAFIDENT %in% wl|substr(GAFIDENT,1,4) %in% wl,]
                
       # extract the name and remove prefix 'NL11_'
@@ -212,13 +217,13 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     waterpereag_sel <- waterpereag1[waterpereag1$GAFIDENT %in% eagwl$GAFIDENT, ]
     
     # get deelgebieden
-    deelgebieden <- as.data.table(gEAG_sel[,c('GAFIDENT','GAFNAAM')])[,geom:=NULL] 
+    deelgebieden <- as.data.table(eagwl[,c('GAFIDENT','GAFNAAM')])
     deelgebieden[,samen := paste0(GAFIDENT," (",GAFNAAM,")")]
     
     # get hydrobiological data
     EST_sel <- EST[EAG %in% eagwl$GAFIDENT,]
     
-    # get Ecosystem Status
+    # get Ecosystem Status ----
     
     if(nrow(EST_sel)>0){
       
@@ -254,6 +259,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_1')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
     }
     
+    # --- make kaarten plots ----
     ## plot locatie EAG binnen beheergebied AGV
     
     # bounding box needed
@@ -348,7 +354,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     plotEKRlijn <- plotEKRlijnfs(z)
     
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'),width = 13,height = 8,units='cm',dpi=500)}
+    if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'), 
+                              width = 13, height = 8,units='cm',dpi=800)}
     mapEKR <- paste0('routput/',my_title2,'/mapEKR.png')
     
     # --- Ecologische SleutelFactoren (ESF tabel) ------
@@ -499,7 +506,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     }
       
     # save plot
-    if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',my_title2,'/plotPwbal.png'),width = 13,height = 8,units='cm',dpi=500)}
+    if(splot){ggplot2::ggsave(plotPwbal,file=paste0('factsheets/routput/',my_title2,'/plotPwbal.png'),
+                              width = 13,height = 8,units='cm',dpi=600)}
     
     
     # --- plot ESF 2: lichtklimaat ----
@@ -507,7 +515,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     if(nrow(wq1[fewsparameter == 'VEC' & jaar > '2015',]) > 0) {
       
       # plot ESF 2
-      plotLichtklimaat = ppr_extinctie1(wq = wq1, hybi = hybi1,parameter = c('VEC','WATDTE_m'))
+      plotLichtklimaat = ppr_extinctie1(wq = wq1, hybi = hybi1, parameter = c('VEC','WATDTE_m'))
       class(plotLichtklimaat.ref) <- 'plotref'
     } else {
       
@@ -518,7 +526,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     }
     
     # save plot is saved 
-    if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',my_title2,'/plotLichtklimaat.png'),width = 13,height = 8,units='cm',dpi=500)}
+    if(splot){ggplot2::ggsave(plotLichtklimaat,file=paste0('factsheets/routput/',my_title2,'/plotLichtklimaat.png'),
+                              width = 13,height = 8,units='cm',dpi=600)}
     
     
     # --- plot ESF 4: waterdiepte ----
@@ -540,7 +549,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     }
     
     # save plot
-    if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',my_title2,'/plotWaterdiepte.png'),width = 13,height = 8,units='cm',dpi=500)} 
+    if(splot){ggplot2::ggsave(plotWaterdiepte,file=paste0('factsheets/routput/',my_title2,'/plotWaterdiepte.png'),
+                              width = 13,height = 8,units='cm',dpi=600)} 
    
     
     # --- plot ESF3 : waterbodem ----
@@ -574,11 +584,11 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # save plots
     if(splot){
       ggplot2::ggsave(plotbodFW,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem_FW.png'),width = 13,height = 8,
-                      units='cm',dpi=500)
+                      units='cm',dpi=600)
       ggplot2::ggsave(plotqPW,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem_qPW.png'),width = 13,height = 8,
-                      units='cm',dpi=500)
-      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem.png'),width = 13,height = 10,
-                      units='cm',dpi=500)
+                      units='cm',dpi=600)
+      ggplot2::ggsave(plotWaterbodem,file=paste0('factsheets/routput/',my_title2,'/plotWaterbodem.png'),
+                      width = 14, height = 10,units='cm',dpi=600)
       }
       
     # make a list to store the output
