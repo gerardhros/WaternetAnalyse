@@ -188,7 +188,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
   dbwbal[is.na(i_bt1) & watertype %in% c('M8','M10','M27','M25'),bodem := 'VEEN']
   dbwbal[is.na(i_bt1) & watertype %in% c("M3", "M1a","M30","M14","M11","M6a","M7b","M6b","M7a"),bodem := 'KLEI']
   
-  # select relevant water balance data ----
+  # select relevant water balance data
     
     # select only relevant years
     dg <- dbwbal[jaar %in% 2010:2018]
@@ -202,7 +202,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
     # add total P-load
     dg[,wp_tot_sum := wp_min_sum + wp_inc_sum]
  
-  # select relevant hydrobiological data ----
+  # select relevant hydrobiological data 
     
     # filter hydrobiologische data.base before calculating water depth
     dbhybi <- dbhybi[jaar %in% 2010:2017 & fewsparameter =='WATDTE_m']
@@ -219,7 +219,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
     mdPtbG <- copy(dbhybi)[,.(watdte = median(meetwaarde,na.rm=TRUE)),by='GAF']
     mdPtbG[,watdteF := cut(watdte, breaks = c('0','0.3','0.5','0.7','7.0'))]
     
-  # merge water balance data with water depth ----
+  # merge water balance data with water depth 
   
     # koppel waterdiepte per eag en afvoergebied aan water en stoffenbalans
     dgwatdte  <- merge(dg[is.na(GAF),], mdPtb, by = 'EAG', all.x = F)
@@ -233,7 +233,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
     # remove temporary objects
     rm(dgwatdteG,dgwatdteK,mdPtb,mdPtbG,mdPtbK)
     
-  # retreive kP from meta-model PCditch ----
+  # retreive kP from meta-model PCditch 
     
     # add depth category, similar to dbhybi dataset
     dbnomogram[,watdteF := cut(watdte_m, breaks = c('0','0.3','0.5','0.7','7.0'))]
@@ -250,7 +250,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
     # calc critical P-concentration 
     dgwatdte[,PvskPDitch := wp_min_sum / kP]
     
-  # koppel kp plassen obv invoertabel per EAG ----
+  # koppel kp plassen obv invoertabel per EAG 
   
     # relevant columns to be merged
     cols <- colnames(kP_plas)[grepl('^pc_|^lake|^p_bel|^EAG$|^GAF$',colnames(kP_plas))]
@@ -277,7 +277,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
   dgwatdte <- dgwatdte[!is.na(pol),]
   dgwatdte <- dgwatdte[!is.na(EAG) |!is.na(GAF),]
   
-  # update EAG code for GAFs (was originally in makematrix) ----
+  # update EAG code for GAFs (was originally in makematrix) 
   
     # split file in data.tables for EAG and GAF
     dgwatdte.eag <- dgwatdte[!is.na(EAG)]
@@ -301,7 +301,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
 
 }
 
-# esf3 bodem ----------------------------------------------------
+# esf3 bodem ----
 bodsam <- function(bod, cmean = FALSE){
   
   # dcast slootbodem 

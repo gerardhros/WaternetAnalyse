@@ -45,6 +45,14 @@
     EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
     EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen = doelen)
     
+      # noodgreep omdat er fouten zitten in de toetsgegevens
+      EKRset$KRWwatertype.code[EKRset$Identificatie == 'VaartenRondeHoep'] <- 'M8'
+      EKRset$KRWwatertype.code[EKRset$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
+      
+      # select alleen nieuwe maatlatten
+      EKRset <- EKRset[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
+      
+    
     # slootbodem measurements
     bod  <- fread("data/bodemfews.csv")
     bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
@@ -65,14 +73,11 @@
     # load waterbalances (only when needed)
     if(FALSE){dat <- loadBalances_lm(dir_bal = dir_bal,kopTab = kopTab,sfile = FALSE)}
     
-  # calculate means per EAG or meetpunt -----------
+  # calculate means per EAG -----------
     
     # calculate mean EKR per EAG
     krw <- calc_mean_EKR(db = EKRset, nyears = 3,pEAG = TRUE, pYEAR = FALSE, pSEASON = FALSE)
 
-    # give GEP and oordeel
-    krw[,c('GEP','oordeel') := eval_EKR(id,GHPR,EKR,doelen)]
-    
     # rename GHPR in more readible (and less long names)
     krw[,GPHRnew := renameGHPR(GHPR)]
     krw[,wbmethode := renameWbmethode(wbmethode)]
@@ -113,4 +118,28 @@
     matrix5 <- merge(matrix4,wq1, by.x = 'EAG', by.y = 'locatie.EAG', all.x = TRUE)
     
     saveRDS(matrix5,'../matrix/matrix.rds')
+    
+  # calculate means per sampling point -----------
+    
+    # calculate mean EKR per point
+    krw.mp <- calc_mean_EKR(db = EKRset, nyears = 3,pEAG = FALSE, pYEAR = TRUE, pSEASON = TRUE)
+    
+    # rename GHPR in more readible (and less long names)
+    krw.mp[,GPHRnew := renameGHPR(GHPR)]
+    krw.mp[,wbmethode := renameWbmethode(wbmethode)]
+    
+    # select maatlat 2018, and remove maatlat vis en maatlat 2012
+    krw.mp <- krw.mp[grepl('ml_2018',wbmethode) & !grepl('vis$',wbmethode)]
+    
+    # dcast om maatlatten aprt te beschouwen en relaties tussen maatlatten te leggen
+    krw.mp.ekr <- dcast(krw.mp, mpid + jaar + season + watertype + EAGIDENT  + KRW_SGBP3 ~ GPHRnew + wbmethode, 
+                        value.var = "EKR", fun.aggregate = mean)
+    
+    # add GAF code
+    krw.mp.ekr[,GAF := substr(EAGIDENT, 1, 4)]
+
+    PvskP.mp <- makePmaps(dbwbal = dat, dbhybi = hybi,dbnomogram = nomogram,
+                       dbov_kP = Overzicht_kP, dbeag_wl = eag_wl)
+        
+    
     

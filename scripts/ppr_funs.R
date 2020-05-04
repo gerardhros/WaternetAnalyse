@@ -323,7 +323,7 @@ ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
 ppr_esf_oordeel <- function(){
   
   # select the latest file with ESF oordelen
-  fname <- list.files('data')
+  fname <- list.files('data',pattern = '.csv$')
   fname <- sort(fname[grepl('^esfKRW',fname)],decreasing = TRUE)[1]
   
   # read ESF oordelen
