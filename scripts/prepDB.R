@@ -20,56 +20,48 @@
     locaties <- fread('data/Location.csv')
     
     # locaties van EAG oppervlaktes
-    eag_wl <- fread('data/Oppervlaktes EAGs en Water.csv')
-  
+    eag_wl <- fread('data/EAG_Opp_kenmerken_20200218.csv')
+    eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
+    
     # shape with EAG
-    gEAG <- st_read('data/EAG20191205.gpkg',quiet = TRUE)
-
+    gEAG <- sf::st_read("data/EAG20191205.gpkg",quiet = T) %>% sf::st_transform(28992)
+  
     # KRW doelen 
-    doelen <- fread('hydrobiologie/doelen.csv')
-
+    doelen <- ppr_doelen()
+   
     # nonogram
     nomogram <- fread('data/nomogram.csv')
     
     # waterbalans data (made by loadBalances)
-    dat <- readRDS("pbelasting/dat.rds") 
+    dat <- readRDS("pbelasting/dat.rds")  
+    dat[,date := as.POSIXct(paste0(jaar,"-",maand,"-01"), format = '%Y-%m-%d')]
     
     # gegevens hydrobiologie
     hybi <- readRDS('data/alles_reliable.rds')
+    hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
     
     # EKR sets KRW en overig water
-    EKRset1 <- readRDS('hydrobiologie/EKRset_KRW.rds') %>% as.data.table()
-    EKRset2 <- readRDS('hydrobiologie/EKRset_OvWater.rds') %>% as.data.table()
+    EKRset1 <- readRDS('hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
+    EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
+    EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen = doelen)
     
     # slootbodem measurements
     bod  <- fread("data/bodemfews.csv")
+    bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
     
     # waterquality measurements
     wq  <- readRDS("data/ImportWQ.rds") %>% as.data.table()
+    wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
     
     # datafile with P-load PC Ditch
     Overzicht_kP <- fread('data/Overzicht_kP.csv') 
+    Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
     
     # toxiciteitsdata simoni
     simoni <- readRDS('data/simoni.rds')
     
   # update, filter and clean up databases -----------
    
-    # EKR measurements
-    EKRset <- ppr_ekr(ekr1 = EKRset1,ekr2 = EKRset2)
- 
-    # hybi measurements
-    hybi <- ppr_hybi(db = hybi,syear = 2000,wtype = eag_wl,mlocs = locaties)
-    
-    # slootbodemdata
-    bod <- ppr_slootbodem(db = bod, wtype = eag_wl,mlocs = locaties)
-    
-    # water quality
-    wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
-      
-    # Pload and limits from PC Ditch
-    Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
-
     # load waterbalances (only when needed)
     if(FALSE){dat <- loadBalances_lm(dir_bal = dir_bal,kopTab = kopTab,sfile = FALSE)}
     
