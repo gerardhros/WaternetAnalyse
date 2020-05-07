@@ -36,6 +36,7 @@ lx_gem <- out$waterlichamenwl$gem
 lx_status <- out$waterlichamenwl$Status
 lx_owner <- out$waterlichamenwl$Eigenaren
 lx_motstat <- out$waterlichamenwl$motstat
+lx_partners <- if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}
 lx_monwens <- gsub('\r\n','',gsub('&','en',out$waterlichamenwl$MonitoringAnalyseWensen))
 
 # text for ecologische analyse op hoofdlijnen
@@ -104,7 +105,7 @@ cf_tit <- min(1,12 / nchar(lx_title)) * c(108,99,96,88)
   \fontsize{9}{10.8}\selectfont
   
   % add descriptive text for this water body
-Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
+Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. \Sexpr{lx_partners} Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
    
   % add frame for figuur Ecosysteem in beeld 
   \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gb}{
