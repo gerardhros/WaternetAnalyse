@@ -6,6 +6,7 @@
 #'@param pl (sf object) polygon object
 #'@param dt (data table) table containing EKR data to color pie chart
 #'@param bkpl (sf object) polygon object to insert as background. Should have the same coordinate system as pl.
+#'When NULL, background polygons are not drawn.
 #'@param col_ekr (CHAR) a column name of pl which gives EKR values (either numeric or factor). 
 #'options are  "EKR" (fraction between 0 - 1) or "oordeel_2022" (slecht/matig/..)
 #'@param ekr_fac (boolean) whether the EKR variable ('col_ekr') is factor (TRUE) or numerical (FALSE)
@@ -47,6 +48,18 @@ draw_map <- function(pl, dt, bkpl = NULL,
                      label_type = c("Fytoplankton", "Overige waterflora", "Macrofauna", "Vis"),
                      filename = NULL){
   
+  # Check if all necessary columns are included
+  if(!col_area_sf %in% colnames(pl)){
+    print("WARNING: The polygon data does not include the correct column name of area ID: col_aea_sf")
+  }
+  if(!col_area_dt %in% colnames(dt)){
+    print("WARNING: The datatable does not include the correct column name of area ID: col_aea_dt")
+  }
+  if(!col_ekrtype %in% colnames(dt)){
+    print("WARNING: The datatable does not include the correct column name of EKR type: col_ekrtype")
+    
+  }
+  
   # Make a map with pie chart
   gp <- make_map_pie(pl, dt, bkpl = bkpl, col_ekr = col_ekr, ekr_fac = ekr_fac,  ekr_order = ekr_order, 
                      ekr_col = ekr_col, ekr_breaks = ekr_breaks, col_area_sf = col_area_sf, 
@@ -86,6 +99,7 @@ draw_map <- function(pl, dt, bkpl = NULL,
 #'@param pl (sf object) polygon object
 #'@param dt (data table) table containing EKR data to color pie chart
 #'@param bkpl (sf object) polygon object to insert as background. Should have the same coordinate system as pl.
+#'#'When NULL, background polygons are not drawn.
 #'@param col_ekr (CHAR) a column name of pl which gives EKR values (either numeric or factor). 
 #'options are  "EKR" (fraction between 0 - 1) or "oordeel_2022" (slecht/matig/..)
 #'@param ekr_fac (boolean) whether the EKR variable ('col_ekr') is factor (TRUE) or numerical (FALSE)
