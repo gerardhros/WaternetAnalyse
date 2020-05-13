@@ -122,6 +122,14 @@ In [dit filmpje](https://youtu.be/rit0Ryph23I) wordt uitgelegd wat de sleutelfac
 De ecologie heeft een minimale waterdiepte nodig om zich te kunnen ontwikkelen. Te ondiep water wordt te warm, zuurstofloos en krijgt snel een slechte waterkwaliteit. In sloten en andere lijnvormige wateren is dat op veel plaatsen een probleem, in meren niet. Figuur \@ref(fig:diepte) geeft een indruk van de gemiddelde waterdiepte in Ecologische analysegebieden. Vooral in de roodgekleurde gebieden kan de ecologische kwaliteit verbeteren als watergangen worden verdiept. Bovendien zal er minder vissterfte optreden in deze gebieden en zal de uitstoot van broeikasgassen verminderen wanneer watergangen worden verdiept. 
 
 ```{r diepte1, fig.cap = 'Waterdiepte per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#maak kaart met slootdiepte, pak metingen van laatste x jaar
+#maak kaart met onzekerheid (dan wel bandbreedte) in relatie tot diepte
+
+#optie 1. kaart voor gemiddelde per EAG
+#optie 2. extractie van interpolatie raster watervlakken
+#hybi is waterdiepte (1 x per 3 jaar)
+# wq is niet representatieve diepte
+
 #krw<-
 diepte1(hybi[hybi$jaar > '2013',])
 #saveWidget(krw, "diepte.html", selfcontained = FALSE)
@@ -129,6 +137,9 @@ diepte1(hybi[hybi$jaar > '2013',])
 ```
 
 ```{r diepte, fig.cap = 'Waterdiepte per EAG en per meetlocatie', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#maak kaart met slootdiepte, pak metingen van laatste x jaar
+#maak kaart met onzekerheid (dan wel bandbreedte) in relatie tot diepte
+
 #krw <-
 combineWidgets(
     ncol = 4, colsize = c(1,1),
@@ -142,6 +153,7 @@ combineWidgets(
 ```
 
 ```{r slibdikte, fig.cap = 'Slibdikte per EAG en per meetlocatie. Links metingen tussen 2010 en 2015, rechts metingen tussen 2015 en 2019.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+# maak kaart met slibdiepte, pak metingen van laatste x jaar
 #krw <-
 if(nrow(hybi[hybi$fewsparameter == 'SLIBDTE_m',])>0){
 combineWidgets(
@@ -155,7 +167,21 @@ combineWidgets(
 #webshot("diepte.html", file = "PvskP.png")
 ```
 
-De geringe waterdiepte is de oorzaak van de slechte ecologische toestand in veel lijnvormig water. In de Waardassacker, de Nieuwe Keverdijkse polder, Hollands Ankeveense polder, De Eerste Bedijking, Hilversumse ondermeent, Veldhuisweg, Breukelewaard west, 2380eag1, polder Mijnden west, Groene Jonker en polder Blokland is de waterdiepte gering (< 35 cm) en vegetatiebedekking laag.
+```{r}
+#maak combinatie slootdiepte + slibdiepte (fill NA when data are missing)
+```
+
+In [Grenswaarden waterdiepte] staat de relatie tussen ecologische kwalteit en waterdiepte die gebruikt is voor het bepalen van een optimale waterdiepte per watertype.
+
+```{r}
+#maak waarderingskaart op basis van klassegrens (zou je kunnen afleiden) en het handelingsperspectief (waterdiepte + slibdikte > gewenste diepte) voldoende 
+```
+
+De geringe waterdiepte is de oorzaak van de slechte ecologische toestand in veel lijnvormig water. 
+
+```{r}
+# maak een overzichtstabel waar de waterdiepte laag is en het handelingsperspectief (waterdiepte + slibdikte > gewenste diepte) voldoende 
+```
 
 ## ESF 1 Productiviteit
 De productiviteit van een water wordt bepaald door de beschikbaarheid van fosfaat, een van de belangrijkste voedingsstoffen voor de groei van planten en algen. Te veel fosfaat leidt tot (veel) te veel algen en kroos. De fosforbelasting is dan te hoog. Bepalend voor het functioneren van het watersysteem is de toevoer van fosfaat (de belasting) en niet de concentraties. De concentraties zijn een gevolg van de systeemkenmerken en de biologie die zich in het water bevindt. De beschikbaarheid van fosfaat wordt in beeld gebracht door de toevoer van buitenaf te bepalen (externe belasting), bijvoorbeeld via toestromend water en af- en uitspoeling van het land. 
@@ -443,7 +469,7 @@ Er is bekend dat macrofauna gevoelig is voor veel toxische stoffen, zoals gewasb
 
 # ESF versus toestand
 
-In \@ref(fig:ESFvsT) kunnen verschillende relaties in beeld worden gebracht door de parameters te kiezen die op de x en y as tegen elkaar worden uitgezet.
+- Hier ruimte voor tekst en toelichting van de analysematrix en nieuwe figuren die een beter overzicht geven van relevante relaties
 Er wordt gekeken naar:
 
 - KRW toetsresultaten waarbij een gemiddelde is genomen van de laatste 3 meetjaren tussen 2006 en 2018
@@ -543,7 +569,7 @@ In een aantal gebieden is dit niet genoeg, zijn er ontwikkelingen die gemitigeer
 Hieronder staan verschillende potentieel effectieve maatregelen verder uitgewerkt:
 
 *	‘Goede waterbeheerpraktijk’. Dit is in feite een uitwerking van de strategische uitgangspunten: 
-    *	bij watertekort water van goede kwaliteit op de goede plek krijgen, zodat de wateraanvoer strookt met daar geldende      doelen; Dit is opnieuw van groot belang bij droogte 2019.
+    *	bij watertekort water van goede kwaliteit op de goede plek krijgen, zodat de wateraanvoer strookt met daar geldende doelen; Dit is opnieuw van groot belang bij droogte 2019.
     *	de integrale aanpak bij het uitvoeren van onderhoud (dijkreconstructie en baggerwerk). ; 
     * vernattingsgebieden: van groot belang dat we regie houden op peilen, effecten monitoren, evalueren en bijsturen waar nodig.
     * recreatievaart
@@ -577,9 +603,15 @@ Voor een goede waterkwaliteit is het allereerst noodzakelijk dat ondergedoken wa
 
 In de komende paragrafen staan analyses van hoe de acht verschillende ESF`s invloed kunnen hebben op de Overige Waterflora. Deze analyse leveren de nodige ecologische kennis in de vorm van ESF-indicatoren, rekenregels voor de doelafleiding plus bijbehorende grenswaarden. 
 
-### Waterdiepte
+### Grenswaarden waterdiepte
 
 *Relatie submerse bedekking en waterdiepte; bij 35 cm waterdiepte worden de hoogste EKR scores zijn gevonden in sloten.*
+```{r}
+# maak een kaart om relatie EKR vs diepte, per watertype
+# bij afleiden klassegrenzen al rekening houden met betrouwbaarheid of geextrapoleerde waterdiepte obv breedte diepte verhouding 
+# de relatie tussen breedte en diepteverhouding wordt afgeleid door hybi gegevens te vergelijken met ingemeten diepteprofielen (dwarsdoorsnede)
+# maak een tabel met grenswaarde per watertype
+```
 
 ### ESF 1
 

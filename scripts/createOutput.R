@@ -293,6 +293,7 @@ tabelOordeelPerGebiedPerJaar <- function (EKRset, doelen){
   write.table(b, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(b)
 }
+
 tabelOordeelPerGebiedPerJaarDeel <- function (EKRset, eag_wl, doelen){
   
   b = EKRset %>% 
@@ -347,22 +348,55 @@ tabelOordeelPerMeetlocatiePerJaar <- function (EKRset, doelen){
   return(b)
 }
 # wide format hoofdmtlt, eag, waterlichaam
-tabelEKRPerWLEnEAGPerJaar <- function (EKRset, doelen){
-  b = filter(EKRset, Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS')) %>% # alleen hoofdmaatlatten
-    dplyr::select(waterlichaam = HoortBijGeoobject.identificatie,
-                  waterlichaamcode = GeoObject.code,
-                  locatie = CODE,
-                  eag = EAGIDENT,
-                  watertype = KRWwatertype.code,
-                  maatlat = GHPR,
-                  maatlatversie = Waardebepalingsmethode.code,
-                  jaar,
-                  EKR = Numeriekewaarde)
-  b$maatlat <- gsub(' $','',b$maatlat)
-  tabset <- reshape2::dcast(b, waterlichaam+eag+watertype+maatlat+maatlatversie ~ jaar, value.var = "EKR", fun.aggregate = mean)
+tabelEKRPerWLEnEAGPerJaar <- function (EKRset){
+  # make local copy (only within this function)
+  d1 <- copy(EKRset)
   
-  write.table(tabset, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-}
+  # col group per jaar
+  colgroup <-c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code','Waardebepalingsmethode.code',
+               'facet_wrap_code','GHPR_level','GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3')
+    # rename columns and order data.table
+  setnames(d1,colgroup,c('id','EAGIDENT','watertype','wbmethode','facet_wrap_code','GHPR_level',
+                         'GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3'))
+  colgroup <- c('id','EAGIDENT','watertype','wbmethode','facet_wrap_code','GHPR_level',
+                'GHPR','level','jaar','GEP','GEP_2022','waterlichaam','KRW_SGBP3')
+  
+  # columns to group alle meetpunten over de jaren
+  colg <- c('EAGIDENT','id','watertype','GHPR_level','GHPR','level','wbmethode','facet_wrap_code', 'GEP', 'GEP_2022', 'waterlichaam', 'KRW_SGBP3')
+  # calculate percentielen en mean EKR per group over all years
+  d2 <- d1[Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),.(EKRmean = mean(Numeriekewaarde,na.rm=T), EKRmedian = quantile(Numeriekewaarde,probs = c(0.50), na.rm=T), EKRperc90 = quantile(Numeriekewaarde,probs = c(0.90), na.rm=T), EKRperc95 = quantile(Numeriekewaarde,probs = c(0.95), na.rm=T)), by = colg]  
+  
+  doelgeb2$HoortBijGeoobject.identificatie <- gsub("^NL11_*","",doelgeb2$HoortBijGeoobject.identificatie)
+  doelgeb <- rbind(doelgeb,doelgeb2)
+  
+  d1 <- d1[Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),.(waarde = mean(Numeriekewaarde,na.rm=TRUE)),by=colgroup]
+  # draaitabel voor wide format per jaar
+  d3 <- dcast(d1, id+EAGIDENT+watertype+GHPR_level+GHPR+wbmethode ~ jaar, value.var = "waarde", fun.aggregate = mean)
+  # merge per jaar en percentielen
+  d3 <- merge(d2, d3, by = c('EAGIDENT','id','watertype','GHPR_level','GHPR','wbmethode'))
+  
+  # add year number (given ordered set), and take only three most recent years
+  d1 <- d1[,yearid := seq_len(.N),by = colg][yearid < 4]
+  # calculate mean EKR per group over the three years
+  d1 <- d1[,.(EKR = mean(waarde,na.rm=T)),by = colg]
+  # merge per jaar en percentielen
+  d3 <- merge(d1, d3, by = c('EAGIDENT','id','watertype','GHPR_level','GHPR','level','wbmethode','facet_wrap_code','GEP','GEP_2022','waterlichaam','KRW_SGBP3'))
+  
+  # add classification for EKR
+  d3[EKR < GEP/3,oordeel := 'slecht']
+  d3[EKR >= GEP/3 & EKR < 2 * GEP / 3,oordeel := 'ontoereikend']
+  d3[EKR >= 2 * GEP / 3,oordeel := 'matig']
+  d3[EKR >= GEP, oordeel := 'goed']
+  
+  # add classification for EKR
+  d3[EKR < GEP_2022/3,oordeel_2022 := 'slecht']
+  d3[EKR >= GEP_2022/3 & EKR < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+  d3[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+  d3[EKR >= GEP_2022, oordeel_2022 := 'goed']
+  write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  return(d3)
+  }
+
 # wide format, deelmtlt, eag, waterlichaam
 tabelPerWLEnEAGPerJaarDeel <- function (EKRset, doelen, eag_wl){
   b = filter(EKRset) %>% 
@@ -725,7 +759,7 @@ ekrmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
   
   
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
-  map <- sp::merge(gEAG, gebiedData[, c('EKR','klasse','EAGIDENT','GEP_2022','bronddoel', 'watertype',
+  map <- sp::merge(gEAG, gebiedData[, c('EKR','klasse','EAGIDENT','GEP_2022','watertype',
                                         'GHPR_level')], by.x = 'GAFIDENT', by.y =
                      'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
   
@@ -748,6 +782,46 @@ ekrmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
     addLegend("bottomright", colors=col, labels=labels, title = "")%>%
     addTiles()
 }
+
+doelmapEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
+  #maatlat = c("2V1 Soortensamenstelling macrofyten Waterplanten", "2V21 Soortensamenstelling hydrofyten")
+  gebiedData <- tabset[!is.na(tabset$EAGIDENT),] # alleen per eag
+  gebiedData <- gebiedData[gebiedData$GHPR_level %in% maatlat,]
+  
+  '7' -> gebiedData$klasse[gebiedData$GEP_2022 < 0.2]
+  '6' -> gebiedData$klasse[gebiedData$GEP_2022 >= 0.2 & gebiedData$GEP_2022 < 0.4]
+  '5' -> gebiedData$klasse[gebiedData$GEP_2022 >= 0.4 & gebiedData$GEP_2022 < 0.6]
+  '4' -> gebiedData$klasse[gebiedData$GEP_2022 >= 0.6 & gebiedData$GEP_2022 < 0.8]
+  '3' -> gebiedData$klasse[gebiedData$GEP_2022 >= 0.8]
+  gebiedData$klasse <- as.factor(gebiedData$klasse)
+  gebiedData$klasse = factor(gebiedData$klasse, levels = c("3", "4", "5", "6","7"))
+  gebiedData <- gebiedData[!is.na(gebiedData$klasse),]
+  
+  pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
+  map <- sp::merge(gEAG, gebiedData[, c('EKR','EKRperc90','EKRperc95', 'klasse','EAGIDENT','GEP_2022','watertype',
+                                        'GHPR_level')], by.x = 'GAFIDENT', by.y =
+                     'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
+  
+  map2 <- map[map$GAFIDENT %in% c('3000-EAG-3','3000-EAG-4','3000-EAG-2','2000-EAG-7','2000-EAG-2','2000-EAG-3','2000-EAG-4','2000-EAG-5','2000-EAG-6'),] 
+  
+  # map <- map[order(map$jaar),]
+  
+  leaflet() %>%
+    addPolygons(data = map,layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
+                                                                "EKR score:", map$EKR, "<br>",                                                                                                                      "Gemiddelde getoetste meetjaren:", map$jaar, "<br>",
+                                                                "Doel:", map$GEP_2022, "<br>",
+                                                                "Perc90:", map$EKRperc90, "<br>",
+                                                                "Perc95:", map$EKRperc95, "<br>",
+                                                                "Maatlat:", maatlat ),
+                stroke = T, color= 'lightgrey', opacity=0.8, weight = 0.5, smoothFactor = 0.8,
+                fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
+    addPolygons(data= map2, layerId = map2$GAFIDENT,
+                stroke = T, color= ~pal(klasse), opacity=0.8, weight = 0.5, smoothFactor = 0.8,
+                fill=T, fillColor = ~pal(klasse), fillOpacity = 1) %>%
+    addLegend("bottomright", colors=col, labels=labels, title = "")%>%
+    addTiles()
+}
+
 ekrmap3jrWL <- function(tabset, maatlat = "2V21 Soortensamenstelling macrofyten"){
   #gebiedData <- EKRset[EKRset$jaar > '2013'& EKRset$jaar < '2018',]
   #maatlat = "4VI1 Vis-kwaliteit"
@@ -827,7 +901,7 @@ oordeelmap3jrEAG <- function(tabset, maatlat = "2V1 Overige waterflora" ){
   colordl <- c('goed'="green",'matig'="yellow",'ontoereikend'="orange",'slecht'="red")
   labelsordl <- c('goed'='goed','matig'='matig','ontoereikend'='ontoereikend','slecht'='slecht')
   pal <- colorFactor(palette = colordl,  domain = gebiedData$oordeel)
-  map <- sp::merge(gEAG, gebiedData[, c('EKR','oordeel','oordeel_2022','EAGIDENT','GEP_2022','bronddoel', 'watertype',
+  map <- sp::merge(gEAG, gebiedData[, c('EKR','oordeel','oordeel_2022','EAGIDENT','GEP_2022', 'watertype',
                                         'GHPR_level')], by.x = 'GAFIDENT', by.y =
                      'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
   
