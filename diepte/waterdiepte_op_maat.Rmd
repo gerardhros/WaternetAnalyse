@@ -1,0 +1,54 @@
+---
+title: "diepte_op_maat"
+author: "Ros"
+date: "5/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Waterdiepte op maat
+
+Dit document beschrijft de ontwikkeling van een aantal ruimtelijke kaarten met de huidige en gewenste waterdiepte binnen het beheergebied van waterschap Amstel, Gooi en Vecht. 
+
+
+```{r inputdata}
+#
+  # locaties van alle metingen (water, biologie, en slootbodem)
+  locaties <- fread('data/Location.csv')
+    
+  # locaties van EAG oppervlaktes
+  eag_wl <- fread('data/EAG_Opp_kenmerken_20200218.csv')
+  eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
+  
+  # gegevens hydrobiologie (only data after 2006)
+  hybi <- readRDS('data/alles_reliable.rds')
+  hybi <- ppr_hybi(db = hybi, syear = 2006, wtype = eag_wl, mlocs = locaties)
+ 
+    
+```
+
+## Actions to be done
+
+maak kaart met slootdiepte, pak metingen van laatste x jaar
+
+maak kaart met slibdiepte, pak metingen van laatste x jaar
+
+maak combinatie slootdiepte + slibdiepte (fill NA with simple regression model given soil tuxture for example when data are missing)
+
+maak kaart met onzekerheid (dan wel bandbreedte in verwachte bodemdiepte) in relatie tot diepte: 
+a) hoe breder de sloot hoe groter de onzekerheid op de meting van slootdiepte (dit ivm de gebruikte meetmethode). Hierbij een schatting maken van de onzekerheid (kan dat op basis van huidige data, exptrapolatie) mogelijk als lineare correctiefactor van max x% en dat af laten hangen van slootbreedte.
+b) je kunt ook variatie binnen EAG of waterlichaam gebruiken als maat voor spreiding op de meting
+
+maak een kaart om relatie EKR vs diepte, per watertype
+hieruit afleiden of er ergens kritische grenzen liggen voor goede kwaliteit
+
+maak waarderingskaart op basis van klassegrens (zou je kunnen afleiden)
+dat wil zeggen de diepte max 3 kleuren geven: veel perspectief voor actie tot er is geen actie nodig.
+
+de ruimtelijke kaart, twee opties:
+optie 1. kaart voor gemiddelde per EAG
+optie 2. extractie van interpolatie raster watervlakken
+
