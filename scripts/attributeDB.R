@@ -40,14 +40,14 @@ db_att_bod <- fun_areaave_bod(bod, locaties, col_para = names(db),
 
 ## Step 2: merge waterbalans data ('dat') ------
 
-# Check if some EAG has multiple records for the same date  
-nrecord_eag <- dat[!is.na(EAG), .N, by = .(EAG, date)]
-nrecord_gaf <- dat[!is.na(GAF), .N, by = .(GAF, date)]
-nrecord_wl <- dat[is.na(EAG) & is.na(GAF) & !is.na(KRW), .N, by = .(KRW, date)] 
+
 
 # TO DO: Remove the duplicate records based on certain criteria
-# remove scenario simulations
+# remove scenario simulations 
+# NOTE: this retults in ca. 70 locations (of ERK locations) losing water balance info. What to do?
 dat <- dat[!grepl("_S", pol),]
+
+
 
 # remove data of aggregated EAG's (e.g. "2500-EAG-3-4-5_F001.xlsx")
 # TO CHECK: It seems that some EAG has both aggregated and not-aggregated records
@@ -57,15 +57,22 @@ dat <- dat[!grepl("_S", pol),]
 # So, remove aggregated records only when non-aggregated records are present
 #dat2 <- dat[!grepl("EAG--", gsub("[[:digit:]]+", "", pol)),] # this exlude many EAG's :(
 
+
+# # Check if some EAG has multiple records for the same date  
+# nrecord_eag <- dat[!is.na(EAG), .N, by = .(EAG, date)]
+# nrecord_gaf <- dat[!is.na(GAF), .N, by = .(GAF, date)]
+# nrecord_wl <- dat[is.na(EAG) & is.na(GAF) & !is.na(KRW), .N, by = .(KRW, date)] 
+
 # select columns of data which contain parameter values
 col_dat_para <- names(dat)[grepl("^w_|^wp_|^a_", names(dat))]
 col_dat_para <- col_dat_para[!grepl("a_inlaat|a_uitlaat", col_dat_para)] # exclude nominal variables
 
 # merge water and stoffen balans based on EAG, GAF, or WL
+# TO DO: check where memory problem occurs. Maybe delete temporary talbes???
 #db5 <- fun_areamerge_dat(dat, locaties, col_dat_para) # -> Error: cannot allocate vector of size 1.1 Gb
 db_att_waterbalance <- fun_areamerge_dat(dat, locaties, col_dat_para, col_para = names(db), 
                          #loc_new = unique(locaties$CODE), # for all locations
-                         loc_new = unique(db$locatiecode[db$bron == "ekr"]), # for locations for which ERK data exist
+                         loc_new = unique(db$locatiecode[db$bron == "ekr"]), # for locations on which ERK data exist
                          jaar_sel = 2005:2019)
 
 # TO DO: change class of dat$date to "Date"

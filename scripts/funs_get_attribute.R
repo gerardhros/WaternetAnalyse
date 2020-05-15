@@ -86,10 +86,10 @@ fun_areaave_bod <- function(bod, locaties, col_para,
   # add source
   bod_e[, bron := paste0("bod_", ave_area, "_median")]
   # add other necessary column names
-  cols <- col_para[is.na(match(col_para, names(bod_e)))]
+  cols <- col_para[!(col_para %in% names(bod_e))]
   bod_e[, (cols) := NA]
   # remove unnecessary column names
-  cols2 <- names(bod_e)[is.na(match(names(bod_e), col_para))]
+  cols2 <- names(bod_e)[!(names(bod_e) %in% col_para)]
   bod_e[, (cols2) := NULL]
   # order columns
   setcolorder(bod_e, col_para)
@@ -102,12 +102,13 @@ fun_areaave_bod <- function(bod, locaties, col_para,
 #' @param dat (data table) data table of water and element balance. 
 #'@param locaties (data table) data table of location information, in which all location IDs of 'bod' are included. 
 #'The location IDs should include following columns: CODE, NAAM, XCOORD, YCOORD, GAFIDENT, EAGIDENT, OWMIDENT
+#'@param col_dat_para (CHAR) a vector of column names of dat (parameter names), whose value will be stored (in melted form) in the output table
 #'@param col_para (CHAR) column names which will be included in the output data table
 #'@param loc_new (CHAR) vector of location ID's which are to be included in the output table.
-#'@param jaar_sel (INT)
+#'@param jaar_sel (INT) years of records which are included in the output table. When jaar_sel = NULL, all years are taken.
 
 #'@return dat_e_agg (data table) data table of water balance data, for all point locations specified in "loc_new".
-#'The number of row is number of locations x number of parameters (i.e. length(loc_new) x length(unique(bod$parm.fews))).
+#'The number of row is number of locations x dates x number of parameters (i.e. at maximum, length(loc_new) x length(unique(dat$date)) x length(col_dat_para)).
 #'Included columns are those defined with 'col_para'
 #'
 fun_areamerge_dat <- function(dat, locaties, col_dat_para, col_para, 
@@ -118,23 +119,23 @@ fun_areamerge_dat <- function(dat, locaties, col_dat_para, col_para,
   
   # choose only specific years
   if(!is.null(jaar_sel)){
-    dat <- dat[!is.na(match(jaar, jaar_sel)),]
+    dat <- dat[jaar %in% jaar_sel,]
   }
   
   # choose locations to get dat values
-  locaties <- locaties[!is.na(match(CODE, loc_new)),]
+  locaties <- locaties[CODE %in% loc_new,]
   
   
   ## Check if all locaions in 'locaties' have d records in dat
   # Check if EAG IDs of 'locaties' exist in 'dat'
-  EAG_indat <- unique(locaties$EAGIDENT)[!is.na(match(unique(locaties$EAGIDENT), unique(dat$EAG)))]
+  EAG_indat <- unique(locaties$EAGIDENT)[unique(locaties$EAGIDENT) %in% unique(dat$EAG)]
   # Check  if  GAF IDs of 'locaties' exist in 'dat'
-  GAF_indat <- unique(locaties$GAFIDENT)[!is.na(match(unique(locaties$GAFIDENT), unique(dat$GAF)))]
+  GAF_indat <- unique(locaties$GAFIDENT)[unique(locaties$GAFIDENT) %in% unique(dat$GAF)]
   # Check if WL IDs of 'locaties' exist in 'dat'
-  WL_indat <- unique(locaties$OWMIDENT)[!is.na(match(unique(locaties$OWMIDENT), unique(dat$KRW)))]
-  
+  WL_indat <- unique(locaties$OWMIDENT)[unique(locaties$OWMIDENT) %in% unique(dat$KRW)]
+   
   # Give warning if some locations in 'locaties' miss corresponding records in dat
-  miss_dat <- locaties[is.na(match(EAGIDENT,  EAG_indat)) & is.na(match(GAFIDENT, GAF_indat)) & is.na(match(OWMIDENT,WL_indat)),]
+  miss_dat <- locaties[!(EAGIDENT %in%  EAG_indat) & !(GAFIDENT %in% GAF_indat) & !(OWMIDENT %in% WL_indat),]
   if(nrow(miss_dat > 0)){
     print(paste0("WARNING: ", nrow(miss_dat)," (out of ",  nrow(locaties), ") locations of dataset locaties don't have corresonding data in dataset dat."))
   }
@@ -158,31 +159,31 @@ fun_areamerge_dat <- function(dat, locaties, col_dat_para, col_para,
   
   # Join parameter values based on EAG, only for the locations whose location CODE are included in dat
   # when data of multiple dates are available, they are added as separate rows. 
-  dat_e_eag <- merge(dat_e[!is.na(match(EAGIDENT, EAG_indat)), ], dat_dc, 
+  dat_e_eag <- merge(dat_e[EAGIDENT %in% EAG_indat, ], dat_dc, 
                      by.x = c("parm.fews", "EAGIDENT"), by.y = c("parm.fews", "EAG"), all.x = T, allow.cartesian=TRUE)
   dat_e_eag[, (c("GAF", "KRW")) := NULL]
   dat_e_eag[, join_level := "EAG"]
-  print(paste0("Water balance data of ",  length(locaties$CODE[!is.na(match(locaties$EAGIDENT, EAG_indat))]), 
+  print(paste0("Water balance data of ",  length(locaties$CODE[locaties$EAGIDENT %in% EAG_indat]), 
                " locations were joined based on EAG,"))
   
   # Join parameter values based on GAF, only for the locations whose location CODE are included in dat
-  dat_e_gaf <- merge(dat_e[is.na(match(EAGIDENT, EAG_indat)) & !is.na(match(GAFIDENT, GAF_indat)), ], dat_dc, 
+  dat_e_gaf <- merge(dat_e[!(EAGIDENT %in% EAG_indat) & GAFIDENT %in% GAF_indat, ], dat_dc, 
                      by.x = c("parm.fews", "GAFIDENT"), by.y = c("parm.fews", "GAF"), all.x = T, allow.cartesian=TRUE)
   dat_e_gaf[, (c("EAG", "KRW")) := NULL]
   dat_e_gaf[, join_level := "GAF"]
   print(paste0("Water balance data of ", 
-               length(locaties$CODE[is.na(match(locaties$EAGIDENT, EAG_indat)) & !is.na(match(locaties$GAFIDENT, GAF_indat))]),
+               length(locaties$CODE[!(locaties$EAGIDENT %in% EAG_indat) & locaties$GAFIDENT %in% GAF_indat]),
                " locations were joined based on GAF"))
   
   # Join parameter values based on WL, only for the locations whose location CODE are included in dat
-  dat_e_wl <- merge(dat_e[is.na(match(EAGIDENT, EAG_indat)) & is.na(match(GAFIDENT, GAF_indat)) & !is.na(match(OWMIDENT, WL_indat)), ], 
+  dat_e_wl <- merge(dat_e[!(EAGIDENT %in% EAG_indat) & !(GAFIDENT %in% GAF_indat) & OWMIDENT %in% WL_indat, ], 
                     dat_dc, 
                     by.x = c("parm.fews", "OWMIDENT"), by.y = c("parm.fews", "KRW"), all.x = T, allow.cartesian=TRUE)
   dat_e_wl[, (c("EAG", "GAF")) := NULL]
   dat_e_wl[, join_level := "WL"]
   print(paste0("Water balance data of ", 
-               length(locaties$CODE[is.na(match(locaties$EAGIDENT, EAG_indat)) & is.na(match(locaties$GAFIDENT, GAF_indat)) & 
-                                      !is.na(match(locaties$OWMIDENT, WL_indat))]),
+               length(locaties$CODE[!(locaties$EAGIDENT %in% EAG_indat) & !(locaties$GAFIDENT %in% GAF_indat) & 
+                                      locaties$OWMIDENT %in% WL_indat]),
                " locations were joined based on WL"))
   
   # combine database
@@ -195,10 +196,10 @@ fun_areamerge_dat <- function(dat, locaties, col_dat_para, col_para,
   # add source
   dat_e_agg[, bron := paste0("dat_", join_level)]
   # add other necessary column names
-  cols <- col_para[is.na(match(col_para, names(dat_e_agg)))]
+  cols <- col_para[!(col_para %in% names(dat_e_agg))]
   if(length(cols)>0) {dat_e_agg[, (cols) := NA]}
   # remove unnecessary column names
-  cols2 <- names(dat_e_agg)[is.na(match(names(dat_e_agg), col_para))]
+  cols2 <- names(dat_e_agg)[!(names(dat_e_agg) %in% col_para)]
   if(length(cols2)>0) {dat_e_agg[, (cols2) := NULL]}
   # order columns
   setcolorder(dat_e_agg, col_para)

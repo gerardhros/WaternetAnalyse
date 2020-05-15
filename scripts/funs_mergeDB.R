@@ -2,8 +2,8 @@
 #'check if XY coordinates of database are all included in the location database
 #'@return miss_loc (CHAR) a vector of names of location codes of loc_dt which are not included in loc_loc
 check_missing_xy <- function(loc_dt, loc_loc, name_dt){
-  nr_na <- length(loc_dt[is.na(match(loc_dt, loc_loc))])
-  miss_loc <- unique(loc_dt)[is.na(match(unique(loc_dt), unique(loc_loc)))]
+  nr_na <- length(loc_dt[!(loc_dt %in% loc_loc)])
+  miss_loc <- unique(loc_dt)[!(unique(loc_dt) %in% unique(loc_loc))]
   if(length(miss_loc) > 0){
     print(paste0("WARNING: ", length(miss_loc), " location codes of dataset ", name_dt, " don't exist in dataset locaties."))
     print(paste0("Missing locations are: ", ifelse(length(miss_loc) <= 5, 
@@ -52,7 +52,7 @@ merge_hybi <- function(locaties, hybi, col_para){
   miss_loc_hybi<- check_missing_xy(hybi$locatiecode, locaties$CODE, "hybi")
   
   # check if there is overlap in parameters between hybi and wq
-  dup_para <- unique(hybi$fewsparameter)[!is.na(match(unique(hybi$fewsparameter), unique(wq$fewsparameter)))]
+  dup_para <- unique(hybi$fewsparameter)[unique(hybi$fewsparameter) %in% unique(wq$fewsparameter)]
   if(length(dup_para) > 0){
     print(paste0("WARNING: following parameters are included both in hybi and wq: ", paste(dup_para, collapse = ",")))
   }
