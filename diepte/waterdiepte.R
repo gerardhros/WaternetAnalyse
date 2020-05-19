@@ -7,8 +7,9 @@ library(automap)
 
 # source functions
 source('scripts/ppr_funs.R')
+source('diepte/funs_rasterize.R')
 
-
+## Load files ---------------
 
 # locaties van alle metingen (water, biologie, en slootbodem)
 locaties <- fread('data/Location.csv')
@@ -21,6 +22,22 @@ eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 hybi <- readRDS('data/alles_reliable.rds')
 hybi <- ppr_hybi(db = hybi, syear = 2006, wtype = eag_wl, mlocs = locaties)
 
+
+## pre-process files
+
+# overwrite GAF of locaties
+locaties[, GAFIDENT := as.integer(substr(EAGIDENT, 1, 4))]
+
+# delete a record with obscure EAG
+eag_wl <- eag_wl[GAFIDENT != "3???-EAG-1", ]
+# add EAGIDENT and correct GAFIDENT (Because GAFIDENT is actually EAGIDENT in the original file)
+eag_wl[, EAGIDENT := GAFIDENT]
+eag_wl[, GAFIDENT := as.integer(substr(EAGIDENT, 1, 4))]
+
+# delete record of meetwaarde == -999
+hybi <- hybi[meetwaarde != -999, ]
+
+
 # # temp # convert hybi to sf object
 # hybi_sf <- st_as_sf(hybi, coords = c("locatie.x", "locatie.y"), crs = 28992, agr = "constant")
 # st_write(hybi_sf, "diepte/hybi_sf.gpkg")
@@ -30,43 +47,18 @@ hybi <- ppr_hybi(db = hybi, syear = 2006, wtype = eag_wl, mlocs = locaties)
 # # merge EAG 
 # water <- merge(water, eag_wl, by = "GAFIDENT")
 
-# load shape of EAG
-eag <- st_read("data/EAG20191205.gpkg") %>% st_transform(28992)
+## Interpolate sloot depth ----
 
+# rasterize GAF polygons
+gar_r <- rasterize_gaf()
 
-## Rasterize EAG shape-----------
-# make a template raster
-res <- 100
-rs_template <- raster(extent(eag))
-res(rs_template) <- c(res, res)
-crs(rs_template) <- CRS("+init=epsg:28992")
-
-# convert EAG to integer
-tb_eag <- data.table(eag_id = 1:length(unique(locaties$EAGIDENT[locaties$EAGIDENT != ""])),
-                     EAG = unique(locaties$EAGIDENT[locaties$EAGIDENT != ""]))
-# tb_eag <- data.table(eag_id = 1:length(unique(eag_wl$GAFIDENT)),
-#                      EAG = unique(eag_wl$GAFIDENT))
-eag <- left_join(eag, tb_eag, by = c("GAFIDENT" = "EAG"))
-
-# First rasterize from lines
-eag_l <- sf::as_Spatial(st_cast(eag, "MULTILINESTRING")) #convert to spatial line object
-eag_l_r <- rasterize(eag_l, rs_template, field = "eag_id") # this takes lots of time! ca. 13 min
-                                                          # fun = "length" does not work for projected map
-# writeRaster(eag_l_r, filename = "diepte/eag_l_r.tif", overwrite = T)
-# Second, rasterize polygons
-eag_p_r <- fasterize(eag, rs_template, field = "eag_id", fun = "last") 
-# and then, overlay (giving a priority to the rasterized lines)
-eag_r <- overlay(eag_l_r, eag_p_r, fun = function(x, y) {
-  x[is.na(x[])] <- y[is.na(x[])]
-  return(x)
-})
-# writeRaster(eag_r, filename = "diepte/eag_r.tif", overwrite = T)
+# rasterize EAG polygons
+eag_r <- rasterize_eag()
 
 
 # merge location info to hybi
 dt <- merge(hybi, locaties[,.(CODE, EAGIDENT, GAFIDENT)], by.x = "locatiecode", by.y = "CODE", all.x =T)
-# delete record of meetwaarde == -999
-dt <- dt[meetwaarde != -999, ]
+
 
 # choose data of the target parameter and of specific years 
 year2u <- 2015:2019
@@ -75,21 +67,33 @@ dt2 <- dt[fewsparameter == para2u & jaar %in% year2u,]
 
 
 
-# summary per location & eag (median depth, sd, N)
-loc_sum <- dt2[,.(med = median(meetwaarde),
+# summary per location per GAF (median depth, sd, N)
+loc_gaf_sum <- dt2[,.(med = median(meetwaarde),
                  N_record = .N,
                  sd = sd(meetwaarde)),
-              by = .(EAGIDENT, locatiecode)]
+              by = .(GAFIDENT, locatiecode)]
+# summary per GAF (median, number of measurement location, sd)
+gaf_sum <- loc_gaf_sum[, .(med = median(med), # median of location medians
+                       N_location = .N,
+                       sd = sd(med)), 
+                   by = GAFIDENT]
+
+# summary per location per EAG (median depth, sd, N)
+loc_eag_sum <- dt2[,.(med = median(meetwaarde),
+                  N_record = .N,
+                  sd = sd(meetwaarde)),
+               by = .(EAGIDENT, locatiecode)]
 # summary per EAG (median, number of measurement location, sd)
-eag_sum <- loc_sum[, .(med = median(med), # median of location medians
+eag_sum <- loc_eag_sum[, .(med = median(med), # median of location medians
                        N_location = .N,
                        sd = sd(med)), 
                    by = EAGIDENT]
 
 # merge info on EAG level
-dt_m <- data.table(EAGIDENT = unique(eag_wl$GAFIDENT))
-dt_m <- merge(dt_m, eag_wl[, .(GAFIDENT, type)], by.x = "EAGIDENT", by.y = "GAFIDENT", all.x = T)
+dt_m <- data.table(EAGIDENT = unique(eag_wl$EAGIDENT))
+dt_m <- merge(dt_m, eag_wl[, .(EAGIDENT, type)], by = "EAGIDENT", all.x = T)
 dt_m <- merge(dt_m, eag_sum , by = "EAGIDENT", all.x = T)
+dt_m[, GAFIDENT := substr(EAGIDENT, 1, 4)]
 
 eag_med <- eag_r # initialization
 values(eag_med) <- NA_integer_ 
@@ -128,34 +132,52 @@ for (i in 1:nrow(dt_m)){
 }
   
 # Kriging 
-# convert point measurements of the EAG to Spatial Object 
-dt_sp <- dt2[EAGIDENT == dt_m[1, EAGIDENT], ]
-sp::coordinates(dt_sp) <- ~ locatie.x + locatie.y
-dt_sp@proj4string <- CRS(projargs = "+init=epsg:28992")
 
-# # convert raster (for the extent of the EAG polygon) to Spatial object
-# # (Probebly there are much easier way to do this)
-# setDT(eag)
-# eag_i <- st_as_sf(eag[GAFIDENT == dt_m[i, EAGIDENT],]) # select the EAG
-# coord_i <- sf::st_coordinates(eag_i) # get coodinates of node
-# box_i <- c( min(temp[,1]),  max(temp[,1]), min(temp[,2]), max(temp[,2])) #xmin, ymin, xmax, ymax
-# eag_out <- crop(eag_med, box_i) # crop raster
-# eag_out <- projectRaster(eag_out, crs = CRS("+init=epsg:28992"))
-# eag_out_sp <- as(eag_out, "SpatialGridDataFrame") # convert to Spatial object
+i <- 2
 
-eag_out <- projectRaster(overlay2(eag_r, eag_r,  eag_id_i), crs = CRS("+init=epsg:28992"))
-eag_out_sp <-as(eag_out, "SpatialGridDataFrame") 
+for (i in 1:length(unique(gaf$GAFIDENT))){
+  gaf_id_i <- unique(gaf$GAFIDENT)[i]
+  print(gaf_sum[GAFIDENT == gaf_id_i,])
+  # convert point measurements of the EAG to Spatial Object 
+  dt_sp <- dt2[GAFIDENT == gaf_id_i, ]
+  sp::coordinates(dt_sp) <- ~ locatie.x + locatie.y
+  dt_sp@proj4string <- CRS(projargs = "+init=epsg:28992")
+  
+  # # convert raster (for the extent of the EAG polygon) to Spatial object
+  # # (Probebly there are much easier way to do this)
+  # setDT(eag)
+  # eag_i <- st_as_sf(eag[GAFIDENT == dt_m[i, EAGIDENT],]) # select the EAG
+  # coord_i <- sf::st_coordinates(eag_i) # get coodinates of node
+  # box_i <- c( min(temp[,1]),  max(temp[,1]), min(temp[,2]), max(temp[,2])) #xmin, ymin, xmax, ymax
+  # eag_out <- crop(eag_med, box_i) # crop raster
+  # eag_out <- projectRaster(eag_out, crs = CRS("+init=epsg:28992"))
+  # eag_out_sp <- as(eag_out, "SpatialGridDataFrame") # convert to Spatial object
+  
+  # setDT(gaf)
+  # gaf_i <- st_as_sf(gaf[GAFIDENT == gaf_id_i,]) # select the GAF
+  gaf_out <- projectRaster(overlay2(gaf_r, gaf_r,  gaf_id_i), crs = CRS("+init=epsg:28992"))
+  gaf_out_sp <-as(gaf_out, "SpatialGridDataFrame") 
+  
+  ## ordinary kriging
+  res_krige <- autoKrige(meetwaarde ~ 1,
+                         input_data = dt_sp,
+                         new_data = gaf_out_sp,
+                         model = "Sph",
+                         verbose = FALSE)
+  plot(res_krige)
+  # show map
+  setDT(gaf)
+  gaf_e <- st_as_sf(gaf[GAFIDENT == gaf_id_i,])
+  gaf <- st_as_sf(gaf)
+  dt_e <- dt2[GAFIDENT == gaf_id_i, ]
+  ggplot() + geom_sf(data = gaf_e) +
+    geom_point(data= dt_e, aes(x = locatie.x, y = locatie.y, col = meetwaarde)) +
+    labs(col = "WATDTE_m") +
+    ggtitle(paste0("GAF ", gaf_id_i))
 
-## TO CHECK: 
-res_krige <- autoKrige(meetwaarde ~ 1,
-          input_data = dt_sp,
-          new_data = eag_out_sp,
-          model = "Sph",
-          #block = c(1000, 1000), # for block kriging
-          verbose = FALSE)
-
-
-
+  
+  
+}
 
 
 
