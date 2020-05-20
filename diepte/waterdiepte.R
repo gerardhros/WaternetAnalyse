@@ -50,7 +50,21 @@ remove_duplicate <- function(dt){
   return(dt_uni)
 }
 
-hybi <- remove_duplicate(hybi[, .(locatiecode, locatie.x, locatie.y, datum, jaar, fewsparameter, meetwaarde, eenheid)])
+hybi <- remove_duplicate(hybi[, .(locatiecode, datum, jaar, fewsparameter, meetwaarde, eenheid)])
+
+# make a parameter TOTDTE_M (= WATDTE_m + SLIBDTE_m)
+hybi_dc <- dcast(hybi[fewsparameter %in% c("WATDTE_m", "SLIBDTE_m"),], 
+                 locatiecode + datum ~ fewsparameter,
+                 value.var = "meetwaarde",
+                 fun.aggregate = median)
+hybi_dc[!is.na(WATDTE_m) & !is.na(SLIBDTE_m), TOTDTE_m := WATDTE_m + SLIBDTE_m]
+hybi_totd <- hybi_dc[!is.na(TOTDTE_m), .(locatiecode, datum, TOTDTE_m)]
+hybi_totd[, jaar := substr(datum, 1, 4)]
+hybi_totd[, eenheid := "m"]
+hybi_totd[, fewsparameter := "TOTDTE_m"]
+hybi_totd[, meetwaarde := TOTDTE_m][, TOTDTE_m := NULL]
+# add total depth to hybi
+hybi <- rbind(hybi, hybi_totd)
 
 
 
@@ -77,11 +91,13 @@ load("diepte/eag_r.RData") # this loads eag_r & tb_eag
 ## make a raster of EAG-median values
 # water depth
 eag_med_watdte <- raster_eag_med(hybi, year2u = 2015:2019, para2u = "WATDTE_m", locaties, eag_wl)
-tm_shape(eag_med_slibdte) + tm_raster(title = "WATDTE_M")  + tm_layout(legend.position = c("right","bottom"))
+tm_shape(eag_med_watdte) + tm_raster(title = "WATDTE_M")  + tm_layout(legend.position = c("right","bottom"))
 # slib depth
 eag_med_slibdte <- raster_eag_med(hybi, year2u = 2015:2019, para2u = "SLIBDTE_m", locaties, eag_wl)
-tm_shape(eag_med_slibdte) + tm_raster(title = "SLIBTE_M")  + tm_layout(legend.position = c("right","bottom"))
+tm_shape(eag_med_slibdte) + tm_raster(title = "SLIBDTE_M")  + tm_layout(legend.position = c("right","bottom"))
 # total depth (water + slib)
+eag_med_totdte <- raster_eag_med(hybi, year2u = 2015:2019, para2u = "TOTDTE_m", locaties, eag_wl)
+tm_shape(eag_med_totdte) + tm_raster(title = "TOTDTE_M")  + tm_layout(legend.position = c("right","bottom"))
 
 
 
@@ -151,7 +167,16 @@ i <- 1
 
 
 
-
+# convert hybi to sf object
+hybi_w <- merge(hybi[fewsparameter == "WATDTE_m" & jaar == 2019, ],
+                     locaties[,.(CODE, XCOORD, YCOORD)], 
+                     by.x = "locatiecode", by.y = "CODE", all.x = T)
+watdte_sf <- st_as_sf(hybi_w, coords = c("XCOORD", "YCOORD"), crs = 28992)
+eag <- st_read("data/EAG20191205.gpkg") %>% st_transform(28992)
+# draw maps
+tm_shape(eag) + tm_polygons() +
+  tm_shape(watdte_sf) + tm_dots(col = "meetwaarde", size = 0.3) 
+  
 
 
 
@@ -163,16 +188,16 @@ i <- 1
 ggplot(dt_m) + geom_histogram(aes(y = N)) + facet_wrap(.~type) +
   xlab("Number of EAG") + ylab("Number of locations with depth records in hybi")
 
-# example map of 1 eag with maximum number of data points
-setDT(eag)
-eag2u <- n_loc_eac[N == max(N), EAGIDENT] # EAG with the most number of records
-#eag2u <- n_eag[type == "sloot" & N>100, EAGIDENT][1] #EAG of sloot with many records
-eag_e <- st_as_sf(eag[GAFIDENT == eag2u,])
-dt_e <- dt[EAGIDENT == eag2u & fewsparameter == "WATDTE_m",]
-ggplot() + geom_sf(data = eag_e) +
-  geom_point(data= dt_e, aes(x = locatie.x, y = locatie.y, col = meetwaarde)) +
-  labs(col = "WATDTE_m") +
-  ggtitle(eag2u)
+# # example map of 1 eag with maximum number of data points
+# setDT(eag)
+# eag2u <- n_loc_eac[N == max(N), EAGIDENT] # EAG with the most number of records
+# #eag2u <- n_eag[type == "sloot" & N>100, EAGIDENT][1] #EAG of sloot with many records
+# eag_e <- st_as_sf(eag[GAFIDENT == eag2u,])
+# dt_e <- dt[EAGIDENT == eag2u & fewsparameter == "WATDTE_m",]
+# ggplot() + geom_sf(data = eag_e) +
+#   geom_point(data= dt_e, aes(x = locatie.x, y = locatie.y, col = meetwaarde)) +
+#   labs(col = "WATDTE_m") +
+#   ggtitle(eag2u)
 
 
 
