@@ -30,7 +30,7 @@ polarHistogram <-function (df, family = df$family, binSize = 1,
                            guides = c(10, 20, 40, 80), alphaStart = -0.3, circleProportion = 0.8,
                            direction = "inwards", familyLabels = TRUE, normalised = TRUE) {
   
-  df$family <- df$KRWwatertype.code.y
+  df$family <- df$KRWwatertype.code
   df$item <- df$EAGIDENT
   df$score <- df$klasse
   df$value <- df$Numeriekewaarde
@@ -41,7 +41,7 @@ polarHistogram <-function (df, family = df$family, binSize = 1,
   
   df <- df[!is.na(df$EAGIDENT) & !is.na(df$CODE) & 
              !(is.na(df$Waardebepalingsmethode.code)) & 
-             !(is.na(df$GHPR)) & !(is.na(df$KRWwatertype.code.y))& 
+             !(is.na(df$GHPR)) & !(is.na(df$KRWwatertype.code))& 
              !(is.na(df$HoortBijGeoobject.identificatie)),]
     
   df <- arrange(df, family, item, score)
