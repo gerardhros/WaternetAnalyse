@@ -1,11 +1,11 @@
 #' Make a raster template for the extent of EAG
-create_raster_template <- function(eag_fn){
+#' 
+create_raster_template <- function(eag_fn, res){
   
   # load shape of EAG
   eag <- st_read(eag_fn) %>% st_transform(28992)
   
   # make a template raster
-  res <- 100
   rs_template <- raster(extent(eag))
   res(rs_template) <- c(res, res)
   crs(rs_template) <- CRS("+init=epsg:28992")
@@ -142,58 +142,154 @@ overlay2 <- function(ras1, ras2, id){
   return(ol)
 }
 
-# make a raster of EAG-median values
-raster_eag_med <- function(hybi, year2u, para2u, locaties, eag_wl){
+
+#' Make a raster of EAG-median values
+#' @param dt_loc (datatable) data table containing location statistics. 
+#' @param para2u (CHAR) A column name of 'dt_loc' to be analyzed
+#' @param water_eag_r (raster) raster of waterways, labelled with EAG. 
+#' @param tb_eag (datatable) corresponding table of EAG name and EAG code ('eag_id') used in 'eag_r'
+raster_eag_med <- function(dt_loc, para2u, water_eag_r, tb_eag){
+
+  # para2u <- "med_wd"
   
-  # year2u <- 2015:2019
-  # para2u <- "WATDTE_m"
-  
-  dt2 <- hybi[fewsparameter == para2u & jaar %in% year2u,]
-  
-  
-  # calculate location medians over years
-  loc_sum <- dt2[,.(med = median(meetwaarde),
-                    N_record = .N,
-                    sd = sd(meetwaarde)),
-                 by = .(locatiecode)]
-  # merge location info to location medians
-  loc_sum <- merge(loc_sum, locaties[, .(CODE, EAGIDENT, GAFIDENT, XCOORD, YCOORD)], 
-                   by.x = "locatiecode", by.y = "CODE", all.x = T)
-  
-  # # summary per GAF
-  # gaf_sum <- loc_sum[, .(N_location = .N),by = GAFIDENT]
-  
+  dt_loc <- copy(dt_loc)
+  dt_loc[, var := mget(para2u)]
   
   # summary per EAG (median, number of measurement location, sd)
-  eag_sum <- loc_sum[, .(N_location = .N,
-                         med = median(med), # median of location medians
-                         sd = sd(med)),by = EAGIDENT]
+  eag_sum <- dt_loc[, .(N_location = .N,
+                         med = median(var, na.rm = T), # median of location medians
+                         sd = sd(var)),
+                    by = EAGIDENT]
   
-  # merge EAG statistics to eag_wl
-  dt_m <- merge(eag_wl[, .(EAGIDENT, GAFIDENT, type)], eag_sum , by = "EAGIDENT", all.x = T)
+  # merge EAG statistics to tb_eag (table of all EAG's)
+  dt_m <- merge(tb_eag, eag_sum , by.x = "EAG", by.y = "EAGIDENT", all.x = T)
   
   
   
-  ## Interpolate sloot depth ----
-  
-  eag_med <- eag_r # initialization of raster
+  ## rasterize per EAG
+  eag_med <- water_eag_r # initialization of raster
   values(eag_med) <- NA_integer_ 
   
   # loop over EAG
   for (i in 1:nrow(dt_m)){
     # ID number of the EAG
-    eag_id_i <- tb_eag[EAG == dt_m[i, EAGIDENT], eag_id] 
+    eag_id_i <- tb_eag[EAG == dt_m[i, EAG], eag_id] 
     if(is.na(dt_m[i, N_location])){
       # when there is no measurement locations in the EAG, assign NA
-      eag_med <- overlay1(eag_med, eag_r, eag_id_i, NA)
+      eag_med <- overlay1(eag_med, water_eag_r, eag_id_i, NA)
     } else {
-      #} else if(dt_m[i, N_location] < 10){
-      # when there are less than 3 measurement locations in the EAG
       # assin median value of the locations
-      eag_med <- overlay1(eag_med, eag_r, eag_id_i, dt_m[i, med])
+      eag_med <- overlay1(eag_med, water_eag_r, eag_id_i, dt_m[i, med])
     }
   }
   
   return(eag_med)
+}
+
+#' Rasterize waterpeil polygons
+#' @import fasterize
+rasterize_waterpeil <- function(waterpeil_fn, rs_template){
+  # load shape
+  waterpeil <- st_read(waterpeil_fn) %>% st_transform(28992)
+  
+  # fix self intersecting geometries of waterpeil shape
+  waterpeil_sp <- as(waterpeil, "Spatial") %>% spTransform(CRS("+init=epsg:28992")) %>% gBuffer(byid=TRUE, width=0)
+  waterpeil2 <- st_as_sf(waterpeil_sp) %>% st_transform(crs = 28992)
+  
+  # make a variable "PEIL"
+  setDT(waterpeil2)
+  waterpeil2[, PEIL := NA_real_]
+  waterpeil2[BEHEER == "vast", PEIL := VASTPEIL]
+  waterpeil2[BEHEER == "flexibel", PEIL := (ONDERPEIL + BOVENPEIL)/2]
+  waterpeil2[BEHEER == "seizoensgebonden", PEIL := (WINTERPEIL + ZOMERPEIL)/2]
+  waterpeil2 <- st_as_sf(waterpeil2)
+  
+  waterpeil_rs <- fasterize(waterpeil2, rs_template, field = "PEIL")
+  names(waterpeil_rs) <- "PEIL"
+  
+  return(waterpeil_rs)
+}
+#' Raterize soil code
+#' This script convert the existing soilcode raster to the extent of this project.
+#' 1: sand, 2: clay, 3: peat
+#' 
+#' @import OBIC
+rasterize_soilcode <- function(fac_rs_fn, rs_template){
+  # load raster stack
+  load(fac_rs_fn)
+  
+  # resample
+  soilcode_rs <- resample(fac_rs[["soilcodeID"]], rs_template, method = "ngb")
+  
+  # make a conversion table 
+  soils.obic <- as.data.table(OBIC::soils.obic)
+  soils.obic[, soilcodeID := (1:nrow(soils.obic))-0.1]
+  soils.obic[, soilcodeID2 := soilcodeID+0.2]
+  soils.obic[soiltype.n == "zand", becomes := 1]
+  soils.obic[soiltype.n == "klei", becomes := 2]
+  soils.obic[soiltype.n == "veen", becomes := 3]
+  soils.obic[, (c("soiltype", "soiltype.ph", "soiltype.n", "soiltype.m")) := NULL]
+  
+  # reclassify 
+  soilcode_rs2 <- reclassify(soilcode_rs, soils.obic)
+  
+  names(soilcode_rs2) <- "soiltypen"
+  
+  return(soilcode_rs2) 
+}
+
+#' Rasterize seepage point data
+rasterize_kwel <- function(kwel_fn, rs_template){
+  # load seepage point shape
+  kwel <- st_read(kwel_fn) %>% st_transform(28992)
+  
+  ## Create a raster template ----
+  
+  # create a convex hull polygon
+  ch <- st_convex_hull(st_union(kwel)) 
+  ch_sp <-  as(ch, "Spatial") %>% spTransform(CRS("+init=epsg:28992"))
+  # mask template with convex hull
+  values(rs_template) <- -999
+  rs <- mask(rs_template, ch_sp) 
+  
+  ## Convert to raster & filling gaps -------
+  kwel_r <- rasterize(kwel, rs, field = "KWEL", fun = median)
+  # fill in missing cells based on neighbouring cells 
+  # (first with 3 x 3 windows)
+  kwel_rs <- focal(kwel_r, w = matrix(1,3,3), fun = median, 
+                   pad = T, padValue = NA, #additional 'virtual' rows and columns are padded to x such that there are no edge effects
+                   na.rm = TRUE, NAonly = TRUE)
+  # (and then with 5 x 5 windows)
+  kwel_rs <- focal(kwel_rs, w = matrix(1,5,5), fun = median, 
+                   pad = T, padValue = NA, #additional 'virtual' rows and columns are padded to x such that there are no edge effects
+                   na.rm = TRUE, NAonly = TRUE)
+  
+  names(kwel_rs) <- "KWEL"
+  
+  #save(kwel_rs, file = paste0(iloc_project, "diepte/kwel_rs.RData"))
+  
+  # ## Interpolate point data to raster by kriging -----
+  # # convert point measurements of the EAG to Spatial Object 
+  # kwel_sp <- as(kwel, "Spatial") %>% spTransform(CRS("+init=epsg:28992"))
+  # 
+  # # convert raster to spatial object
+  # rs_sp <- as(rs, "SpatialGridDataFrame") 
+  # 
+  # ## ordinary kriging
+  # res_krige <- autoKrige(KWEL ~ 1,
+  #                        input_data = kwel_sp,
+  #                        new_data = rs_sp,
+  #                        model = "Sph",
+  #                        verbose = FALSE)
+  # # -> ERROR!!! out of dynamic memory (try local kriging?)
+  # 
+  # # check results
+  # #plot(res_krige)
+  # 
+  # # store prediction
+  # kwel_rs <- raster(res.krige$krige_output[1])
+  
+  return(kwel_rs) 
+  
 }
 

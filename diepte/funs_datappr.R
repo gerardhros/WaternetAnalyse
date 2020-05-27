@@ -9,7 +9,8 @@ remove_duplicate <- function(dt){
   return(dt_uni)
 }
 
-## Exclude hybi data with unrealistic WATDTE_M and WATBTE_m from line features
+#' Exclude hybi data with unrealistic WATDTE_M and WATBTE_m from line features
+#' Criteria to remove (for lijnformig feasures only):  WATDTE_M > max_d, WATBTE_m > max_b, or WATBTE_m  = 0
 remove_unrealistic <- function(hybi, max_d = 5, max_b = 50, print = FALSE){
   dexc <- hybi[fewsparameter == "WATDTE_m" & MORFOLOGIE == "lijnvormig"& meetwaarde > max_d,]
   print(paste0(nrow(dexc), " record was removed, because the ditch depth (WATDTE_M) is unrealistically high: >", max_d, "m"))
@@ -35,41 +36,6 @@ remove_unrealistic <- function(hybi, max_d = 5, max_b = 50, print = FALSE){
   return(hybi)
 }
 
-#' Make location-based summary of data 
-location_summary <- function(hybi){
-  hybi_dc2 <- dcast(hybi[fewsparameter %in% c("WATDTE_m", "SLIBDTE_m", "WATERBTE_m"),], 
-                    locatiecode + datum ~ fewsparameter,
-                    value.var = "meetwaarde",
-                    fun.aggregate = median)
-  hybi_dc2 <- hybi_dc2[!is.na(WATDTE_m) & !is.na(WATERBTE_m),]
-  
-  loc_sum_wd <- hybi[fewsparameter == "WATDTE_m",.(med_wd = median(meetwaarde),
-                                                   N_record_wd = .N,
-                                                   sd_wd = sd(meetwaarde)),
-                     by = .(locatiecode)]
-  loc_sum_wb <- hybi[fewsparameter == "WATERBTE_m",.(med_wb = median(meetwaarde),
-                                                     N_record_wb = .N,
-                                                     sd_wb = sd(meetwaarde)),
-                     by = .(locatiecode)]
-  loc_sum_sd <- hybi[fewsparameter == "SLIBDTE_m",.(med_sd = median(meetwaarde),
-                                                    N_record_sd = .N,
-                                                    sd_sd = sd(meetwaarde)),
-                     by = .(locatiecode)]
-  
-  loc_sum_td <- hybi[fewsparameter == "TOTDTE_m",.(med_td = median(meetwaarde),
-                                                   N_record_td = .N,
-                                                   sd_td = sd(meetwaarde)),
-                     by = .(locatiecode)]
-  
-  dt_loc <- data.table(locatiecode = unique(hybi$locatiecode))
-  dt_loc <- merge(dt_loc, loc_sum_wd, by = "locatiecode", all.x= T)
-  dt_loc <- merge(dt_loc, loc_sum_wb, by = "locatiecode", all.x= T)
-  dt_loc <- merge(dt_loc, loc_sum_sd, by = "locatiecode", all.x= T)
-  dt_loc <- merge(dt_loc, loc_sum_td, by = "locatiecode", all.x= T)
-  
-  return(dt_loc)
-}
-
 
 #' make a parameter TOTDTE_M (= WATDTE_m + SLIBDTE_m)
 calc_totdepth <- function(hybi){
@@ -89,136 +55,124 @@ calc_totdepth <- function(hybi){
 }
 
 
-#' Extract waterpeil info of measurement point
-#' 
-#' @import rgeos
-#' @imort data.table
-#' @import sp
-#' @import sf
-get_waterpeil <- function(loc_sf, waterpeil_fn){
+#' Make location-based summary of data 
+location_summary <- function(hybi,  year2u){
   
-  # load shape
-  waterpeil <- st_read(waterpeil_fn) %>% st_transform(28992)
+  hybi <- copy(hybi)
+  hybi <- hybi[jaar %in% year2u,]
   
-  # fix self intersecting geometries of waterpeil shape
-  waterpeil_sp <- as(waterpeil, "Spatial") %>% spTransform(CRS("+init=epsg:28992")) %>% gBuffer(byid=TRUE, width=0)
+  hybi_dc2 <- dcast(hybi[fewsparameter %in% c("WATDTE_m", "SLIBDTE_m", "WATERBTE_m"),], 
+                    locatiecode + datum ~ fewsparameter,
+                    value.var = "meetwaarde",
+                    fun.aggregate = median)
+  hybi_dc2 <- hybi_dc2[!is.na(WATDTE_m) & !is.na(WATERBTE_m),]
   
-  waterpeil2 <- st_as_sf(waterpeil_sp) %>% st_transform(crs = st_crs(loc_sf))
+  loc_sum_wd <- hybi[fewsparameter == "WATDTE_m",.(med_wd = median(meetwaarde, na.rm = T),
+                                                   N_record_wd = .N,
+                                                   sd_wd = sd(meetwaarde)),
+                     by = .(locatiecode)]
+  loc_sum_wb <- hybi[fewsparameter == "WATERBTE_m",.(med_wb = median(meetwaarde, na.rm = T),
+                                                     N_record_wb = .N,
+                                                     sd_wb = sd(meetwaarde)),
+                     by = .(locatiecode)]
+  loc_sum_sd <- hybi[fewsparameter == "SLIBDTE_m",.(med_sd = median(meetwaarde, na.rm = T),
+                                                    N_record_sd = .N,
+                                                    sd_sd = sd(meetwaarde)),
+                     by = .(locatiecode)]
   
-  # intersect points and polygons
-  wp <- st_intersection(loc_sf, waterpeil2)
+  loc_sum_td <- hybi[fewsparameter == "TOTDTE_m",.(med_td = median(meetwaarde, na.rm = T),
+                                                   N_record_td = .N,
+                                                   sd_td = sd(meetwaarde)),
+                     by = .(locatiecode)]
   
-  # make a variable "PEIL"
-  setDT(wp)
-  wp[, PEIL := NA_real_]
-  wp[BEHEER == "vast", PEIL := VASTPEIL]
-  wp[BEHEER == "flexibel", PEIL := (ONDERPEIL + BOVENPEIL)/2]
-  wp[BEHEER == "seizoensgebonden", PEIL := (WINTERPEIL + ZOMERPEIL)/2]
+  dt_loc <- data.table(locatiecode = unique(hybi$locatiecode))
+  dt_loc <- merge(dt_loc, loc_sum_wd, by = "locatiecode", all.x= T)
+  dt_loc <- merge(dt_loc, loc_sum_wb, by = "locatiecode", all.x= T)
+  dt_loc <- merge(dt_loc, loc_sum_sd, by = "locatiecode", all.x= T)
+  dt_loc <- merge(dt_loc, loc_sum_td, by = "locatiecode", all.x= T)
   
-  # Since some points (N=4) overlap with multiple polygons, compute median
-  wp_m <- wp[, .(PEIL = median(PEIL)), by = locatiecode]
-
-  loc_sf <- left_join(loc_sf, wp_m, by = "locatiecode")
-  
-  return(loc_sf)
-  
+  return(dt_loc)
 }
 
-#' Extract soil type ("zand"/"klei"/"veen") of measurement point
+
+
+
+#' #' Extract waterpeil info of measurement point
+#' #' 
+#' #' @import rgeos
+#' #' @imort data.table
+#' #' @import sp
+#' #' @import sf
+#' get_waterpeil <- function(loc_sf, waterpeil_fn){
+#'   
+#'   # load shape
+#'   waterpeil <- st_read(waterpeil_fn) %>% st_transform(28992)
+#'   
+#'   # fix self intersecting geometries of waterpeil shape
+#'   waterpeil_sp <- as(waterpeil, "Spatial") %>% spTransform(CRS("+init=epsg:28992")) %>% gBuffer(byid=TRUE, width=0)
+#'   
+#'   waterpeil2 <- st_as_sf(waterpeil_sp) %>% st_transform(crs = 28992)
+#'   
+#'   # intersect points and polygons
+#'   wp <- st_intersection(loc_sf, waterpeil2)
+#'   
+#'   # make a variable "PEIL"
+#'   setDT(wp)
+#'   wp[, PEIL := NA_real_]
+#'   wp[BEHEER == "vast", PEIL := VASTPEIL]
+#'   wp[BEHEER == "flexibel", PEIL := (ONDERPEIL + BOVENPEIL)/2]
+#'   wp[BEHEER == "seizoensgebonden", PEIL := (WINTERPEIL + ZOMERPEIL)/2]
+#'   
+#'   # Since some points (N=4) overlap with multiple polygons, compute median
+#'   wp_m <- wp[, .(PEIL = median(PEIL)), by = locatiecode]
 #' 
-#' @import OBIC
-get_soiltype <- function(loc_sf, fac_rs_fn){
-  # load rasterstack 'fac_rs'
-  load(fac_rs_fn)
-  
-  soils.obic <- as.data.table(OBIC::soils.obic)
-  soils.obic[, soilcodeID := 1:nrow(soils.obic)]
-  
-  # extract soil type per measurement point
+#'   loc_sf <- left_join(loc_sf, wp_m, by = "locatiecode")
+#'   
+#'   return(loc_sf)
+#'   
+#' }
+
+#' #' Extract soil type ("zand"/"klei"/"veen") of measurement point
+#' #' 
+#' #' @import OBIC
+#' get_soiltype <- function(loc_sf, fac_rs_fn){
+#'   # load rasterstack 'fac_rs'
+#'   load(fac_rs_fn)
+#'   
+#'   soils.obic <- as.data.table(OBIC::soils.obic)
+#'   soils.obic[, soilcodeID := 1:nrow(soils.obic)]
+#'   
+#'   # extract soil type per measurement point
+#'   loc_sf <- mutate(loc_sf, ID = 1:nrow(loc_sf))
+#'   sc <- extract(fac_rs[["soilcodeID"]], loc_sf, df = TRUE)
+#'   loc_sf <- merge(loc_sf, sc, by = "ID")
+#'   loc_sf <- merge(loc_sf, soils.obic[, .(soilcodeID, soiltype.n)], by = "soilcodeID")
+#'   
+#'   return(loc_sf)
+#' }
+
+#' get raster values from raster
+#' @param loc_sf (sf object)
+#' @raster raster (raster object)
+get_value_from_raster <- function(loc_sf, raster){
   loc_sf <- mutate(loc_sf, ID = 1:nrow(loc_sf))
-  sc <- extract(fac_rs[["soilcodeID"]], loc_sf, df = TRUE)
+  sc <- extract(raster, loc_sf, df = TRUE)
   loc_sf <- merge(loc_sf, sc, by = "ID")
-  loc_sf <- merge(loc_sf, soils.obic[, .(soilcodeID, soiltype.n)], by = "soilcodeID")
-  
-  return(loc_sf)
-}
-
-#' Rasterize seepage point data (by kriging)
-rasterize_kwel <- function(kwel_fn){
-  # load seepage point shape
-  kwel <- st_read(kwel_fn) %>% st_transform(28992)
- 
-  ## Create a raster template ----
-  # create a convex hull polygon
-  ch <- st_convex_hull(st_union(kwel)) 
-  ch_sp <-  as(ch, "Spatial") %>% spTransform(CRS("+init=epsg:28992"))
-  # create a raster template
-  rs_template <- raster(extent(kwel_sp))
-  res(rs_template) <- c(100, 100)
-  crs(rs_template) <- CRS("+init=epsg:28992")
-  values(rs_template) <- -999
-  rs <- mask(rs_template, ch_sp) 
-  
-  ## Convert to raster & filling gaps -------
-  kwel_r <- rasterize(kwel, rs, field = "KWEL", fun = median)
-  # fill in missing cells based on neighbouring cells 
-  # (first with 3 x 3 windows)
-  kwel_rf <- focal(kwel_r, w = matrix(1,3,3), fun = median, 
-                   pad = T, padValue = NA, #additional 'virtual' rows and columns are padded to x such that there are no edge effects
-                   na.rm = TRUE, NAonly = TRUE)
-  # (and then with 5 x 5 windows)
-  kwel_rf <- focal(kwel_rf, w = matrix(1,5,5), fun = median, 
-                   pad = T, padValue = NA, #additional 'virtual' rows and columns are padded to x such that there are no edge effects
-                   na.rm = TRUE, NAonly = TRUE)
-  
-  names(kwel_rf) <- "KWEL"
-  
-  
-  # ## Interpolate point data to raster by kriging -----
-  # # convert point measurements of the EAG to Spatial Object 
-  # kwel_sp <- as(kwel, "Spatial") %>% spTransform(CRS("+init=epsg:28992"))
-  # 
-  # # convert raster to spatial object
-  # rs_sp <- as(rs, "SpatialGridDataFrame") 
-  # 
-  # ## ordinary kriging
-  # res_krige <- autoKrige(KWEL ~ 1,
-  #                        input_data = kwel_sp,
-  #                        new_data = rs_sp,
-  #                        model = "Sph",
-  #                        verbose = FALSE)
-  # # -> ERROR!!! out of dynamic memory (try local kriging?)
-  # 
-  # # check results
-  # #plot(res_krige)
-  # 
-  
-  # # store prediction
-  # kwel_rs <- raster(res.krige$krige_output[1])
-
-  #save(kwel_rf, file = paste0(iloc_project, "diepte/kwel_rf.RData"))
-  
-  return(kwel_rf) 
-  
-}
-
-
-#' Get seepage value for measurement points
-get_seepage <- function(loc_sf, kwel_rf){
-  
-  loc_sf <- mutate(loc_sf, IDseq = 1:nrow(loc_sf))
-  kw_e <- extract(kwel_rf, loc_sf, df = TRUE)
-  loc_sf <- merge(loc_sf, kw_e, by.x = "IDseq", by.y = "ID", all.x = T)
   setDT(loc_sf)
-  loc_sf[, IDseq := NULL]
+  loc_sf[, ID := NULL]
   loc_sf <- st_as_sf(loc_sf)
   
   return(loc_sf)
 }
 
+
+
+
+
 #' Get theoretical water depth around measurement points
+#' 
 get_theowater <- function(watth_fn, loc_sf){
-  # Extract water depth of main waterways
+  # load shape
   majorwater <- st_read(watth_fn)%>% st_transform(28992)
   
   # intersect buffers around measurement points and waterways
@@ -230,6 +184,7 @@ get_theowater <- function(watth_fn, loc_sf){
   
   # Compute depth of waterways within Xm buffer from measurement points.
   # When more than 1 waterways fall within the buffer, then take the median value.
+  # TO DO: also get width data!
   theo_dep <- data.table(locatiecode = loc_sf$locatiecode,
                          theo_dep  = NA_real_)
   for (i in 1:nrow(loc_int_10)){
@@ -242,4 +197,104 @@ get_theowater <- function(watth_fn, loc_sf){
   loc_sf2 <- merge(loc_sf, theo_dep, by = "locatiecode", all.x = T)
   
   return(loc_sf2)
+}
+
+
+#'Get valuve of water width and water surface AHN from water shore data
+#'
+#'This function obtains, for each measurement points, values of water width and water surface AHN.
+#'The value of the nearest point (with maximum distance of 30m, and within the same EAG) is taken.
+#'
+#'@param loc_sf (sf object) sf point objects of location-level measurement data
+#'Need to include a column 'EAGIDENT' which stores EAG id
+#'@param ww_fn (CHAR) file name of point shape of water shore data. 
+#'Need to include columns 'pnt_ahn' and 'pnt_breedte'
+#'@param eag_fn (CHAR) file name of polygon shape of EAG boudaries. 
+#'Need to include a column 'GAFIDENT' which stores EAG id
+#'@param update (boolean) whether the distance is calculated again (TRUE) or the previously saved data is used (FALSE)
+#'
+#'@import data.table
+#'@import sf
+#'@import dplyr
+get_width_ahn <- function(loc_sf, ww_fn, eag_fn, update = FALSE){
+  
+  if(file.exists(paste0(iloc_project, "diepte/loc_v.RData")) & update == FALSE){
+    load(paste0(iloc_project, "diepte/loc_v.RData"))
+  } else {
+    
+    # Load data
+    ww <- st_read(ww_fn)%>% st_transform(28992)
+    
+    # when pnt_breedte = 0, remove the record
+    setDT(ww)
+    ww <- ww[pnt_breedte != 0, ]
+    ww <- st_as_sf(ww)
+    
+    ## Label ww points with EAG
+    # load shape of EAG
+    eag <- st_read(eag_fn) %>% st_transform(28992)
+    ww_eag <- st_intersects(ww, eag, sparse = FALSE)
+    
+    # get EAG per ww point
+    EAGi <- rep(NA, length.out = nrow(ww)) #initialization
+    for (i in 1:nrow(ww)){
+      EAGi[i] <- eag$GAFIDENT[ww_eag[i,]][1]
+    }
+    ww <- mutate(ww, EAGIDENT = EAGi)
+    
+    
+    # For each point of loc_sf, get width and AHN values from the nearst point 
+    # (with batch per EAG, because otherwize a memory error occurs)
+    
+    # initialization of data table to store results
+    loc_v <- data.table(locatiecode = loc_sf$locatiecode, 
+                        pnt_ahn = NA_real_,
+                        pnt_breedte  = NA_real_)
+    
+    uni_eag <- unique(eag$GAFIDENT)
+    for (e in 1:length(uni_eag)){
+      # select measurement locations and ww points of the EAG
+      loc_e <-loc_sf[!is.na(loc_sf$EAGIDENT) & loc_sf$EAGIDENT == uni_eag[e],]
+      ww_e <- ww[!is.na(ww$EAGIDENT) & ww$EAGIDENT == uni_eag[e],]
+      
+      # Proceed only when points exist in this EAG
+      if (nrow(ww_e) != 0 & nrow(loc_e) != 0){
+        
+        # compute distance between points
+        loc_dist <- as.data.table(st_distance(loc_e, ww_e))
+        # get index of column nr of minimum distance
+        colminind <- apply(loc_dist, 1, function(x) which.min(x))
+        # minimum distance
+        colmin <- apply(loc_dist, 1, min)
+        # When distance is > 30m, then don't get value
+        colminind[colmin > 30] <- NA
+        # store values of pnt_ahn and pnt_breedte of the closest point
+        loc_v[match(loc_e$locatiecode, locatiecode),  pnt_ahn := ww_e$pnt_ahn[colminind]]
+        loc_v[match(loc_e$locatiecode, locatiecode),  pnt_breedte := ww_e$pnt_breedte[colminind]]
+      }
+    }
+    
+    save(loc_v, file = paste0(iloc_project, "diepte/loc_v.RData"))
+    
+  }
+  
+  # merge
+  loc_sf <- merge(loc_sf, loc_v, by = "locatiecode", all.x = T)
+  
+  return(loc_sf)
+}
+
+
+#' Compute R2
+calc_rsq <- function (x, y){
+  r2 <- cor(x, y, use =  "pairwise.complete.obs") ^ 2
+  return(r2)
+} 
+
+#' Compute RMSE
+#' @param x (NUM) modelled values
+#' @param y (NUM) observed values
+calc_rmse <- function(x, y){
+  rmse <- sqrt(mean((x - y)^2, na.rm = T))
+  return(rmse)
 }

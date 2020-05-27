@@ -3,6 +3,16 @@
 # 'loc_sum' and 'gaf_sum' does not exist anymore.
 
 
+source("C:/code/metal_cokriging/scripts/functions.R") #cross-validation of kriging
+
+
+# # Rasterize GAF polygons 
+# if(file.exists(paste0(iloc_project, "diepte/gaf_r.RData"))){
+#   load(paste0(iloc_project, "diepte/gaf_r.RData"))
+# } else {
+#   gar_r <- rasterize_gaf("data/GAF.gpkg", rs_template) # (THIS TAKES CA. 15 MIN!!!)
+# }
+
 
 ## Kriging -------
 
