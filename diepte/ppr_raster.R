@@ -3,17 +3,16 @@
 library(raster)
 
 source('diepte/funs_rasterize.R')
+source('diepte/fun_iloc.R')
 
-## define folder names
-# parent directory of one drive
-fdnm <-  "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI"
-iloc_onedrive <- paste0(gsub("\\\\", "/", Sys.getenv("USERPROFILE")), "/", fdnm, "/")
-# project folder of AGV
-iloc_project <- paste0(iloc_onedrive, "NMI_Data - Documents/project/WaternetAnalyse/")
+## define folder names (iloc_onedrive, iloc_project, iloc_afk)
+fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+
+
 
 # file name of EAG polygons
-#eag_fn <- "data/EAG20191205.gpkg" # this one does not cover all areas
-eag_fn <- "data/EAG20190717_simplified.gpkg"
+eag_fn <- "data/EAG20191205.gpkg"
+
 
 # file name of waterways polygon
 water_fn <-  "data/WaterPerEAG20191205.gpkg"

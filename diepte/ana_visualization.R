@@ -19,14 +19,27 @@ ggplot(loc_sf2) +
   geom_point(aes(x = med_wb, y = med_wd, col = soiltypen))  +
   geom_smooth(aes(x = med_wb, y = med_wd), formula = y ~log(x),
               method = "lm", se = FALSE, color="black", lty = 2) +
-  xlab("sloot breedte (m)") + ylab("sloot diepte (m)")
+  scale_color_discrete(name="Bodemtype", breaks=c("1", "2", "3"),
+                       labels=c("zand", "klei", "veen")) +
+  xlab("sloot breedte (m)") + ylab("sloot water diepte (m)")
 # summary(lm(med_wd ~ log(med_wb), data = loc_sf2))
+
+ggplot(loc_sf3) + 
+     geom_point(aes(x = breedte, y = med_td, col = soiltypen))  +
+     geom_smooth(aes(x = breedte, y = med_td), formula = y ~log(x),
+                 method = "lm", se = FALSE, color="black", lty = 2) +
+     scale_color_discrete(name="Bodemtype", breaks=c("1", "2", "3"),
+                          labels=c("zand", "klei", "veen")) +
+     xlab("sloot breedte (m)") + ylab("sloot water + slib diepte (m)")
+# summary(lm(med_td ~ log(breedte), data = loc_sf3))
 
 ggplot(loc_sf3) + 
   geom_point(aes(x = breedte, y = med_wd, col = soiltypen))  +
   geom_smooth(aes(x = breedte, y = med_wd), formula = y ~log(x),
               method = "lm", se = FALSE, color="black", lty = 2) +
-  xlab("sloot breedte (m)") + ylab("sloot diepte (m)")
+  scale_color_discrete(name="Bodemtype", breaks=c("1", "2", "3"),
+                       labels=c("zand", "klei", "veen")) +
+  xlab("sloot breedte (m)") + ylab("sloot water diepte (m)")
 # summary(lm(med_wd ~ log(breedte), data = loc_sf3))
 
 # # non-linear fitting
@@ -58,11 +71,7 @@ ggplot(loc_sf) +
   geom_abline(intercept = 0, slope = 1) +
   xlab("Waterpeil (m)") + ylab("AHN (m)") 
 
-# Compute deviation of ahn from peil 
-# (A positive value means that actual water surface is higher than peil)
-setDT(loc_sf)
-loc_sf[, afw_ahn := pnt_ahn - PEIL]
-loc_sf <- st_as_sf(loc_sf)
+
 
 
 ## Compare deviation in AHN vs other variables

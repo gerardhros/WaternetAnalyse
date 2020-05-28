@@ -183,6 +183,8 @@ raster_eag_med <- function(dt_loc, para2u, water_eag_r, tb_eag){
     }
   }
   
+  names(eag_med) <- paste0("eag_",para2u)
+  
   return(eag_med)
 }
 
@@ -209,6 +211,7 @@ rasterize_waterpeil <- function(waterpeil_fn, rs_template){
   
   return(waterpeil_rs)
 }
+
 #' Raterize soil code
 #' This script convert the existing soilcode raster to the extent of this project.
 #' 1: sand, 2: clay, 3: peat
@@ -293,3 +296,19 @@ rasterize_kwel <- function(kwel_fn, rs_template){
   
 }
 
+
+#' Raterize OM
+#' This script convert the existing OM raster to the extent of this project.
+#' 
+rasterize_om <- function(num_rs_fn, rs_template){
+  
+  # load raster stack
+  load(num_rs_fn)
+  
+  # resample
+  om_rs <- resample(num_rs[["A_OS_GV"]], rs_template, method = "ngb")
+  
+  names(om_rs) <- "A_OS_GV"
+  
+  return(om_rs) 
+}

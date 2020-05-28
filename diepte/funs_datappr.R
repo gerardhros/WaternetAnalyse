@@ -154,9 +154,13 @@ location_summary <- function(hybi,  year2u){
 #' get raster values from raster
 #' @param loc_sf (sf object)
 #' @raster raster (raster object)
-get_value_from_raster <- function(loc_sf, raster){
+get_value_from_raster <- function(loc_sf, raster, buffer = NULL){
   loc_sf <- mutate(loc_sf, ID = 1:nrow(loc_sf))
-  sc <- extract(raster, loc_sf, df = TRUE)
+  if(is.null(buffer)){
+    sc <- extract(raster, loc_sf, df = TRUE)
+  } else {
+    sc <- extract(raster, loc_sf, buffer = buffer, fun  = mean, df = TRUE)
+  }
   loc_sf <- merge(loc_sf, sc, by = "ID")
   setDT(loc_sf)
   loc_sf[, ID := NULL]
@@ -285,16 +289,3 @@ get_width_ahn <- function(loc_sf, ww_fn, eag_fn, update = FALSE){
 }
 
 
-#' Compute R2
-calc_rsq <- function (x, y){
-  r2 <- cor(x, y, use =  "pairwise.complete.obs") ^ 2
-  return(r2)
-} 
-
-#' Compute RMSE
-#' @param x (NUM) modelled values
-#' @param y (NUM) observed values
-calc_rmse <- function(x, y){
-  rmse <- sqrt(mean((x - y)^2, na.rm = T))
-  return(rmse)
-}

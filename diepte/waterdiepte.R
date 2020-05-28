@@ -10,19 +10,14 @@ library(automap)
 source('scripts/ppr_funs.R')
 source('diepte/funs_rasterize.R')
 source('diepte/funs_datappr.R')
+source('diepte/fun_iloc.R')
+
+## define folder names (iloc_onedrive, iloc_project, iloc_afk)
+fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
 
 
-## define folder names
-# parent directory of one drive
-fdnm <-  "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI"
-iloc_onedrive <- paste0(gsub("\\\\", "/", Sys.getenv("USERPROFILE")), "/", fdnm, "/")
-# project folder of AGV
-iloc_project <- paste0(iloc_onedrive, "NMI_Data - Documents/project/WaternetAnalyse/")
-# raw data folder of alkalvig project (Job's)
-iloc_afk <- paste0(iloc_onedrive, "NMISite - 1781.N.19 Oorzaken en oplossingen afkalving sloten veenweide/ml studie/data/raw/")
-
-eag_fn <- "data/EAG20191205.gpkg" # this one does not cover all areas
-#eag_fn <- "data/EAG20190717_simplified.gpkg"
+# name of EAG polygon shape
+eag_fn <- "data/EAG20191205.gpkg"
 
 ## Load files ---------------
 
@@ -140,12 +135,36 @@ ww_fn <- paste0(iloc_project, "diepte/200512_oeverpunten_corrected.gpkg")
 loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn)
 #loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn, update = TRUE) # re-calculate distance and save loc_v
 
+## Extract OM around measurement points ----
+# rasterstack file name
+num_rs_fn <- paste0(iloc_onedrive, "NMI_Data - Documents/rasterstack/products/num_rs.RData")
+
+# Make a raster with the same extent as other rasters of this project
+om_rs <- rasterize_om(num_rs_fn, rs_template)
+
+# get OM value for each measurement point, with 300m buffer
+loc_sf <- get_value_from_raster(loc_sf, om_rs, buffer = 300)
+
+
+# TO DO: use smaller raster size, or intersect points and polygons directly
+
+## Fine-tuning data table -----------
+
+# Make a new variable which combines measured and computed water width.
 # When meausred width is available, use that. Otherwise use water width which was calculated on GIS
 setDT(loc_sf)
 loc_sf[, breedte := med_wb]
 loc_sf[is.na(med_wb), breedte := pnt_breedte]
-loc_sf <- st_as_sf(loc_sf)
 
+# Compute deviation of ahn from peil 
+# (A positive value means that actual water surface is higher than peil)
+loc_sf[, afw_ahn := pnt_ahn - PEIL]
+
+# convert factor variables to factor
+fvar <- c("EAGIDENT", "GAFIDENT", "MORFOLOGIE", "WATERTYPE", "soiltypen" )
+loc_sf[, (fvar) := lapply(.SD, as.factor), .SDcols = fvar]
+
+loc_sf <- st_as_sf(loc_sf)
 
 #st_write(loc_sf, paste0(iloc_project, "diepte/loc_sf.gpkg"), append = FALSE)
 
