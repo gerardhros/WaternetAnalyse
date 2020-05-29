@@ -1,0 +1,385 @@
+---
+title: "KRW toestandsbepaling in overig water"
+runtime: shiny
+output: 
+  bookdown::html_document2:
+  theme: sandstone
+  fig_caption: true
+  number_sections: yes
+  toc: yes
+---
+
+```{r settings, include = FALSE, message= FALSE}
+#  Settings-------------------------------------------------------
+rm(list=ls())                               #maakt geheugen leeg voor aanvang
+options(repos = c(CRAN = "https://cran.rstudio.com"))
+#setwd('D:/stack/KRW/In_uitvoer_toetsing_2017/V3')
+
+#  Directories and names------------------------------------------
+dirExportAquo <- "./input/Rapportagefiles_OvWater2019"    
+dirMeetpuntenAquo <- "./input/meetpuntenInfo_OvWater2019"
+dirMeetpuntenGebied <- "./input/meetpuntenInfo2"
+dirGIS <-"../GIS"
+dirFiguren <- "./output/"
+
+# Load packages and functions-------------------------------------
+source('../scripts/loadPackages.R')
+source('../scripts/postProces.R')
+source('../scripts/createOutput.R')
+source('../scripts/PolarBarchart.R')
+#devtools::install_github('hadley/ggplot2')
+
+# other settings
+col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
+proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
+```
+
+```{r data, include = FALSE, message= FALSE}
+gEAG<- importOGR("EAG_20190717.shp", dirGIS, CRSobj = proj4.google)
+
+if(mode == "genereren"){
+# load input------------------------------------------------------
+orderMaatlatten <- importCSV('orderMaatlatten.csv', path = "./input")
+EKRlijst <- importAquoResult(path = dirExportAquo, pattern = ".csv") # bij foutmelding, opnieuw exportbestanden in de directory zetten
+doelen <- importCSV('doelen.csv', path = "./input")
+meetpuntenAquo <- importMeetpunten(path = dirMeetpuntenAquo)
+meetpuntenGebied <- importMeetpunten(path = dirMeetpuntenGebied)
+#EAG <- importGAF("EAG20170611.shp", dirGIS, CRSobj = proj4.rd)
+# gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
+# # Bewerken data---------------------------------------------------
+EKRlijst <- convertDatum(EKRlijst)
+EKRlijst$klasse <- as.factor(EKRlijst$Classificatie)
+EKRlijst$Classificatie <- as.factor(EKRlijst$Classificatie)
+EKRlijst <- kopDat(meetpuntenAquo, meetpuntenGebied, EKRlijst)
+EKRlijst <- kopDat2(doelen, EKRlijst)
+NA -> EKRlijst$EAGIDENT[EKRlijst$EAGIDENT == ""]
+EKRlijst$Waardebepalingsmethode.code <- gsub('other:Aquo-kit;Bio-toetsing;KRWmaatlat2012 -' , 'Maatlatten2012', EKRlijst$Waardebepalingsmethode.code)
+EKRlijst$Waardebepalingsmethode.code <- gsub('other:Aquo-kit;Bio-toetsing;KRWmaatlat2018 -' , 'Maatlatten2018', EKRlijst$Waardebepalingsmethode.code)
+# # Creer subsets voor plots ---------------------------------------
+EKRset<- EKRlijst[EKRlijst$Hoedanigheid.code == 'EKR', ]
+EKRset$GHPR<- paste(EKRset$Grootheid.omschrijving,ifelse(is.na(EKRset$Parameter.omschrijving),"",EKRset$Parameter.omschrijving))
+EKRset <-merge(EKRset, orderMaatlatten, by = 'GHPR', all.x = TRUE, all.y = FALSE)
+'7' -> EKRset$klasse[EKRset$Numeriekewaarde < 0.2]
+'6' -> EKRset$klasse[EKRset$Numeriekewaarde >= 0.2 & EKRset$Numeriekewaarde < 0.4]
+'5' -> EKRset$klasse[EKRset$Numeriekewaarde >= 0.4 & EKRset$Numeriekewaarde < 0.6]
+'4' -> EKRset$klasse[EKRset$Numeriekewaarde >= 0.6 & EKRset$Numeriekewaarde < 0.8]
+'3' -> EKRset$klasse[EKRset$Numeriekewaarde >= 0.8]
+EKRset$klasse <- as.factor(EKRset$klasse)
+EKRset<- EKRset[!EKRset$Grootheid.code %in% c("CONCTTE"),]
+
+EKRset$jaar <- as.numeric(EKRset$jaar)
+EKRset$XCOORD <- as.integer(EKRset$XCOORD)
+EKRset$YCOORD <- as.integer(EKRset$YCOORD)
+EKRset <- EKRset[!is.na(EKRset$jaar),]
+
+# oordelen berekenen
+'7' -> EKRset$oordeel[EKRset$Numeriekewaarde < (EKRset$Doel/3)]
+'6' -> EKRset$oordeel[EKRset$Numeriekewaarde > (EKRset$Doel/3) & EKRset$Numeriekewaarde < 2*(EKRset$Doel/3)]
+'5' -> EKRset$oordeel[EKRset$Numeriekewaarde > 2*(EKRset$Doel/3) & EKRset$Numeriekewaarde < EKRset$Doel]
+'4' -> EKRset$oordeel[EKRset$Numeriekewaarde > EKRset$Doel]
+# # gewogen gemiddelden per waterlichaam -----------------------------------------------
+EKRset$GNW <- EKRset$Numeriekewaarde*EKRset$Wegingsfactor.x
+TWG <- dcast(EKRset, HoortBijGeoobject.identificatie+KRWwatertype.code.y+Waardebepalingsmethode.code+GHPR
+             +jaar ~., value.var = "Wegingsfactor.x", fun.aggregate = sum, na.rm =TRUE)
+EKRset <- merge(EKRset, TWG, all.x =TRUE)
+EKRset$GGW <- EKRset$GNW/EKRset$.
+
+
+# opslaan Rdataset voor app --------------------------------
+saveRDS(EKRset, file= paste0("EKRset",gbiedlevel,".rds"))
+saveRDS(EKRlijst, file= paste0("EKRlijst",gbiedlevel,".rds"))
+}
+
+if(mode == "weergeven"){
+# inlezen toetsdata
+# EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
+EKRset <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
+EKRset <- EKRset2[grep('^NL11',EKRset2$HoortBijGeoobject.identificatie),]
+# EKRset <- smartbind(EKRset,EKRset2)
+}
+
+```
+
+
+Inleiding 
+=======================================================================
+In dit document zijn KRW toetsresultaten die zijn berekend met de aquo-kit gevisualiseerd als figuren en tabellen per EAG en per KRW waterlichaam. Met als doel de gegevens op overzichtelijke manier te rapporteren en controleren. 
+
+De KRW toestandsbepaling dient watersysteemanalyses, die ten behoeve KRW gebiedsprocessen, operationele besturing en de evaluatie van maatregelen worden uitgevoerd. Daarnaast wordt de ecologische toestand gerapporteerd in de KRW factsheets (www.waterkwaliteitsportaal.nl) en het waterbeheerplan van AGV.
+
+Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke
+beoordelingsmethodiek voor sloten, kanalen (Omschrijving MEP en maatlatten voor sloten en kanalen, STOWA rapport 2012-34) en meren (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31). Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
+
+Een score tussen 1 staat voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden. In het rapport "Waterkwaliteit in beeld" staan de gebruikte methoden en uitgangspunten voor de berekening van EKR scores verder toegelicht. 
+
+De figuren in deze app en verschillende datamatrices zijn ook als losse afbeeldingen en datatabellen beschikbaar. In het rapport "Waterkwaliteit in beeld" staan de toetsresultaten en de ontwikkelingen in EKR scores op kaarten van het gehele AGV gebied weergegeven en zijn de resultaten op dit niveau geinterpreteerd.
+
+Bekijk de toetsresultaten in interactieve figuren 
+=======================================================================
+
+```{r shiny, echo = FALSE, message= FALSE}
+# Shiny server ui --------------------------------------------------
+
+ui <- fluidPage(
+  theme = shinytheme("sandstone"),
+  
+  headerPanel("Toestand ecologische waterkwaliteit"
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      style = "position:fixed;width:inherit;", # om sidebar mee naar beneden te laten bewegen
+      selectInput(inputId = 'eag', 'Invoer voor grafiek per EAG: Ecologisch analysegebied',
+                  sort(unique(EKRset$EAGIDENT)), 
+                  selected = "3300-EAG-9"),
+      selectInput(inputId = 'toetsgebied', 'Invoer grafiek per Toetsgebied: Waterlichaam',
+                  sort(unique(EKRset$HoortBijGeoobject.identificatie)), 
+                  selected = "NL11_Gaasperplas"),
+      selectInput(inputId = 'maatlat', 'KRW maatlat',
+                  sort(unique(EKRset$Waardebepalingsmethode.code)), 
+                  selected = "Maatlatten2012 Ov. waterflora"),
+      sliderInput(inputId = 'period',label = 'Periode',  
+                  min = min(EKRset$jaar), max=max(EKRset$jaar), 
+                  value = c(min(EKRset$jaar), max=max(EKRset$jaar)), 
+                  sep = ""),
+      leafletOutput("mymap")
+    ),
+    mainPanel(
+      tabsetPanel(
+        tabPanel("Overzicht",  
+                 p("Hieronder staat een figuur waarin fractie Ecologische analyses gebieden (EAG) met 
+                    een gemiddelde Ecologisch kwaliteit ratio (ekr) staan weergegeven per maatlat"),
+                 plotOutput("plot10",width = "100%", height = "800px"),
+                 p("Hieronder staat een figuur waarin fracties meetlocaties met een bepaalde
+                    ekr score staan weergegeven per maatlat en EAG"),
+                 plotOutput("plot11", width = "100%", height = "800px")
+                 ),
+        tabPanel("Grafiek per EAG",  
+                 p("In het bovenste keuzelijstmenu kan een Ecologisch analysegebied (EAG) worden
+                   gekozen. Een EAG is een opdeling van een afvoergebied in eenheden met een min
+                   of meer gelijke ecohydrologie."),
+                 p("In het tweede keuzelijstmenu kan een kwaliteitselement (maatlat) worden
+                   gekozen.
+                   De resultaten van de gekozen EAG en kwaliteitselement worden in de figuren
+                   weergegeven. In het bovenste figuur wordt een verdeling van scores weergegeven
+                   en in de onderste gemiddelde scores per deelmaatlat/ indicator."),
+                 plotOutput("plot1"),
+                 plotly::plotlyOutput("plot2"),
+                 p("In onderstaande figuren zijn resultaten van alle maatlatten gepresenteerd."),
+                 plotOutput("plot1a"),
+                 plotlyOutput("plot2a")
+                 ),
+        tabPanel("Grafiek per Toetsgebied",  
+                 h5("Toelichting"),
+                 p("Wanneer een toetsgebied start met een namespace NL11 dan worden gemiddelde 
+                   scores per toetsgebied weergegeven, wanneer de namespace ontbreekt worden
+                   gewogen scores per toetsgebied (dit is of een KRW waterlichaam of een EAG) getoond.
+                   Scores worden weergegeven op basis van de gerapporteerde nummerieke EKR score. Scores                       zijn nog niet vergeleken met een
+                   doel en daarmee nog geen oordeel (goed of slecht) over een waterlichaam."),
+                 p("In het derde keuzelijstje kan een toetsgebied worden gekozen. Dit is een KRW  
+                   waterlichaam of EAG in het overig water."),
+                 p("In onderstaande figuren zijn resultaten per maatlat gepresenteerd.In deze
+                   grafieken staan de scores ook weergegeven per deelmaatlat en indicator"),
+                 plotOutput("plot5"),
+                 plotlyOutput("plot6"),
+                 p("In onderstaande figuren zijn resultaten van alle maatlatten gepresenteerd."),
+                 plotOutput("plot3"),
+                 plotlyOutput("plot4")
+                 ),
+        tabPanel("Tabel",  
+                 DT::dataTableOutput("tabel1")
+        )
+    )
+
+    )))
+
+# Shiny server -----------------------------------------------------------------
+server <- function(input, output) {
+  
+  selectedData4 <- reactive({
+    
+    gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == input$maatlat,]
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+    # check hoe je alle manual scales moet toevoegen
+  })
+  
+  output$plot10 <- renderPlot({
+    p<- plotChangeAW(selectedData4())
+    print(p)
+    # 
+  })
+  
+  output$plot11 <- renderPlot({
+    p<- polarHistogram(selectedData4())
+    print(p)
+  })
+  
+  selectedData <- reactive({
+    gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == input$maatlat,]
+    gebiedData <- gebiedData[gebiedData$EAGIDENT == input$eag,]
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+  })
+  
+  output$plot1 <- renderPlot({
+    plotFractiePerMaatlatPerEAG(selectedData())
+  })
+  
+  output$plot2 <- renderPlotly({
+    ggplotly(p = plotEKRlijn(selectedData()), tooltip = "all")
+  })
+  
+  selectedData10 <- reactive({
+    gebiedData <- EKRset[EKRset$EAGIDENT == input$eag,]
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+  })
+   
+  output$plot1a <- renderPlot({
+    plotFractiePerToetsgebied(selectedData10())
+    # widget waar shiny niets mee doet?
+    #Warning: Error in : Insufficient values in manual scale. 4 needed but only 1 provided.
+  })
+  
+  output$plot2a <- renderPlotly({
+    ggplotly(p = plotEKRlijnToetsgebied_hoofd(selectedData10()))
+  })
+  
+  selectedData2 <- reactive({
+    ifelse(substr(input$toetsgebied,1,5) %in% "NL11_",
+           gebiedData <- EKRset[EKRset$HoortBijGeoobject.identificatie == input$toetsgebied ,],
+           gebiedData <- EKRset[EKRset$HoortBijGeoobject.identificatie ==
+                                  paste0("NL11_",input$toetsgebied),])
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+  })
+  
+  output$plot3 <- renderPlot({
+    plotFractiePerToetsgebied(selectedData2())
+    # widget waar shiny niets mee doet?
+    #Warning: Error in : Insufficient values in manual scale. 4 needed but only 1 provided.
+  })
+  
+  selectedData20 <- reactive({
+    gebiedData <- EKRset[EKRset$HoortBijGeoobject.identificatie == input$toetsgebied,]
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+  })
+  
+  output$plot4 <- renderPlotly({
+    ggplotly(p = plotEKRlijnToetsgebied_hoofd(selectedData20()))
+  })
+  
+  selectedData3 <- reactive({
+    gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == input$maatlat,]
+    ifelse(substr(input$toetsgebied,1,5) %in% "NL11_",
+           gebiedData <- gebiedData[gebiedData$HoortBijGeoobject.identificatie == input$toetsgebied ,],
+           gebiedData <- gebiedData[gebiedData$HoortBijGeoobject.identificatie ==
+                                      paste0("NL11_",input$toetsgebied),])
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+  })
+  
+  output$plot5 <- renderPlot({
+    plotFractiePerToetsgebied2(selectedData3())
+  })
+  
+  selectedData30 <- reactive({
+    gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == input$maatlat,]
+    gebiedData <- gebiedData[gebiedData$HoortBijGeoobject.identificatie ==
+                                      input$toetsgebied,]
+    gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
+                               gebiedData$jaar<= input$period[2],]
+  })
+  
+  output$plot6 <- renderPlotly({
+    ggplotly(p = plotEKRlijn(selectedData3()))
+  })
+  
+  output$tabel1 <- DT::renderDataTable({
+    selectedData3 <- selectedData3()[,c('HoortBijGeoobject.identificatie','EAGIDENT',
+                                          'KRWwatertype.code.y','Identificatie','GHPR_level', 
+                                          'Hoedanigheid.code','jaar', 'Numeriekewaarde')]
+    DT::datatable(selectedData3, filter = c("top"),
+                  extensions = 'Buttons',
+                  options = list(
+                    paging = TRUE,
+                    searching = TRUE,
+                    fixedColumns = TRUE,
+                    autoWidth = TRUE,
+                    ordering = TRUE,
+                    dom = 'tB',
+                    buttons = c('copy', 'csv', 'excel')),
+                  class = "display") %>%
+      formatStyle('Numeriekewaarde',
+                  background = styleColorBar(selectedData3$Numeriekewaarde, 'steelblue'),
+                  backgroundSize = '100% 90%',
+                  backgroundRepeat = 'no-repeat',
+                  backgroundPosition = 'center'
+      )
+  })
+  
+  output$mymap <- renderLeaflet({
+    leaflet(gEAG) %>%
+      addPolygons(layerId =gEAG$GAFIDENT, popup=str_c(gEAG$GAFIDENT, gEAG$GAFNAAM,
+                                                      sep = '\n'),
+                  stroke = T, color='green', opacity=0.8, weight = 1, smoothFactor = 0.8,
+                  fill=T, fillColor = 'white', fillOpacity = 0.6) %>%
+      addTiles()
+  })
+}
+
+
+```
+
+```{r shiny run, echo = FALSE, message= FALSE}
+# Run the application 
+shinyApp(ui = ui, server = server)
+```
+
+# Gebruikte methoden
+### KRW toetsing
+Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke beoordelingsmethodiek voor sloten, kanalen [@KRWslotenkanalen] en meren [@KRWmeren]. Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
+
+Een score van 1 staat voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden. In onderstaande afbeeldingen staat een goede kwaliteit verbeeld. 
+
+Er kan slechts aan één watertype getoetst worden, omdat één waterlichaam volgens de Europese richtlijn, slechts uit één watertype kan bestaan. Er wordt getoetst aan de watertypen zoals vastgesteld in het WBP 2016-2021. Er zijn toestgegevens beschikbaar van gehele KRW waterlichamen en EAG`s. Het watertype waaraan getoetst wordt als pop-up weergegeven in de kaarten in paragrafen [KRW waterlichamen] en [Ecologische analysegebieden].
+
+#### KRW waterlichamen
+
+Voor de KRW is een groot deel van het oppervlaktewater aangewezen als waterlichaam. Een waterlichaam is een "onderscheiden oppervlaktewater van aanzienlijke omvang, zoals een meer, een rivier of een kanaal". Voor deze wateren moet de toestand van het aquatisch ecosysteem beschreven worden. Onder oppervlaktewater van "aanzienlijke omvang" vallen waterlichamen met een minimale oppervlakte van 0,5 km2 of een stroomgebied tussen de 10 en 100 km2. In onderstaande afbeelding staan de KRW waterlichamen in het beheergebied van AGV.
+
+In de Kaderrichtlijn Water (KRW) is een indeling gemaakt in verschillende typen oppervlaktewater. Deze zijn ingedeeld naar hydromorfologische eigenschappen, type bodem en naar zoet, brak of zout water. De hydromorfologische eigenschappen zijn de stroming, de grootte of breedte en de diepte. Een belangrijk onderscheid is in stilstaand of stromend water. De bodem is belangrijk voor het onderscheid naar een veenbodem (met veel organisch materiaal), kiezels, klei, zand of kalk. Deze indeling is belangrijk voor de doelen die in de KRW gesteld worden, omdat voor elk watertype kwaliteitseisen opgesteld zijn. De watertypen worden zichtbaar wanneer er op een waterlichaam wordt geklikt.
+
+#### Ecologische analysegebieden
+
+De Ecologische analysegebieden zijn een gebiedsindeling om het ecologisch functioneren van het watersysteem te beoordelen en het effect van maatregelen op de waterkwaliteit te volgen, waarbij gebruik wordt gemaakt van analysemodellen zoals de water- en stoffenbalans, opdat het waterbeheer doelmatig en efficiënt kan plaatsvinden en KRW-doelstellingen worden behaald.
+
+Ecologische analysegebieden (EAG’s) zijn nieuwe opdelingen van de bestaande af- en aanvoergebieden, meestal (delen van) polders. De opdeling in EAG’s is gemaakt op basis van een aantal kenmerken zoals vorm, verblijftijd, waterdiepte, strijklengte, de aanwezigheid van kwel of wegzijging en de afvoerrichting van het water. Een EAG valt altijd volledig binnen een afvoergebied. Af-en aanvoergebieden, maar ook KRW-waterlichamen, zijn dus opgebouwd uit één of meer EAG’s.
+
+Ook EAG`s in het 'overig water' dat iet is aangewezen als KRW waterlichaam heeft een KRW watertype toegekend gekregen. De watertypen worden zichtbaar wanneer er op een EAG wordt geklikt.
+
+#### Selectie monsters
+
+Macrofauna dat is bemonsterd onder de spronglaag in diepe plassen wordt niet meegenomen in de toetsing.
+
+Alleen meetjaren waarin een geheel waterlichaam of EAG is bemonsterd zijn meegenomen in de toetsing om een representatief beeld te krijgen van de ecologische toestand. In de waterlichamen Tussenboezem Vinkeveen B en Molenpolder en Tienhoven zijn in verschillende deelgebieden niet bemonsterd in het verleden, om toch een beeld te krijgen van de ontwikkeling in ecologische toestand in deze gebieden is de beperkte dataset van deze deelgebieden wél meegenomen. Dit kan een vertekend beeld geven, omdat de deelgebieden die meewegen in de eindscore van het gehele waterlichaam variëren per meetjaar.
+
+#### Weging meetlocaties en trajecten
+
+Bij biologische kwaliteitselementen is er een weging aan meetpunten toegekend. Er is rekening gehouden met het relatieve aandeel dat een deelgebied heeft in een geheel KRW waterlichaam en de bemonsteringsinspanning binnen een deelgebied. De wijze waarop de weegfactoren zijn uitgerekend, verschilt per watertype en kwaliteitselement.
+	
+Voor macrofauna, fytoplankton en macrofyten is de volgende formule toegepast:
+
+$$
+\begin{aligned}
+Gewicht per meetlocatie = 
+\frac{wateroppervlakte van het deelgebied waar de locatie in valt}{wateroppervlakte van het waterlichaam waar de locatie in valt \times totaal aantal meetlocaties in een deelgebied}
+\end{aligned}
+$$
+
+
+

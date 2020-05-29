@@ -58,11 +58,16 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   krwset$HoortBijGeoobject.identificatie[is.na(krwset$EAGIDENT)] <- krwset$waterlichaam[is.na(krwset$EAGIDENT)]
   krwset$HoortBijGeoobject.identificatie[!is.na(krwset$EAGIDENT)] <- paste0("NL11_", krwset$waterlichaam[!is.na(krwset$EAGIDENT)])
   
+  if(!is.null(ovwatset)){
   # correctie toetsresultaten van KRW waterlichamen weg uit de set van overig water obv EAG
   # er zitten foutieve watertypen in de bronbestanden, dit heb ik nog niet opgelost
   tomatch <- unique(krwset$EAG) ; tomatch <- tomatch[!is.na(tomatch)]
   pattern <- paste(tomatch, collapse = "|")
   ovwatset <- ovwatset[!grepl(pattern, ovwatset$HoortBijGeoobject.identificatie),]
+  # correctie meetlocaties eruit die niet meer in een HoortbijGEO EAG liggen omdat EAG herbegrensd zijn of locatie verlegd
+  # extract EAG uit hoortbij, match EAGIDENT en extract, delete nomatch
+  ovwatset <- ovwatset[!mapply(grepl, ovwatset$EAGIDENT,  ovwatset$HoortBijGeoobject.identificatie, fixed = F) == 0,]
+  }
   
   # combine both EKR from KRW and overig water into one data.table
   db <- data.table::rbindlist(list(krwset,ovwatset), fill=TRUE)
@@ -115,6 +120,19 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   # namen aanpassen
   d3[,facet_wrap_code := as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
   # return updated database
+  
+  # noodgreep omdat er fouten zitten in de toetsgegevens
+  d3$KRWwatertype.code[d3$Identificatie == 'VaartenRondeHoep'] <- 'M8'
+  d3$KRWwatertype.code[d3$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
+  # noodgreep om niet representatieve data te verwijderen
+  # amstelland mafy 2011 eruit (dit is toetsing van 3 polderlocaties met incorrecte coordinaten die onterecht worden toegekend aan het waterlichaam)
+  d3 <- d3[!(d3$HoortBijGeoobject.identificatie %in% c('Amstellandboezem','NL11_Amstellandboezem') & d3$jaar == 2011 & d3$Waardebepalingsmethode.code == 'Maatlatten2018 Ov. waterflora'), ] 
+  #mafa 2016 eruit, vis 2016 eruit (toen is alleen het Amsterdamse deel bemonsterd wat niet representatief is)
+  d3 <- d3[!(d3$HoortBijGeoobject.identificatie %in% c('Amstellandboezem','NL11_Amstellandboezem') & d3$jaar == 2016 & d3$Waardebepalingsmethode.code %in% c('Maatlatten2018 Macrofauna','Maatlatten2018 Vis')), ] 
+  
+  # alleen nieuwe maatlatten
+  d3 <- d3[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
+  
   return(d3)
 }
 
@@ -663,7 +681,12 @@ ppr_ekrplot2 <- function(ekr_score){
 }
 
 # plot EKR background
-plotEKRlijnfs <- function(z){
+plotEKRlijnfs <- function(z, gebied = NULL){
+  
+  if(!is.null(gebied)){
+    z <- z[!is.na(z$EAGIDENT),]
+    z$KRW_SGBP3 <- "" 
+  }
   
   z <- z %>%
     dplyr::arrange(GHPR_level) %>%               # sort your dataframe

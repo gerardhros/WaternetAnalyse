@@ -27,7 +27,7 @@ packages(rpivotTable)
 # packages(mapview)
 # packages(readxl)
 # packages(stringr)
-# packages(plyr)
+packages(plyr) #voor polarbarchart
 packages(dplyr)
 packages(sp) # zit ook in raster # voor CRS projectie functie
 # packages(ggthemes)
@@ -37,7 +37,7 @@ packages(sp) # zit ook in raster # voor CRS projectie functie
 # packages(ggseas)
 # packages(scales)
 packages(broom)
-# packages(shiny)
+
 packages(leaflet)
 packages(plotly)
 # packages(rgdal)

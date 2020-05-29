@@ -73,12 +73,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   EKRset1 <- readRDS('hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
   EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
   EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen = doelen)
-  # noodgreep omdat er fouten zitten in de toetsgegevens
-  EKRset$KRWwatertype.code[EKRset$Identificatie == 'VaartenRondeHoep'] <- 'M8'
-  EKRset$KRWwatertype.code[EKRset$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
   
-  # alleen nieuwe maatlatten
-  EKRset <- EKRset[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
     
     # show progress
     pbc <- pbc + 1; setTxtProgressBar(pb,pbc) 

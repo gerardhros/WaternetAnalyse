@@ -11,16 +11,12 @@ importlijst <- function(x, path = y){
 
 # deze functie werkt niet voor verschillende databestanden
 importAquoResult <- function(path = dirExportAquo, pattern = ".csv"){
-  lijst <- list.files(path= path, pattern=pattern)
-  EKRlijst <- data.frame()
-  myData = NULL
-  for(i in lijst){
-    tx  <- readLines(paste(path, i, sep="/"))
-    tx  <- gsub(pattern = "Aantalmeetwaardenonderdetectiegrens", replace = "Aantalmeetwaardenonderdetectiegrens;", x = tx)
-    writeLines(tx, con= paste(path, i, sep="/"))
-    myData <- read.csv(file= paste(path, i, sep="/"), header=T, sep=";", dec=".", stringsAsFactors=F, na.strings = "",comment.char = "")
-    EKRlijst <- smartbind(EKRlijst, myData, fill=NA, sep=':', verbose=FALSE)
-  }
+  lijst <- list.files(path= path, pattern=pattern, full.names =  T)
+ 
+  # read excel data from sheet 'uitgangspunten' and combine all output in one data.table
+  EKRlijst <- lapply(lijst, function(x) fread(x, integer="double"))
+  EKRlijst <- rbindlist(EKRlijst, fill =T, use.names = T)
+  
   return(EKRlijst)
 }        
 

@@ -88,7 +88,7 @@ bod  <- fread("../data/bodemfews.csv")
 selb <- ppr_slootbodem_kl(bod, wtype = eag_wl, mlocs = locaties)
 bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
 
-simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+simoni <- fread("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv")
 locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
 wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
