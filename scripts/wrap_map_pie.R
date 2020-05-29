@@ -11,7 +11,7 @@ library(scatterpie); library(ggnewscale); library(tmap); library(cowplot); libra
 source("scripts/fun_map_pie.R")
 
 # load dataset of KRW 
-krwset <- readRDS("data/krwset.rds")
+krwset <- readRDS("../data/krwset.rds")
 ovwatset <- readRDS("data/ovwatset.rds")
 
 # load map of waterlichaam

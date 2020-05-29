@@ -46,7 +46,8 @@ eah_maat <- if(!is.na(out$waterlichamenwl$Maatregelen)){out$waterlichamenwl$Maat
 eah_m1 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",out$d3_deel$GHPR,".")} else {NULL} 
 eah_m2 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,".")}} else {NULL}
 eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){gsub('µ','micro',out$waterlichamenwl$Toestand,fixed = TRUE)} else {NULL}
-eah_message <- paste(eah_m1,eah_m2,eah_m3)
+eah_m4 <- if(!is.na(out$waterlichamenwl$Trend)){gsub('µ','micro',out$waterlichamenwl$Trend,fixed = TRUE)} else {NULL}
+eah_message <- paste(eah_m1,eah_m2,eah_m3,eah_m4)
 
 # prepare ESF tabel 
 pESFtab <- out$ESFtab[,c('OORDEEL','oms_latex','piclatex')]
