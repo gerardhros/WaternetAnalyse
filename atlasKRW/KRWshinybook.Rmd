@@ -1,19 +1,22 @@
 ---
-title: "KRW toestandsbepaling"
+title: "Toestand KRW waterlichamen AGV"
+date: "`r Sys.Date()`"
 runtime: shiny
+always_allow_html: yes
+site: bookdown::bookdown_site
 output: 
-  bookdown::html_document2:
-  theme: sandstone
-  fig_caption: true
-  number_sections: yes
-  toc: yes
+  flexdashboard::flex_dashboard:
+    css: css/factsheet.css
+    orientation: rows
+    vertical_layout: scroll
+    logo: images/WN__Waternet-RGB_small.png
 ---
 
-```{r settings, include = FALSE, message= FALSE}
+```{r settings, echo = FALSE, message= FALSE, include = FALSE}
 #  Settings-------------------------------------------------------
 rm(list=ls())                               #maakt geheugen leeg voor aanvang
 options(repos = c(CRAN = "https://cran.rstudio.com"))
-# setwd("C:/Users/moria02/stack/Schoon water/Stand van zake waterkwaliteit/R/WaternetAnalyse/atlasKRW")
+knitr::opts_chunk$set(echo = TRUE)
 
 # invoeropties
 mode <- "weergeven" # "genereren" of "weergeven"
@@ -27,14 +30,11 @@ dirMeetpuntenGebied <- "./input/meetpuntenInfo2"
 dirGIS <-"../development"
 dirFiguren <- "./output/"
 
-
 # Load packages and functions-------------------------------------
 source('../scripts/loadPackages.R')
 source('../scripts/postProces.R')
 source('../scripts/createOutput.R')
-source('../scripts/factsheetfuncties.R')
 source('../scripts/PolarBarchart.R')
-source('../scripts/ppr_funs.R')
 #devtools::install_github('hadley/ggplot2')
 
 # other settings
@@ -45,10 +45,7 @@ proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
 ```
 
-```{r data, include = FALSE, message= FALSE}
-## data voor kaart ----------
-gEAG<- st_read("../data/EAG20191205.gpkg") %>% st_transform(proj4.rd)
-
+```{r, include = FALSE}
 if(mode == "genereren"){
 # load input------------------------------------------------------
 orderMaatlatten <- fread('./input/orderMaatlatten.csv') 
@@ -114,8 +111,8 @@ EKRset$GGW <- EKRset$GNW/EKRset$.
 saveRDS(EKRset, file= paste0("EKRset",gebiedlevel,".rds"))
 saveRDS(EKRlijst, file= paste0("EKRlijst",gebiedlevel,".rds"))
 }
-
 if(mode == "weergeven"){
+
 # inlezen toetsdata
 EKRset <- readRDS('../hydrobiologie/EKRsetKRW.rds')
 # EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds')
@@ -124,14 +121,6 @@ doelen <- fread('../hydrobiologie/Doelen.csv')
 eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
 EKRset <- ppr_ekr(krwset = EKRset, ovwatset = NULL, eag_wl = eag_wl, doelen = doelen) # let op ekr1 = krw
 
-# inlezen toetsdata
-EKRlijst <- readRDS('../hydrobiologie/EKRlijstKRW.rds')
-# EKRlijst2 <- readRDS('../hydrobiologie/EKRlijstOvWater.rds')
-# EKRlijst2$HoortBijGeoobject.identificatie <- paste0(EKRlijst2$HoortBijGeoobject.identificatie,"_toets2019")
-# EKRlijst2$Identificatie <- paste0(EKRlijst2$Identificatie,"_toets2019")
-# EKRset2 <- EKRset2[grep('^NL11',EKRset2$HoortBijGeoobject.identificatie),]
-EKRlijst <- rbind(EKRlijst,NULL, fill =T, use.names=T)
-
 ## calculate EKR scores from EKRset1
 ekr_scores <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "hoofd")
 ekr_scores$EKR <- ekr_scores$EKR3jr
@@ -139,122 +128,17 @@ ekr_scores <- ekr_scores[!is.na(id) & level == 1] # alleen hoofdmaatlatten en ge
 ekr_scores[,oordeelsort := EKR / GEP_2022]
 ekr_scores1 <- ekr_scores[!grepl("^NL11_*",id), ] # alleen gewogen scores selecteren
 ekr_scores2 <- ekr_scores[!is.na(ekr_scores$EAGIDENT), ] # alleen ongewogen scores selecteren
-ekr_scores2$KRW_SGBP3 <- "" # leegmaken zodat facte goed wordt gemaakt per eag
-}
+ekr_scores2$KRW_SGBP3 <- "" # leegmaken zodat facet goed wordt gemaakt per eag
+
+  }
 
 ```
 
-# Inleiding 
-
-In dit document zijn KRW toetsresultaten die zijn berekend met de aquo-kit gevisualiseerd als figuren en tabellen per EAG en per KRW waterlichaam. Met als doel de gegevens op overzichtelijke manier te rapporteren en controleren. 
-
-De KRW toestandsbepaling dient watersysteemanalyses, die ten behoeve KRW gebiedsprocessen, operationele besturing en de evaluatie van maatregelen worden uitgevoerd. Daarnaast wordt de ecologische toestand gerapporteerd in de KRW factsheets (www.waterkwaliteitsportaal.nl) en het waterbeheerplan van AGV.
-
-Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke
-beoordelingsmethodiek voor sloten, kanalen (Omschrijving MEP en maatlatten voor sloten en kanalen, STOWA rapport 2012-34) en meren (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31). Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
-
-Een score tussen 1 staat voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden.
-
-```{r, eval =FALSE}
-#start met alleen KRW waterlichamen
-#hier overzichtskaart GRos alle kwali-elementen
-#overzichtstabel, toestand en trend - check of ook filteroptie is
-#kaart oordeel, ekr, doel, doelgat
-#ESF en maatregelen op hoofdlijnen
-```
-# **Overzicht oordelen per waterlichaam**
-
-# **Oordelen, ekr scores en doelen**
-
-# **Overzicht EKR scores en trends per maatlat**
-
-```{r toestandtrend, echo = FALSE, message = FALSE, warning= FALSE}
-# bereken trend
-# aanpassen dat facet wrap eruit komt
-trendekr <- trend(EKRset, detail = "hoofd") # niet alles wordt berekend
-trendekr <- trendekr[!grepl('^NL11*', trendekr$id),]
-
-ekrtrend <- merge(trendekr, ekr_scores1, by = c('id','facet_wrap_code'), all.y = T)
-ekrtrend$estimate <- ekrtrend$estimate*12 # ekr per 2 planperioden
-ekrtrend$estimate[ekrtrend$estimate < 0.05 & ekrtrend$estimate > -0.05] <- 0 # verwaarloosbaar klein
-ekrtrend$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", ekrtrend$facet_wrap_code)
-
-# hier dcast om tabel met header kwalilementen te maken
-ekr_scores_sel2 <- dcast.data.table(setDT(ekrtrend), id ~ facet_wrap_code, value.var = c("EKR","oordeelsort","estimate","GEP_2022"), fun.aggregate = mean)
-#ekr_scores_sel2 <- ekr_scores_sel2[!is.na(ekr_scores_sel2$EKR_Waterflora),]
-ekr_scores_sel2$waterlichaam <- ekr_scores_sel2$id
-
-typology <- data.frame(
-  col_keys = c( "waterlichaam", "col_1",
-                           "EKR_Fytoplankton","GEP_2022_Fytoplankton","estimate_Fytoplankton","EKR_Macrofauna","GEP_2022_Macrofauna","estimate_Macrofauna",
-                           "EKR_Waterflora","GEP_2022_Waterflora","estimate_Waterflora",
-                           "EKR_Vis", "GEP_2022_Vis","estimate_Vis"),
-  what = c("waterlichaam", "col_1",
-           "Fytoplankton", "Fytoplankton", "Fytoplankton",
-           "Macrofauna","Macrofauna","Macrofauna",
-           "Waterflora","Waterflora","Waterflora",
-           "Vis","Vis","Vis"),
-  measure = c("waterlichaam", "col_1",
-              "EKR", "GEP", "trend",
-              "EKR", "GEP", "trend",
-              "EKR", "GEP", "trend",
-              "EKR", "GEP", "trend"),
-  stringsAsFactors = FALSE )
-
-ekr_scores_sel2 %>%
-    flextable(col_keys = c("waterlichaam", "col_1",
-                           "EKR_Fytoplankton","GEP_2022_Fytoplankton","estimate_Fytoplankton","EKR_Macrofauna","GEP_2022_Macrofauna","estimate_Macrofauna",
-                           "EKR_Waterflora","GEP_2022_Waterflora","estimate_Waterflora",
-                           "EKR_Vis", "GEP_2022_Vis","estimate_Vis")) %>%
-    set_header_df(mapping = typology, key = "col_keys" )%>%
-    merge_h(part = "header")%>%
-    merge_v(part = "header")%>%
-    theme_booktabs()%>%
-    autofit()%>%
-    border_inner(border= fp_border(width = 1, color = "white"), part="all")%>%
-    colformat_num(j = 3:14, digits=2)%>%
-    bg(~ oordeelsort_Fytoplankton > 1, bg = "green", ~ EKR_Fytoplankton)%>%
-    bg(~ oordeelsort_Fytoplankton < 1, bg = "yellow", ~ EKR_Fytoplankton)%>%
-    bg(~ oordeelsort_Fytoplankton < 0.67, bg = "orange", ~ EKR_Fytoplankton)%>%
-    bg(~ oordeelsort_Fytoplankton < 0.34, bg = "red", ~ EKR_Fytoplankton)%>%
-    bg(~ oordeelsort_Macrofauna > 1, bg = "green", ~ EKR_Macrofauna)%>%
-    bg(~ oordeelsort_Macrofauna < 1, bg = "yellow", ~ EKR_Macrofauna)%>%
-    bg(~ oordeelsort_Macrofauna < 0.67, bg = "orange", ~ EKR_Macrofauna)%>%
-    bg(~ oordeelsort_Macrofauna < 0.34, bg = "red", ~ EKR_Macrofauna)%>%
-    bg(~ oordeelsort_Waterflora > 1, bg = "green", ~ EKR_Waterflora)%>%
-    bg(~ oordeelsort_Waterflora < 1, bg = "yellow", ~ EKR_Waterflora)%>%
-    bg(~ oordeelsort_Waterflora < 0.67, bg = "orange", ~ EKR_Waterflora)%>%
-    bg(~ oordeelsort_Waterflora < 0.34, bg = "red", ~ EKR_Waterflora)%>%
-    bg(~ oordeelsort_Vis > 1, bg = "green", ~ EKR_Vis)%>%
-    bg(~ oordeelsort_Vis < 1, bg = "yellow", ~ EKR_Vis)%>%
-    bg(~ oordeelsort_Vis < 0.67, bg = "orange", ~ EKR_Vis)%>%
-    bg(~ oordeelsort_Vis < 0.34, bg = "red", ~ EKR_Vis)%>%
-    bg(~ estimate_Fytoplankton > 0, bg = "lightgreen", ~ estimate_Fytoplankton)%>%
-    bg(~ estimate_Fytoplankton == 0, bg = "lightyellow", ~ estimate_Fytoplankton)%>%
-    bg(~ estimate_Fytoplankton < 0, bg = "salmon", ~ estimate_Fytoplankton)%>%
-    bg(~ estimate_Waterflora > 0, bg = "lightgreen", ~ estimate_Waterflora)%>%
-    bg(~ estimate_Waterflora == 0, bg = "lightyellow", ~ estimate_Waterflora)%>%
-    bg(~ estimate_Waterflora < 0, bg = "salmon", ~ estimate_Waterflora)%>%
-    bg(~ estimate_Macrofauna > 0, bg = "lightgreen", ~ estimate_Macrofauna)%>%
-    bg(~ estimate_Macrofauna == 0, bg = "lightyellow", ~ estimate_Macrofauna)%>%
-    bg(~ estimate_Macrofauna < 0, bg = "salmon", ~ estimate_Macrofauna)%>%
-    bg(~ estimate_Vis > 0, bg = "lightgreen", ~ estimate_Vis)%>%
-    bg(~ estimate_Vis == 0, bg = "lightyellow", ~ estimate_Vis)%>%
-    bg(~ estimate_Vis < 0, bg = "salmon", ~ estimate_Vis)
-    
-# myft <- compose(myft, j = 3,
-#   value = as_paragraph(
-#     minibar(value = estimate_Fytoplankton, max = max(estimate_Fytoplankton))
-#   ),
-#   part = "body")
-
-```
-
-# **Bekijk de toetsresultaten in interactieve figuren** 
+# **Biologische toestand**
 
 De figuren in deze app en verschillende datamatrices zijn ook als losse afbeeldingen en datatabellen beschikbaar.
 
-```{r shiny, echo = FALSE, message= FALSE, out.width= '100%'}
+```{r shiny, echo = FALSE, message= FALSE}
 # Shiny server ui --------------------------------------------------
 packages(shiny)
 packages(shinythemes)
@@ -285,37 +169,47 @@ ui <- fluidPage(
         #             staan weergegeven per EAG."),
         #          plotOutput("plot11", width = "100%", height = "800px")
         #          ),
-        tabPanel("Grafiek per EAG",  
-                 h5("Toelichting"),
-                 p("In dit tabblad worden de resultaten per Ecologisch analysegebied weergegeven. 
-                 Een EAG is een opdeling van een afvoergebied in eenheden met een min
-                   of meer gelijke ecohydrologie."),
-                 p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere maatlat(ten) worden
-                   gekozen.
-                   De resultaten van de gekozen waterlichaam en maatlatten worden in de figuren
-                   weergegeven. In het bovenste figuur wordt de huidige toestand vergeleken met doelen. De achtergrondkleuren in het figuur staan
-                   voor de klasseindeling van het huidige doel. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel
-                   gehaald. 
-                   In het middelste figuur wordt een verdeling van ekr scores weergegeven
-                   en in de onderste gemiddelde ekr scores per deelmaatlat/ indicator."),
-                 plotOutput("plot1a"),
-                 plotly::plotlyOutput("plot1"),
-                 plotly::plotlyOutput("plot2")
-                 ),
+        
         tabPanel("Grafiek per KRW waterlichaam",  
                  h5("Toelichting"),
                  p("In dit tabblad worden de resultaten per waterlichaam weergegeven."),
-                 p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere maatlat(ten) worden
-                   gekozen.
-                   De resultaten van de gekozen waterlichaam en maatlatten worden in de figuren
-                   weergegeven. In het bovenste figuur wordt de huidige toestand vergeleken met doelen. De achtergrondkleuren in het figuur staan
-                   voor de klasseindeling van het huidige doel. Wanneer de zwarte streep over de groene achtergrondkleur (GEP) valt is het doel
+                 p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere
+                 maatlat(ten) worden gekozen.
+                  De resultaten van de gekozen waterlichaam en maatlatten worden in de 
+                  figuren weergegeven. In het bovenste figuur wordt de huidige toestand
+                  vergeleken met doelen. De achtergrondkleuren in het figuur staan
+                   voor de klasseindeling van het huidige doel. Wanneer de zwarte streep over
+                   de groene achtergrondkleur (GEP) valt is het doel
                    gehaald. 
-                   In het middelste figuur wordt een verdeling van ekr scores weergegeven
-                   en in de onderste gemiddelde ekr scores per deelmaatlat/ indicator."),
+                   In het middelste figuur wordt de verandering van ekr scores van maatlatten,
+                   deelmaatlatten en indicatoren in de tijd weergegeven
+                   en in de onderste figuur staat de fractieverdeling van ekr scores per
+                 meetlocatie"),
                  plotOutput("plot1b"),
                  plotly::plotlyOutput("plot6"),
                  plotly::plotlyOutput("plot5")
+                 ),
+        tabPanel("Grafiek per EAG",  
+                 h5("Toelichting"),
+                 p("In dit tabblad worden de resultaten per Ecologisch analysegebied
+                 weergegeven. 
+                 Een EAG is een opdeling van een afvoergebied in eenheden met een min
+                   of meer gelijke ecohydrologie."),
+                 p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere
+                 maatlat(ten) worden gekozen.
+                  De resultaten van de gekozen waterlichaam en maatlatten worden in de 
+                  figuren weergegeven. In het bovenste figuur wordt de huidige toestand
+                  vergeleken met doelen. De achtergrondkleuren in het figuur staan
+                   voor de klasseindeling van het huidige doel. Wanneer de zwarte streep over
+                   de groene achtergrondkleur (GEP) valt is het doel
+                   gehaald. 
+                   In het middelste figuur wordt de verandering van ekr scores van maatlatten,
+                   deelmaatlatten en indicatoren in de tijd weergegeven
+                   en in de onderste figuur staat de fractieverdeling van ekr scores per
+                 meetlocatie"),
+                 plotOutput("plot1a"),
+                 plotly::plotlyOutput("plot1"),
+                 plotly::plotlyOutput("plot2")
                  )
     )
 
@@ -341,11 +235,11 @@ server <- function(input, output) {
   selectedDataeag <- reactive({
     gebiedData <- ekr_scores2[ekr_scores2$wbmethode %in% input$maatlat,]
     gebiedData <- gebiedData[gebiedData$waterlichaam == input$toetsgebied ,]
-    # gebiedData <- ekr_scores[ekr_scores$wbmethode == "Maatlatten2018 Fytoplankton" & ekr_scores$waterlichaam == "Botshol" ,]
+    # gebiedData <- ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Fytoplankton" & ekr_scores2$waterlichaam == "Botshol" ,]
   })
   
   output$plot1a <- renderPlot({
-    ppr_ekrplot2(selectedDataeag())
+    ekrplot2(selectedDataeag())
   })
   
   # selectie voor tab per EAG
@@ -354,7 +248,7 @@ server <- function(input, output) {
     gebiedData <- gebiedData[gebiedData$SGBP3_NAAM == input$toetsgebied ,]
     gebiedData <- gebiedData[gebiedData$jaar >= input$period[1] &
                                gebiedData$jaar<= input$period[2],]
-    # gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton" & EKRset$waterlichaam == "Gaasperplas,]
+    # gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton" & EKRset$waterlichaam == "Gaasperplas",]
   })
   
   output$plot1 <- renderPlotly({
@@ -369,11 +263,11 @@ server <- function(input, output) {
   selectedDataKRW <- reactive({
     gebiedData <- ekr_scores1[ekr_scores1$wbmethode %in% input$maatlat,]
     gebiedData <- gebiedData[gebiedData$waterlichaam == input$toetsgebied ,]
-    # selectedDatatotKRW <- ekr_scores1[ekr_scores1$wbmethode == "Maatlatten2018 Fytoplankton" & ekr_scores1$waterlichaam == "Gaasperplas" & ekr_scores1$level == 1,]
+    # selectedDatatotKRW <- ekr_scores1[ekr_scores1$wbmethode == "Maatlatten2018 Fytoplankton" & ekr_scores1$waterlichaam == "Gaasperplas" ,]
    })
   
   output$plot1b <- renderPlot({
-    ppr_ekrplot2(selectedDataKRW()) 
+    ekrplot2(selectedDataKRW()) 
   })
   
    selectedData6 <- reactive({
@@ -400,80 +294,62 @@ server <- function(input, output) {
 
 ```
 
-```{r shiny run, echo = FALSE, message= FALSE}
+```{r shiny run, echo = FALSE, message= FALSE, out.width= '100%'}
 # Run the application 
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server, options = list(height = 800))
 ```
 
 
-## **ESF overzicht**
+# KRW toestandsbepaling 
 
-```{r esf, echo= FALSE, message = FALSE, warning=FALSE, out.width= "100%", results='asis'}
-#Let op slashes en apostrof
-ESFtab <- ESFoordelen[,1:15]
+### 
 
-ESFtab[ESFtab == 1] <- 'groennummer.jpg'
-ESFtab[ESFtab == 2] <- 'oranjenummer.jpg'
-ESFtab[ESFtab == 3] <- 'roodnummer.jpg'
-ESFtab[ESFtab == 0] <- 'grijsnummer.jpg'
+In dit document zijn KRW toetsresultaten die zijn berekend met de aquo-kit gevisualiseerd als figuren en tabellen per EAG en per KRW waterlichaam. Met als doel de gegevens op overzichtelijke manier te rapporteren en controleren. 
 
-ESFtab <- as.data.frame(ESFtab)
-ESFtab[,3:11] <- paste(substr(col(ESFtab[,3:11], TRUE),4,5), as.matrix(ESFtab[,3:11]), sep = "")
-ESFtab[,3:11] = sprintf("![esficon](%s){width=50px}", paste0("esf/",as.matrix(ESFtab[,3:11]), sep =""))
-ESFtab <- ESFtab[,c(1,3:10,14)]
+De KRW toestandsbepaling dient watersysteemanalyses, die ten behoeve KRW gebiedsprocessen, operationele besturing en de evaluatie van maatregelen worden uitgevoerd. Daarnaast wordt de ecologische toestand gerapporteerd in de KRW factsheets (www.waterkwaliteitsportaal.nl) en het waterbeheerplan van AGV.
 
-options(knitr.table.format = "markdown")
-options(kableExtra.auto_format = FALSE)
+Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke beoordelingsmethodiek voor sloten, kanalen (Omschrijving MEP en maatlatten voor sloten en kanalen, STOWA rapport 2012-34) en meren (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31). Het resultaat hiervan is een getal uitgedrukt met behulp van het begrip Ecologische Kwaliteitsratio (EKR score). Deze EKR scores worden de ecologische toestand genoemd. De EKR is de eenheid waarin de feitelijke en de gewenste ecologische toestand van een waterlichaam kan worden uitgedrukt. Hij wordt bepaald voor elk de vier biologische kwaliteitselementen: fytoplankton (algen), waterplanten (overige watervegetatie), macrofauna (met het blote oog zichtbare ongewervelde dieren, zoals slakken en libellen) en vissen. De EKR heeft daarbij altijd een waarde tussen 0 en 1, waarbij de waarde 1 overeen komt met de natuurlijke referentie. Een score van 1 staat dus voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden.
 
-if(outputF == "word"){
-ESFtab$Oorzaken <- gsub("\n","",ESFtab$Oorzaken)
-#ESFtab$Oorzaken <- gsub("/ ","of",ESFtab$Oorzaken)
-kable(ESFtab, col.names = colnames(ESFtab), booktabs = T ,font_size = 9,escape = F) %>% 
-          kable_styling(bootstrap_options = "striped", full_width = T) %>% 
-          column_spec(1, border_right = F) %>%
-          column_spec(2, width = "120em")%>%
-          collapse_rows(columns=1, valign="top")
-}
+Het KRW doel is de minimaal gewenste toestand van planten, dieren en stoffen in het oppervlaktewater. Deze gewenste toestand wordt beoordeeld op de vier biologische kwaliteitselementen en relevante fysisch chemische parameters. De KRW doelen zijn bepaald met de Praagse methode. Bij deze methode is de uitgangssituatie de huidige toestand. Van daar uit wordt nagegaan welke maatregelen genomen kunnen worden om een verbetering van de ecologische toestand te bereiken en wordt het effect daarvan ingeschat. Bij de KRW beoordeling wordt er ook gekeken naar "overige relevante stoffen". Dit zijn enkele chemische stoffen die niet op de EU-lijst prioritaire stoffen staan. Voorbeelden van deze stoffen zijn koper, zink, ammonium, barium, kobalt en een aantal gewasbeschermingsmiddelen. Voor de “overige relevante stoffen” zijn de doelen voor alle KRW-waterlichamen in Nederland gelijk. Deze doelen kunnen wel verschillen van die in andere EU-lidstaten. Het KRW doel wordt alleen gehaald als zowel de vier biologische kwaliteitselementen, de fysisch chemische parameters en de overige relevante stoffen voldoende scoren.
 
-if(outputF == "html"){
-kable(ESFtab, format = "html",col.names = NULL,escape = F) %>% 
-          kable_styling(full_width=FALSE) %>% 
-          column_spec(1, border_right = F) %>%
-          column_spec(2, width = "120em")%>%
-          collapse_rows(columns=1, valign="top")
-  }
+In de KRW toestandsbepaling wordt bepaald of de huidige toestand voldoet aan de KRW doelen. Wanneer de huidige toestand wordt vergeleken met een KRW doel resulteert dit in een oordeel. De oordelen worden per parameter gerapporteerd in klassen: goed, matig, slecht en ontoereikend. Een parameter in de klasse “goed” voldoet aan de KRW-doelstelling voor die parameter. Om de KRW-doelstelling te halen moet een waterlichaam voor elk van de 4 biologische kwaliteitselementen en voor de ondersteunende parameters “op groen staan”, dat wil zeggen dat ze in de klasse “goed” vallen. Is dat voor één of meer parameters niet het geval, dan verkeert het waterlichaam niet in een goede toestand (one-out-all-out). Voor de “overige relevante stoffen” geldt dat alle stoffen moeten voldoen aan de norm.
 
-```
+Er kan dus sprake zijn van een sterke verandering van de waterkwaliteit zonder dat je dat in gelijke mate terugziet in de KRW oordelen. Daarom rapporteert Nederland niet alleen het “one-out-all-out” oordeel, maar ook de onderliggende parameters, zodat er beter zicht is op verbeteringen en op wat er nog moet gebeuren. Maar het uiteindelijke KRW-doel voor een waterlichaam is pas gehaald als alle onderdelen in goede toestand zijn.
 
-# Gebruikte methoden
-### KRW toetsing
-Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke beoordelingsmethodiek voor sloten, kanalen [@KRWslotenkanalen] en meren [@KRWmeren]. Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
+In deze rapportage wordt alleen gerapporteerd over de toestand, doelen en oordelen van de vier biologische kwaliteitselementen.
+
+# Uitgangspunten voor de KRW toestandsbepaling
+
+###
+
+Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke
+beoordelingsmethodiek voor sloten, kanalen (Omschrijving MEP en maatlatten voor sloten en kanalen, STOWA rapport 2012-34) en meren (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31). Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
 
 Een score van 1 staat voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden. In onderstaande afbeeldingen staat een goede kwaliteit verbeeld. 
 
 Er kan slechts aan één watertype getoetst worden, omdat één waterlichaam volgens de Europese richtlijn, slechts uit één watertype kan bestaan. Er wordt getoetst aan de watertypen zoals vastgesteld in het WBP 2016-2021. Er zijn toestgegevens beschikbaar van gehele KRW waterlichamen en EAG`s. Het watertype waaraan getoetst wordt als pop-up weergegeven in de kaarten in paragrafen [KRW waterlichamen] en [Ecologische analysegebieden].
 
-#### KRW waterlichamen
+**KRW waterlichamen en watertypen**
 
 Voor de KRW is een groot deel van het oppervlaktewater aangewezen als waterlichaam. Een waterlichaam is een "onderscheiden oppervlaktewater van aanzienlijke omvang, zoals een meer, een rivier of een kanaal". Voor deze wateren moet de toestand van het aquatisch ecosysteem beschreven worden. Onder oppervlaktewater van "aanzienlijke omvang" vallen waterlichamen met een minimale oppervlakte van 0,5 km2 of een stroomgebied tussen de 10 en 100 km2. In onderstaande afbeelding staan de KRW waterlichamen in het beheergebied van AGV.
 
 In de Kaderrichtlijn Water (KRW) is een indeling gemaakt in verschillende typen oppervlaktewater. Deze zijn ingedeeld naar hydromorfologische eigenschappen, type bodem en naar zoet, brak of zout water. De hydromorfologische eigenschappen zijn de stroming, de grootte of breedte en de diepte. Een belangrijk onderscheid is in stilstaand of stromend water. De bodem is belangrijk voor het onderscheid naar een veenbodem (met veel organisch materiaal), kiezels, klei, zand of kalk. Deze indeling is belangrijk voor de doelen die in de KRW gesteld worden, omdat voor elk watertype kwaliteitseisen opgesteld zijn. De watertypen worden zichtbaar wanneer er op een waterlichaam wordt geklikt.
 
-#### Ecologische analysegebieden
+**Ecologische analysegebieden**
 
 De Ecologische analysegebieden zijn een gebiedsindeling om het ecologisch functioneren van het watersysteem te beoordelen en het effect van maatregelen op de waterkwaliteit te volgen, waarbij gebruik wordt gemaakt van analysemodellen zoals de water- en stoffenbalans, opdat het waterbeheer doelmatig en efficiënt kan plaatsvinden en KRW-doelstellingen worden behaald.
 
 Ecologische analysegebieden (EAG’s) zijn nieuwe opdelingen van de bestaande af- en aanvoergebieden, meestal (delen van) polders. De opdeling in EAG’s is gemaakt op basis van een aantal kenmerken zoals vorm, verblijftijd, waterdiepte, strijklengte, de aanwezigheid van kwel of wegzijging en de afvoerrichting van het water. Een EAG valt altijd volledig binnen een afvoergebied. Af-en aanvoergebieden, maar ook KRW-waterlichamen, zijn dus opgebouwd uit één of meer EAG’s.
 
-Ook EAG`s in het 'overig water' dat iet is aangewezen als KRW waterlichaam heeft een KRW watertype toegekend gekregen. De watertypen worden zichtbaar wanneer er op een EAG wordt geklikt.
+Ook EAG`s in het 'overig water' die niet zijn aangewezen als KRW waterlichaam hebben een KRW watertype toegekend gekregen.
 
-#### Selectie monsters
-
-Macrofauna dat is bemonsterd onder de spronglaag in diepe plassen wordt niet meegenomen in de toetsing.
+**Selectie monsters**
 
 Alleen meetjaren waarin een geheel waterlichaam of EAG is bemonsterd zijn meegenomen in de toetsing om een representatief beeld te krijgen van de ecologische toestand. In de waterlichamen Tussenboezem Vinkeveen B en Molenpolder en Tienhoven zijn in verschillende deelgebieden niet bemonsterd in het verleden, om toch een beeld te krijgen van de ontwikkeling in ecologische toestand in deze gebieden is de beperkte dataset van deze deelgebieden wél meegenomen. Dit kan een vertekend beeld geven, omdat de deelgebieden die meewegen in de eindscore van het gehele waterlichaam variëren per meetjaar.
 
-#### Weging meetlocaties en trajecten
+Macrofauna dat is bemonsterd onder de spronglaag in diepe plassen wordt niet meegenomen in de toetsing.
+
+**Weging meetlocaties en trajecten**
 
 Bij biologische kwaliteitselementen is er een weging aan meetpunten toegekend. Er is rekening gehouden met het relatieve aandeel dat een deelgebied heeft in een geheel KRW waterlichaam en de bemonsteringsinspanning binnen een deelgebied. De wijze waarop de weegfactoren zijn uitgerekend, verschilt per watertype en kwaliteitselement.
 	
@@ -486,5 +362,105 @@ Gewicht per meetlocatie =
 \end{aligned}
 $$
 
+Als deelgebieden worden de Ecologische Analyse Gebieden (EAG) gebruikt. Bij macrofyten wordt onderscheid gemaakt tussen monsters in de emerse zone (ez) en monsters in de open water zone (ow). Een macrofytenmonster op één meetlocatie in meren en plassen bevat niet de gehele vegetatiegradiënt, maar één vegetatiezone (een diepere submerse zone, de ondiepe emerse zone of een oeverzone). Voor de toetsing zijn monsters uit verschillende vegetatiezones samengevoegd tot één meetlocatie, zodat iedere locatie alle vegetatiezones (oever, emers en submers) bevat. Dit betekent dat dezelfde monsters soms meerdere malen aan een meetlocatie zijn toegekend en dat de monsters in de emerse zone evenzwaar meetellen als de monsters in de submerse zone. In meren met watertype M20, M27, M14 zijn de taxa van submerse vegetatie verwijderd uit het monster uit de emerse zone, omdat een enkele meting van een minder soortenrijke onderwatervegetatie in de emerse zone onevenredig zwaar meeweegt in de toetsing.
+
+Bij vis is de volgende formule toegepast:
+
+$$
+\begin{aligned}
+Gewicht per traject = 
+(\frac{wateroppervlak van het deelgebied waar het traject in valt}{wateroppervlak van het beviste waterlichaam waar het traject in valt}) \times
+(\frac{bevist oppervlak van traject}{totaal bevist oppervlak van alle trajecten in het deelgebied})
+\end{aligned}
+$$
+
+In lijnvormige wateren (M1, M8, M10) wordt gevist met een elektrisch schepnet of met een elektrisch schepnet in combinatie met een zegen en keernetten. In het laatste geval vallen er twee monsters onder één traject en wordt deze samengevoegd. Het bevist oppervlak is dan per traject gesommeerd. In meervormige wateren en de boezem (M14, M27, M20, M7, M6) worden naast EAG`s ook aparte deelgebieden onderscheidden per dieptezone (0-1 meter, 1-8 meter, >8 meter). Het oppervlak van de emerse zone (0-1 meter) is over het algemeen klein in vergelijking tot het totaal oppervlak van waterlichamen van deze watertypen. Daarom weegt de emerse zone, waar de meeste vis zit, minder zwaar mee dan de overige dieptezones. Soms zitten er lijnvormige wateren vast aan een plas. Deze worden bevist met electrisch schepnet (en zegen) met keernetten. Deze worden als apart deelgebied ook meegewogen.
+
+**Conversie & aanvulling data**
+
+Fytoplankton is bij monsters die voor 2014 zijn genomen, alleen als waarnemingen per milliliter gerapporteerd. Voor de toetsing is de eenheid cellen/ml nodig. Meetwaarden van 2014 en eerder zijn vertaald naar cellen/ml met behulp van de vertaaltabel in (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31).
+
+De vestigingsdiepte van vegetatie is pas vanaf 2013 bepaald. Vestigingsdiepte in eerdere meetjaren is berekend op basis van de gemeten verticale extinctie. De vestigingsdiepte is afgeleid uit verticale extinctie obv de berekende lineaire relatie tussen vestigingsdiepte en verticale extinctie in diepe plassen in 2014 t/m 2017. Er zijn twee correcties op deze berekening toegepast:
+    1. Wanneer de gemeten submerse bedekking 0 is, is de vestigingsdiepte ook op 0 gezet. 
+    2. Wanneer de berekende vestigingsdiepte kleiner is dan de maximale diepte waarop submerse bedekking is gevonden, dan is de diepte waarop submerse bedekking is gevonden voor de toetsing gebruikt.
+    
+Groeivormen worden aangevuld wanneer ze ontbreken. Het sluitingspercentage en breedte van de oeverzone wordt alleen in het Naardermeer bepaald. Deze staat standaard op 0. 
+Grote drijfbladplanten in meren en plassen wordt berekend door de som van drijvende taxa wanneer deze ontbreekt. Emerse planten, FLAB en KROOS staan op 0 waar ze missen, omdat deze niet uit de data kunnen worden afgeleid. 
+
+De abundantie van vegetatie wordt vertaald naar een driedelige-KRW-opnameschaal. Gehanteerde grenswaarde tussen 'weinig', 'matig' en 'veel' bij verschillende vegetatieopnameschalen zijn:
+
+*	Tansley schaal: 4, 8
+*	Nat schaal: 2, 6
+*	Bedekkingspercentages: 5, 50
 
 
+
+
+# Begrippenlijst en afkortingen
+
+**Waterlichaam**
+De waterlichamen vormen de basisrapportageeenheden van de KRW. Op basis van artikel 5 KRW zijn in 2004 Nederlandse oppervlaktewateren aangewezen als KRW-waterlichamen: natuurlijk, kunstmatig2 of sterk veranderd. Een oppervlaktewaterlichaam kan als kunstmatig of sterk veranderd worden aangewezen vanwege ingrepen in de hydromorfologie (art. 4 lid 3 KRW), die het bereiken van de Goede Ecologische Toe-stand verhinderen. In Nederland zijn vrijwel alle waterlichamen kunstmatig of sterk veranderd.
+<br>
+
+**Emerse waterplanten**
+Emerse waterplanten steken gedeeltelijk boven het wateroppervlak uit en wortelen in de (water)bodem.
+<br>
+
+**Helofyten**
+De moerasplanten of helofyten kan men vinden in vochtige gebieden, oevers, tijdelijke wateren en overstromingsgebieden. Typerend voor vele moerasplanten is dat ze zich hebben aangepast aan een droge periode (zoals het uitdrogen van een rivierbedding) en een periode van gedeeltelijke of volledige onderdompeling. Voor sommige soorten is deze afwisseling noodzakelijk voor het bestaan. Terwijl de 'echte' waterplanten niet in de bodem wortelen en vaak onder water kunnen leven (met uitzondering van de bloeiwijzen), wortelen de helofyten of moerasplanten in de bodem en steken gewoonlijk boven de wateroppervlakte uit.
+<br>
+
+**Submerse waterplanten**
+De term submers (ondergedoken) wordt gebruikt voor waterplanten die geheel onder water groeien. Alleen de bloeiwijze kan bij sommige soorten boven het water uitsteken.
+<br>
+
+**Hydrofyten**
+De 'echte waterplanten' of hydrofyten komen voor in stilstaande of traag stromende permanente meren of rivieren. Deze planten zijn aangepast aan een submers leven. Indien het biotoop uitdroogt wordt het voortbestaan van deze planten bedreigd. De wortels dienen tot verankering van de plant. De stengels kunnen tot tien meter lang worden en zijn soepel en buigbaar. De drijvende bladeren kunnen hierdoor aanpassen aan de waterstand, waardoor de lichtopname niet in het gedrang komt. Andere soorten drijven, onafhankelijk van de bodem, net onder of boven het wateroppervlak. Er bestaan dus hydrofyten met zowel een submerse als emerse groeivorm. In beide gevallen zullen de voedingstoffen hoofdzakelijk via het blad opgenomen worden.
+<br>
+
+**GAF**
+Een afvoergebied of een cluster van peilgebieden met als gemeenschappelijk kenmerk dat ze via een gemeenschappelijk punt hun water lozen op een hoofdsysteem.
+<br>
+
+**EAG**
+Ecologische analysegebieden zijn nieuwe opdelingen van de bestaande af- en aanvoergebieden (GAF’s), meestal (delen van) polders. De opdeling in EAG’s is gemaakt op basis van een aantal kenmerken zoals vorm, verblijftijd, waterdiepte, strijklengte, de aanwezigheid van kwel of wegzijging en de afvoerrichting van het water. Een EAG valt altijd volledig binnen een afvoergebied. Af-en aanvoergebieden, maar ook KRW-waterlichamen, zijn dus opgebouwd uit één of meer EAG’s.
+<br>
+
+**KRW**
+Kaderrichtlijn water
+<br>
+
+**N2000**
+Natura 2000 De verzameling van Nederlandse natuurgebieden die in Europees verband een beschermde status genieten (Vogel- en habitatrichtlijngebieden).
+<br>
+
+**EKR**
+Ecologische kwaliteitratio, een getal tussen 0 en 1 waarmee de kwaliteit van een ecologische parameter wordt aangegeven. 0 is zeer slecht, 1 is zeer goed. De grens voor het GEP wordt gewoonlijk bij een EKR van 0,6 gelegd.
+<br>
+
+**Biologisch kwaliteitselement**
+Een ecologische groep de waarmee de situatie van het waterlichaam wordt beoordeeld. Gebruikt worden: fytoplankton en diatomeeën (algen), waterplanten, macrofauna (waterdieren) en vissen.
+<br>
+
+**Maatlat**
+Een schaal die gebruikt wordt om de situatie van een ecologische parameter te beoordelen. De uitkomst is een EKR. 
+<br>
+
+**Deelmaatlat**
+Voor elk biologisch kwaliteitselement zijn één of meerdere deelmaatlattenonderscheiden op basis van de soortsamenstelling en de (relatieve) aanwezigheidvan soorten, en voor vis de leeftijdsopbouw. De uitkomst is een EKR. <br>
+
+**Indicator**
+Een verder opdeling van biologische deelmaatlatten. De uitkomst is in een aantal gevallen een EKR. 
+<br>
+
+**GEP of KRW doel**
+De KRW heeft voor natuurlijke waterlichamen als doel dat een goede toestand (zowel ecologisch als che-misch) moet worden gehaald (GET). Voor de kunstmatig of sterk veranderde oppervlaktewaterlichamen moet een goed ecologisch potentieel (GEP) en een goede chemische toestand worden bereikt. Het GEP voor rijkswateren wordt afgeleid door Rijkswaterstaat namens de Ministers van Infrastructuur en Waterstaat, Economische Zaken en Klimaat (en mogelijk Landbouw, Visserij en Voedselveiligheid) en gepresenteerd in het Beheerplan rijkswateren (BPRW, vastgesteld door de ministers). De provincies zijn verantwoordelijk voor het afleiden van het GEP voor regionale wateren. Dit gebeurt in regionale waterplannen. Hoewel de provincie formeel het GEP moet vaststellen in het regionaal waterplan, levert het waterschap vanwege de kennis over watersystemen meestal het GEP aan, als beheerder van het regionaal oppervlaktewaterlichaam. Beide kunnen hierbij de Handreiking KRW-doelen volgen. De KRW biedt uitzonderingsmogelijkheden waarbij het doel later (doelvertraging) of niet (minder streng doel) gehaald hoeft te worden. Alleen in het laatste geval is het GEP niet meer het doel. In deze handreiking is het GEP-synoniem voor het doel, tenzij anders aangegeven. In hoofdstuk 3 en 4 wordt het afleiden van de doelen technisch beschreven.
+<br>
+
+**SGBP**
+Naast het definiëren van waterlichamen en doelen schrijft de KRW voor dat er stroomgebiedbeheerplan-nen (SGBP) worden opgesteld (art. 13 KRW). De bouwstenen van de stroomgebiedbeheerplannen staan in de waterplannen van het Rijk en de provincies en in de beheerplannen van de waterbeheerders. De SGBP’s geven een overzicht van de toestand, de problemen, de doelen en de maatregelen voor het verbeteren van de waterkwaliteit voor de inliggende waterlichamen. Nederland kent vier stroomgebieden: Rijn, Maas, Schelde, en Eems. De beheerplannen voor de stroomgebie-den worden iedere zes jaar geactualiseerd. Volgens bijlage VII van de KRW bevatten de SGBP’s onder andere:de beschrijving van de kenmerken van het stroomgebieddistrict;de ligging, begrenzing en typering van waterlichamen (voor sterk veranderd en kunstmatig inclusief een motivering); de huidige toestand op basis van de resultaten van de monitoring over de afgelopen periode;de doelen voor waterlichamen en een eventueel beroep op uitzonderingsmogelijkheden inclusief motivering; een samenvatting van de te nemen maatregelen om de doelen te bereiken.
+<br>
+
+**Watersysteemanalyse**
+Om goede keuzes te maken voor doelen en maatregelen is het essentieel te weten hoe een waterlichaam werkt. De systeemanalyse heeft als doel inzicht te verschaffen in het systeemfunctioneren, wat via verschillende methoden bereikt kan worden. Dit vormt het vertrekpunt voor het antwoord op de vraag hoe (met welke maatregelen) kan worden gekomen tot een betere toestand. Zonder goed inzicht in het systeem-functioneren is het risico groot dat niet de juiste maatregelen in beeld zijn, of dat maatregelen uiteindelijk niet opleveren wat ervan wordt verwacht.
+<br>
