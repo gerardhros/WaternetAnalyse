@@ -2,8 +2,10 @@
 title: "Toestand KRW waterlichamen AGV"
 date: "`r Sys.Date()`"
 runtime: shiny
-always_allow_html: yes
+documentclass: book
 site: bookdown::bookdown_site
+always_allow_html: yes
+delete_merged_file: TRUE
 output: 
   flexdashboard::flex_dashboard:
     css: css/factsheet.css
@@ -15,7 +17,8 @@ output:
 ```{r settings, echo = FALSE, message= FALSE, include = FALSE}
 #  Settings-------------------------------------------------------
 rm(list=ls())                               #maakt geheugen leeg voor aanvang
-options(repos = c(CRAN = "https://cran.rstudio.com"))
+#options(repos = c(CRAN = "https://cran.rstudio.com"))
+options(encoding = "UTF-8")
 knitr::opts_chunk$set(echo = TRUE)
 
 # invoeropties
@@ -31,18 +34,18 @@ dirGIS <-"../development"
 dirFiguren <- "./output/"
 
 # Load packages and functions-------------------------------------
-source('../scripts/loadPackages.R')
-source('../scripts/postProces.R')
-source('../scripts/createOutput.R')
-source('../scripts/PolarBarchart.R')
+require(data.table)
+require(rmarkdown)
+require(bookdown)
+require(flexdashboard)
+#source('../scripts/postProces.R') # alleen als mode = generen
+source('scripts/createOutput.R')
+# source('../scripts/PolarBarchart.R')
 #devtools::install_github('hadley/ggplot2')
 
 # other settings
 col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
-proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
-proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-proj4.osm <- CRS("+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs")
 ```
 
 ```{r, include = FALSE}
@@ -114,11 +117,11 @@ saveRDS(EKRlijst, file= paste0("EKRlijst",gebiedlevel,".rds"))
 if(mode == "weergeven"){
 
 # inlezen toetsdata
-EKRset <- readRDS('../hydrobiologie/EKRsetKRW.rds')
-# EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds')
+EKRset <- readRDS('hydrobiologie/EKRsetKRW.rds')
+# EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds')
 # KRW doelen 
-doelen <- fread('../hydrobiologie/Doelen.csv')
-eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
+doelen <- data.table::fread('hydrobiologie/Doelen.csv')
+eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
 EKRset <- ppr_ekr(krwset = EKRset, ovwatset = NULL, eag_wl = eag_wl, doelen = doelen) # let op ekr1 = krw
 
 ## calculate EKR scores from EKRset1
@@ -140,10 +143,11 @@ De figuren in deze app en verschillende datamatrices zijn ook als losse afbeeldi
 
 ```{r shiny, echo = FALSE, message= FALSE}
 # Shiny server ui --------------------------------------------------
-packages(shiny)
-packages(shinythemes)
+require(shiny)
+require(shinythemes)
+require(plotly)
 ui <- fluidPage(
-  theme = shinytheme("sandstone"),
+  # theme = shinytheme("sandstone"),
   
   headerPanel("Toestand ecologische waterkwaliteit"
   ),
@@ -171,9 +175,9 @@ ui <- fluidPage(
         #          ),
         
         tabPanel("Grafiek per KRW waterlichaam",  
-                 h5("Toelichting"),
-                 p("In dit tabblad worden de resultaten per waterlichaam weergegeven."),
-                 p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere
+                 shiny::h5("Toelichting"),
+                 shiny::p("In dit tabblad worden de resultaten per waterlichaam weergegeven."),
+                 shiny::p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere
                  maatlat(ten) worden gekozen.
                   De resultaten van de gekozen waterlichaam en maatlatten worden in de 
                   figuren weergegeven. In het bovenste figuur wordt de huidige toestand
@@ -185,17 +189,17 @@ ui <- fluidPage(
                    deelmaatlatten en indicatoren in de tijd weergegeven
                    en in de onderste figuur staat de fractieverdeling van ekr scores per
                  meetlocatie"),
-                 plotOutput("plot1b"),
+                 shiny::plotOutput("plot1b"),
                  plotly::plotlyOutput("plot6"),
                  plotly::plotlyOutput("plot5")
                  ),
         tabPanel("Grafiek per EAG",  
-                 h5("Toelichting"),
-                 p("In dit tabblad worden de resultaten per Ecologisch analysegebied
+                 shiny::h5("Toelichting"),
+                 shiny::p("In dit tabblad worden de resultaten per Ecologisch analysegebied
                  weergegeven. 
                  Een EAG is een opdeling van een afvoergebied in eenheden met een min
                    of meer gelijke ecohydrologie."),
-                 p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere
+                 shiny::p("In het keuzelijstmenu kan een KRW waterlichaam en een of meerdere
                  maatlat(ten) worden gekozen.
                   De resultaten van de gekozen waterlichaam en maatlatten worden in de 
                   figuren weergegeven. In het bovenste figuur wordt de huidige toestand
@@ -207,7 +211,7 @@ ui <- fluidPage(
                    deelmaatlatten en indicatoren in de tijd weergegeven
                    en in de onderste figuur staat de fractieverdeling van ekr scores per
                  meetlocatie"),
-                 plotOutput("plot1a"),
+                 shiny::plotOutput("plot1a"),
                  plotly::plotlyOutput("plot1"),
                  plotly::plotlyOutput("plot2")
                  )
@@ -217,7 +221,6 @@ ui <- fluidPage(
 
 # Shiny server -----------------------------------------------------------------
 server <- function(input, output) {
-  
   # # overzichtsgrafieken 1e tab
   # selectedData4 <- reactive({
   #   gebiedData <- EKRset[EKRset$Waardebepalingsmethode.code == input$maatlat,]
@@ -299,7 +302,6 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server, options = list(height = 800))
 ```
 
-
 # KRW toestandsbepaling 
 
 ### 
@@ -317,6 +319,7 @@ In de KRW toestandsbepaling wordt bepaald of de huidige toestand voldoet aan de 
 Er kan dus sprake zijn van een sterke verandering van de waterkwaliteit zonder dat je dat in gelijke mate terugziet in de KRW oordelen. Daarom rapporteert Nederland niet alleen het “one-out-all-out” oordeel, maar ook de onderliggende parameters, zodat er beter zicht is op verbeteringen en op wat er nog moet gebeuren. Maar het uiteindelijke KRW-doel voor een waterlichaam is pas gehaald als alle onderdelen in goede toestand zijn.
 
 In deze rapportage wordt alleen gerapporteerd over de toestand, doelen en oordelen van de vier biologische kwaliteitselementen.
+
 
 # Uitgangspunten voor de KRW toestandsbepaling
 
@@ -392,6 +395,7 @@ De abundantie van vegetatie wordt vertaald naar een driedelige-KRW-opnameschaal.
 *	Tansley schaal: 4, 8
 *	Nat schaal: 2, 6
 *	Bedekkingspercentages: 5, 50
+
 
 
 
