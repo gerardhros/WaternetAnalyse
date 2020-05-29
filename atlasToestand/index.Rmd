@@ -53,8 +53,7 @@ outputF <- "word" #"html"
 ```{r data, include = FALSE}
 ## data voor kaart ----------
 gEAG<- st_read("../data/EAG20191205.gpkg") %>% st_transform(proj4.google)
-gKRW<- st_read("../data/WBPKRW20191220.gpkg")%>% st_transform(proj4.google)
-
+gKRW<- st_read("../data/WBPKRW20200525.gpkg")%>% st_transform(proj4.google)
 
 # locaties van alle metingen (water, biologie, en slootbodem)
 locaties <- fread('../data/Location.csv')
@@ -108,27 +107,39 @@ In het rapport 'Ecologische sleutelfactoren in beeld' wordt verbeeld welke proce
 Als graadmeter voor de (ecologische) toestand in het gehele beheergebied is de hoeveelheid en soortensamenstelling van de aanwezige vegetatie (waterplanten) gebruikt. Dit vormt namelijk een goede maatstaf voor de ecologische toestand van een oppervlaktewater: waterplanten zijn een essentieel onderdeel van, en randvoorwaarde voor watergebonden leven als kleine waterdiertjes en vissen. De aanwezigheid van waterplanten is getoetst volgens de landelijke maatlatten voor sloten, kanalen en meren. De toetsresultaten zijn daarmee uitgedrukt in een EKR (ecologische kwaliteitsratio) score, conform de KRW-methodiek. Een score van 1 staat voor een maximaal haalbare ecologische kwaliteit en een score van 0 voor een slechte kwaliteit. In gebieden die zijn aangewezen als KRW waterlichaam wordt sinds 2006 ook de toestand van de andere drie biologische kwaliteitselementen (fytoplankton, macrofauna, en vissen) ook gevolgd.
 
 ### Overige waterflora
-Het beheergebied van AGV is zeer divers en daarom opgedeeld in kleinere [Ecologische analysegebieden] (EAG), elk met een eigen bodemtype en waterhuishouding. In elk gebied is de hoeveelheid en soortensamenstelling van waterplanten op meerdere plaatsen gemeten en getoetst. De vegetatie wordt gemiddeld eens in de 3 jaar gemeten in ieder EAG. In onderstaande afbeeldingen worden de berekende oordelen, doelen en EKR scores per Ecologisch analysegebied op vegetatiemaatlat weergegeven. Als je op een deelgebied klikt, dan verschijnt er een pop-up waar je kan zien wat de EKR score is. 
+Het beheergebied van AGV is zeer divers en daarom opgedeeld in kleinere [Ecologische analysegebieden](EAG), elk met een eigen bodemtype en waterhuishouding. In elk gebied is de hoeveelheid en soortensamenstelling van waterplanten op meerdere plaatsen gemeten en getoetst. De vegetatie wordt gemiddeld eens in de 3 jaar gemeten in ieder EAG. In onderstaande afbeeldingen worden de berekende oordelen, doelen en EKR scores per Ecologisch analysegebied op vegetatiemaatlat weergegeven. Als je op een deelgebied klikt, dan verschijnt er een pop-up waar je kan zien wat de EKR score is. 
 
 De oordelen in periode 2006-2015 en 2015-2021 zijn weergegeve in \@ref(fig:kaartKRW4). 
 
 ```{r kaartKRW4, fig.cap = 'Overzicht van gemiddelde EKR scores per EAG op de maatlat Overige waterflora in de periode 2006 t/m 2015 links en 2015 t/m 2019 rechts.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 
-tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset)
-tabset$GEP_2022[tabset$KRW_SGBP3 == ""] <- tabset$EKRperc90[tabset$KRW_SGBP3 == ""]
-tabset[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
-tabset[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-tabset[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-tabset[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
+# tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset)
+# tabset$GEP_2022[tabset$KRW_SGBP3 == ""] <- tabset$EKRperc90[tabset$KRW_SGBP3 == ""]
+# tabset[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
+# tabset[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+# tabset[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+# tabset[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
 
-krw <- KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = "oordeel")
-tabset1 <- tabset[tabset$jaar < '2015',]
-tabset2 <- tabset[tabset$jaar > '2014',]
+# krw <- KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = "oordeel")
+
+tabset2 <- tabelEKRPerWLEnEAGPerJaar(EKRset[EKRset$jaar < '2015',])
+tabset2$GEP_2022[tabset2$KRW_SGBP3 == ""] <- tabset2$EKRperc90[tabset2$KRW_SGBP3 == ""]
+tabset2[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
+tabset2[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+tabset2[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+tabset2[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
+
+tabset3 <- tabelEKRPerWLEnEAGPerJaar(EKRset[EKRset$jaar > '2014',])
+tabset3$GEP_2022[tabset3$KRW_SGBP3 == ""] <- tabset3$EKRperc90[tabset3$KRW_SGBP3 == ""]
+tabset3[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
+tabset3[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+tabset3[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+tabset3[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
 
 combineWidgets(
     ncol = 2, colsize = c(1, 1),
-    KRWmapEAG(tabset1, maatlat = "2V1 Overige waterflora", param = "oordeel"),
-    KRWmapEAG(tabset2, maatlat = "2V1 Overige waterflora", param = "oordeel")
+    KRWmapEAG(tabset2, maatlat = "2V1 Overige waterflora", param = "oordeel"),
+    KRWmapEAG(tabset3, maatlat = "2V1 Overige waterflora", param = "oordeel")
 )
 
 #saveWidget(krw, "waterflora.html", selfcontained = FALSE)
@@ -212,19 +223,20 @@ Per maatlat en ecologisch analysegebied is berekend hoe de ecologische kwaliteit
 trendkrw <- trendEAG(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "hoofd") # juist trend per waterlichaam berekenen
 # write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
  
-trendkrw <- trendkrw[trendkrw$estimate < -0.01| trendkrw$estimate > 0.01,] 
+trendkrw$estimate <- trendkrw$estimate*12 # ekr per 2 planperioden
+trendkrw$estimate[trendkrw$estimate < 0.05 & trendkrw$estimate > -0.05] <- 0 # verwaarloosbaar klein
 trendkrw <- merge(trendkrw, gEAG, by.x = 'EAGIDENT', by.y = 'GAFIDENT')
 
 options(knitr.kable.NA = '')
 
 trendcast <- dcast(trendkrw, GAFNAAM + EAGIDENT ~ GHPR_level, value.var = "estimate", fun.aggregate = mean, drop = TRUE) 
 
+
 trendcast %>%
-  arrange(`2V1 Overige waterflora`)%>%
-  kable(escape = F, align = 'l', digits = c(0, 0, 2, 2, 2, 2)) %>%
-  column_spec(1, width = "40em") %>%
+  kable(escape = F, format = "html", align = 'l', digits = c(0, 0, 2, 2, 2, 2)) %>%
+  column_spec(1, border_right = F) %>%
   column_spec(2, width = "10em") %>%
-  #add_header_above(c("Gebieden" = 2, "Maatlatten" = 3)) %>%
+  #add_header_above(c("Gebieden" = 2, "Maatlatten" = 3:6)) %>%
   kable_styling(bootstrap_options = c("striped", "hover"), position = "float_left", font_size = 10)
   
 ```
@@ -340,16 +352,16 @@ webshot("macrofaunatrend.html", file = "macrofaunatrend.png",remove_url = TRUE, 
 krw <-
 combineWidgets(
     ncol = 4, colsize = c(1,1),
-    ekrmap3(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2010' & EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
+    ekrmapKRW(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2010' & EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
                  maatlat = "4VI1 Vis-kwaliteit" ),
-    ekrmap3(EKRset[EKRset$jaar >= '2010' & EKRset$jaar < '2013'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
+    ekrmapKRW(EKRset[EKRset$jaar >= '2010' & EKRset$jaar < '2013'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
                  maatlat = "4VI1 Vis-kwaliteit" ),
-    ekrmap3(EKRset[EKRset$jaar >= '2013' & EKRset$jaar < '2016'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
+    ekrmapKRW(EKRset[EKRset$jaar >= '2013' & EKRset$jaar < '2016'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
                  maatlat = "4VI1 Vis-kwaliteit" ),
-    ekrmap3(EKRset[EKRset$jaar >= '2016' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
+    ekrmapKRW(EKRset[EKRset$jaar >= '2016' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
                  maatlat = "4VI1 Vis-kwaliteit" ))
 saveWidget(krw, "vis.html", selfcontained = FALSE)
-#webshot("vis.html", file = "vis.png")
+webshot("vis.html", file = "vis.png")
 ```
 
 ## Natura2000
