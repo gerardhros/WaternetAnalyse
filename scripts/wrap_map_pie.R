@@ -8,17 +8,17 @@ rm(list=ls())
 library(ggplot2); library(sf); library(data.table); library(dplyr); 
 library(scatterpie); library(ggnewscale); library(tmap); library(cowplot); library(ggspatial)
 
-source("scripts/fun_map_pie.R")
+source("../scripts/fun_map_pie.R")
 
 # load dataset of KRW 
-krwset <- readRDS("../data/krwset.rds")
-ovwatset <- readRDS("data/ovwatset.rds")
+krwset <- readRDS("../data/krwset.rds") # is ekrscores1
+# ovwatset <- readRDS("data/ovwatset.rds")
 
 # load map of waterlichaam
-WL_EAG <- st_read("data/WL_EAG.gpkg") %>% st_transform(28992)
+WL_EAG <- st_read("../data/WL_EAG.gpkg") %>% st_transform(28992)
 
 # load polygons of EAG (to use for background)
-eag <- st_read("data/EAG20191205.gpkg") %>% st_transform(28992)
+eag <- st_read("../data/EAG20191205.gpkg") %>% st_transform(28992)
 
 # Threshold values of EKR for 4 levels, separately defined for 4 EKR type.
 #'Dimension should be 4 rows (= EKR type) x 5 columns (= 5 breaks for 4 levels)

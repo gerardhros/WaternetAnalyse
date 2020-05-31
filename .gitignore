@@ -21,7 +21,7 @@ factsheets/output/*.png
 /atlasToestand/figurenEnTabellen/*
 /atlasToestand/www/*
 /atlasToestand/_book/*
-/KRW overzicht/*
+/KRW overzicht/output*
 /templateSysteemAnalyse/*
 /pbelasting/input/uitvoer PCDitch tbv serious game HDSR.csv
 /pbelasting/output/*

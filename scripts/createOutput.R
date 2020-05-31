@@ -553,8 +553,8 @@ draaitaxa <- function (EKRlijst1){
 vispivot <- function (EKRlijst){
   
   selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","HoortBijGeoobject.identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code")
-  sel <- !grepl('^NL11*',EKRlijst$HoortBijGeoobject.identificatie)
-  sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl)| EKRlijst$Biotaxon.naam.nl == "" #als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
+  sel <- !grepl('^NL11*', EKRlijst$HoortBijGeoobject.identificatie)
+  sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl) & !EKRlijst$Biotaxon.naam.nl == "" &!(EKRlijst$Biotaxon.naam.nl %in% "Vissen")  #als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
   sel <- sel & EKRlijst$Eenheid.code %in% "kg/ha"
   EKRlijst1 <- EKRlijst[sel,]
  
