@@ -1,0 +1,78 @@
+/* Whole document: */
+body {
+  padding-top: 69px;
+  background-color: #fff;
+}
+
+.navbar-logo {
+  margin-top: 1px;
+}
+
+.navbar-logo img {
+  margin-right: 25px;
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+  border-top-color: rgba(52, 152, 219, 0.7);
+}
+
+.navbar-header {
+  font-weight:500;
+}
+
+.navbar-brand {
+  font-weight:500;
+  font-size: 40px;
+}
+
+.value-box {
+  background-color: rgba(52, 152, 219, 0.7);
+}
+
+.bg-primary {
+  color: #fff;
+  background-color: rgba(52, 152, 219, 0.7);
+}
+
+.bg-info {
+  background-color: rgba(52, 152, 219, 0.7);
+}
+
+.bg-warning {
+  background-color: rgba(52, 152, 219, 0.7);
+}
+
+.bg-success {
+  background-color: rgba(52, 152, 219, 0.7);
+}
+
+.bg-danger {
+  background-color: rgba(52, 152, 219, 0.7);
+}
+
+.chart-title {
+  font-weight: 500;
+}
+
+.nav-tabs-custom > .nav-tabs > li > a,
+.nav-tabs-custom > .nav-tabs > li > a:active {
+  font-weight: 500;
+}
+
+/* Table width = 100% max-width */
+
+.remark-slide table{
+    width: 100%;
+}
+
+/* Change the background color to white for shaded rows (even rows) */
+
+.remark-slide thead, .remark-slide tr:nth-child(2n) {
+        background-color: #fff;
+}
+
+img[alt=esficon] { width: 50px; }
+
+.huge .remark-code { /*Change made here*/
+  font-size: 200% !important;
+}
