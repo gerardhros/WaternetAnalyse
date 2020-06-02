@@ -16,7 +16,7 @@ calc_rmse <- function(x, y){
 test_rmse <- function(loc_sf, var_res, var_pred){
   setDT(loc_sf)
   rmse_test <- calc_rmse(unlist(loc_sf[set == "test", ..var_res]), unlist(loc_sf[set == "test", ..var_pred]))
-  print(paste0("RMSE of testing set: ", round(rmse_test, 3)))
+  #print(paste0("RMSE of testing set: ", round(rmse_test, 3)))
   return(rmse_test)
 }
 
@@ -24,7 +24,7 @@ test_rmse <- function(loc_sf, var_res, var_pred){
 test_r2 <- function(loc_sf, var_res, var_pred){
   setDT(loc_sf)
   r2_test <- calc_rsq(loc_sf[set == "test",..var_res], loc_sf[set == "test", ..var_pred])
-  print(paste0("R2 of testing set: ", round(r2_test, 3)))
+  #print(paste0("R2 of testing set: ", round(r2_test, 3)))
   return(r2_test)
 }
 
@@ -57,6 +57,8 @@ ppr_dataset <- function(loc_sf, var_id, var_res, var_cov, fr_train){
   # add train or not
   loc_t[train, set := "training"]
   loc_t[!train, set := "test"]
+  loc_t$set <- as.factor(loc_t$set)
+  
   print(paste0("training N = ", loc_t[set == "training", .N], 
                ", testing N = ", loc_t[set == "test", .N]))
   
@@ -95,6 +97,18 @@ fun_rf <- function(loc_t, var_id, var_cov, check_mtry = FALSE,
   loc_t[, pred_rf := predict(rf_res, loc_t)]
   loc_t[, resid_rf := varres - pred_rf]
   
+  # show  figure of variable importance
+  imp <- data.table(covar = dimnames(importance(rf_res))[1][[1]],
+                    IndNodePurity =as.vector(importance(rf_res)))
+  imp$covar <- factor(imp$covar, levels = imp$covar[order(imp$IndNodePurity)])
+  gp_imp <- ggplot(imp) + geom_bar(aes(x = covar,y = IndNodePurity), stat = "identity") +
+    coord_flip() + ylab("") + xlab("") + ggtitle("RF importance of variables")
+  #varImpPlot(ls_rf$rf_res, main = "importance of variables")
+  
+  # # show figure of error vs number of trees
+  # plot(rf_res, main = "Error vs number of trees")
+  
+  
   ## Check different numbers of Variables randomly chosen at each split (mtry)
   if (check_mtry == TRUE){
     print("Testing different numbers of Variables randomly chosen at each split (mtry)...")
@@ -132,9 +146,12 @@ fun_rf <- function(loc_t, var_id, var_cov, check_mtry = FALSE,
 
   }
   
+  
+  
   ls_rf <- list()
   ls_rf$loc_t <- loc_t
   ls_rf$rf_res <- rf_res
+  ls_rf$gp_imp <- gp_imp
   if(check_mtry == TRUE){
     ls_rf$gp_error <- gp_error
   }
@@ -173,6 +190,7 @@ fun_krige <- function(loc_sf, water_eag_r){
                          input_data = loc_sp,
                          new_data = rs_sp,
                          model = "Sph",
+                         #fix.values = c(NA, 2000, NA),nugget, range and sill 
                          verbose = FALSE)
   # check results
   #plot(res_krige)
@@ -199,11 +217,11 @@ fun_krige <- function(loc_sf, water_eag_r){
 }
 
 
-#' Get EAG-median values of med_wd
+#' Get EAG-median values of med_wd for measurement points
 #' 
 #' @param loc_sf (sf object)
 #' 
-fun_eagmed <- function(loc_sf, var_res){
+fun_eagmed <- function(loc_sf, var_res, water_eag_r, tb_eag){
   # Make a raster of EAG-median values
   eag_med_wd <- raster_eag_med(as.data.table(loc_sf), var_res, water_eag_r, tb_eag)
   #tm_shape(eag_med_wd) + tm_raster(title = "WATDTE_m")  + tm_layout(legend.position = c("right","bottom"))

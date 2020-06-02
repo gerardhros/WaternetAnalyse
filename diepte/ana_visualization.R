@@ -1,7 +1,16 @@
 # Analyze relations between water depth and other variables
 # 'loc_sf' needed
 
-library(ggplot2); ggplot(data.table)
+library(ggplot2); library(data.table)
+
+# temp # check data availability
+cols <- c("locatiecode", "med_wd", "med_wb", "med_sd", "MORFOLOGIE", "PEIL", "soiltypen", "KWEL", "WATERTYPE", 
+          "EAGIDENT", "GAFIDENT", "theo_dep", "pnt_ahn", "pnt_breedte", "breedte", "afw_ahn")
+# check availability of data
+setDT(loc_sf)
+Nrecord <- loc_sf[, lapply(.SD, function(x) length(x[!is.na(x) & x != ""])), .SDcols = cols]
+Nrecord2 <- loc_sf[, lapply(.SD, function(x) length(x[!is.na(x)])), .SDcols = cols]
+
 
 
 ## water width --------------

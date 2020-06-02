@@ -3,8 +3,7 @@
 remove_duplicate <- function(dt){
   dt_uni <- unique(dt)
   if(nrow(dt) != nrow (dt_uni)){
-    print(paste0("There are ", nrow(dt) - nrow (dt_uni), " completely identical rows."))
-    print("These rows were removed.")
+    print(paste0("There are ", nrow(dt) - nrow (dt_uni), " completely identical rows. They were removed."))
   }
   return(dt_uni)
 }
@@ -13,7 +12,7 @@ remove_duplicate <- function(dt){
 #' Criteria to remove (for lijnformig feasures only):  WATDTE_M > max_d, WATBTE_m > max_b, or WATBTE_m  = 0
 remove_unrealistic <- function(hybi, max_d = 5, max_b = 50, print = FALSE){
   dexc <- hybi[fewsparameter == "WATDTE_m" & MORFOLOGIE == "lijnvormig"& meetwaarde > max_d,]
-  print(paste0(nrow(dexc), " record was removed, because the ditch depth (WATDTE_M) is unrealistically high: >", max_d, "m"))
+  print(paste0(nrow(dexc), " record was removed, because the ditch depth (WATDTE_M) is unrealistically large: >", max_d, "m"))
   if(print == TRUE){
     print(dexc)
   }
@@ -55,17 +54,18 @@ calc_totdepth <- function(hybi){
 }
 
 
-#' Make location-based summary of data 
+#' Make location-based summary of hybi data (median, SD, N of records)
 location_summary <- function(hybi,  year2u){
   
   hybi <- copy(hybi)
+  # choose relevant years only
   hybi <- hybi[jaar %in% year2u,]
   
-  hybi_dc2 <- dcast(hybi[fewsparameter %in% c("WATDTE_m", "SLIBDTE_m", "WATERBTE_m"),], 
-                    locatiecode + datum ~ fewsparameter,
-                    value.var = "meetwaarde",
-                    fun.aggregate = median)
-  hybi_dc2 <- hybi_dc2[!is.na(WATDTE_m) & !is.na(WATERBTE_m),]
+  # hybi_dc2 <- dcast(hybi[fewsparameter %in% c("WATDTE_m", "SLIBDTE_m", "WATERBTE_m"),], 
+  #                   locatiecode + datum ~ fewsparameter,
+  #                   value.var = "meetwaarde",
+  #                   fun.aggregate = median)
+  # hybi_dc2 <- hybi_dc2[!is.na(WATDTE_m) & !is.na(WATERBTE_m),]
   
   loc_sum_wd <- hybi[fewsparameter == "WATDTE_m",.(med_wd = median(meetwaarde, na.rm = T),
                                                    N_record_wd = .N,
@@ -177,7 +177,7 @@ get_value_from_raster <- function(loc_sf, raster, buffer = NULL){
 #' 
 get_theowater <- function(watth_fn, loc_sf){
   # load shape
-  majorwater <- st_read(watth_fn)%>% st_transform(28992)
+  majorwater <- st_read(watth_fn, quiet = T)%>% st_transform(28992)
   
   # intersect buffers around measurement points and waterways
   loc_int_10 <- st_intersects(st_buffer(loc_sf, 10), majorwater, sparse = FALSE)
@@ -216,18 +216,20 @@ get_theowater <- function(watth_fn, loc_sf){
 #'@param eag_fn (CHAR) file name of polygon shape of EAG boudaries. 
 #'Need to include a column 'GAFIDENT' which stores EAG id
 #'@param update (boolean) whether the distance is calculated again (TRUE) or the previously saved data is used (FALSE)
+#'@param loc_v_fn (CHAR) File name of data table in which water width and AHN of nearest shore point for each hybi measurement point is stored. 
+#'Needed only wen update = FALSE
 #'
 #'@import data.table
 #'@import sf
 #'@import dplyr
-get_width_ahn <- function(loc_sf, ww_fn, eag_fn, update = FALSE){
+get_width_ahn <- function(loc_sf, ww_fn, eag_fn, update = FALSE, loc_v_fn = NULL){
   
-  if(file.exists(paste0(iloc_project, "diepte/loc_v.RData")) & update == FALSE){
-    load(paste0(iloc_project, "diepte/loc_v.RData"))
+  if(file.exists(loc_v_fn) & update == FALSE){
+    load(loc_v_fn)
   } else {
     
     # Load data
-    ww <- st_read(ww_fn)%>% st_transform(28992)
+    ww <- st_read(ww_fn, quiet = T)%>% st_transform(28992)
     
     # when pnt_breedte = 0, remove the record
     setDT(ww)
@@ -236,7 +238,7 @@ get_width_ahn <- function(loc_sf, ww_fn, eag_fn, update = FALSE){
     
     ## Label ww points with EAG
     # load shape of EAG
-    eag <- st_read(eag_fn) %>% st_transform(28992)
+    eag <- st_read(eag_fn, quiet = T) %>% st_transform(28992)
     ww_eag <- st_intersects(ww, eag, sparse = FALSE)
     
     # get EAG per ww point
@@ -247,7 +249,7 @@ get_width_ahn <- function(loc_sf, ww_fn, eag_fn, update = FALSE){
     ww <- mutate(ww, EAGIDENT = EAGi)
     
     
-    # For each point of loc_sf, get width and AHN values from the nearst point 
+    # For each point of loc_sf, get width and AHN values from the nearest point 
     # (with batch per EAG, because otherwize a memory error occurs)
     
     # initialization of data table to store results

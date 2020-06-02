@@ -3,7 +3,7 @@
 create_raster_template <- function(eag_fn, res){
   
   # load shape of EAG
-  eag <- st_read(eag_fn) %>% st_transform(28992)
+  eag <- st_read(eag_fn, quiet = T) %>% st_transform(28992)
   
   # make a template raster
   rs_template <- raster(extent(eag))
@@ -38,7 +38,7 @@ rasterize_polygon_line <- function(polygon, rs_template, field2u){
 #'
 rasterize_gaf <- function(gaf_fn, rs_template){
   # load shape of GAF
-  gaf <- st_read(gaf_fn) %>% st_transform(28992)
+  gaf <- st_read(gaf_fn, quiet = T) %>% st_transform(28992)
   # remove 1 GAF (GAFIDENT = 3???)
   setDT(gaf)
   gaf <- gaf[GAFIDENT != "3???", ]
@@ -74,7 +74,7 @@ rasterize_gaf <- function(gaf_fn, rs_template){
 #'
 rasterize_eag <- function(tb_eag, eag_fn, rs_template){
   # load shape of EAG
-  eag <- st_read(eag_fn) %>% st_transform(28992)
+  eag <- st_read(eag_fn, quiet = T) %>% st_transform(28992)
   setDT(eag)
   # delete a record with obscure EAG
   eag <- eag[GAFIDENT != "3???-EAG-1", ]
@@ -110,7 +110,7 @@ rasterize_eag <- function(tb_eag, eag_fn, rs_template){
 #' rasterize water ways in the same raster configuration as 'eag'
 rasteize_water <- function(water_fn,  rs_template){
   # load shape of water
-  water <- st_read(water_fn) %>% st_transform(28992)
+  water <- st_read(water_fn, quiet = T) %>% st_transform(28992)
   
   # add a dummy variable for rasterization
   water <- mutate(water, val = 1)
@@ -190,9 +190,10 @@ raster_eag_med <- function(dt_loc, para2u, water_eag_r, tb_eag){
 
 #' Rasterize waterpeil polygons
 #' @import fasterize
+#' @import rgeos
 rasterize_waterpeil <- function(waterpeil_fn, rs_template){
   # load shape
-  waterpeil <- st_read(waterpeil_fn) %>% st_transform(28992)
+  waterpeil <- st_read(waterpeil_fn, quiet = T) %>% st_transform(28992)
   
   # fix self intersecting geometries of waterpeil shape
   waterpeil_sp <- as(waterpeil, "Spatial") %>% spTransform(CRS("+init=epsg:28992")) %>% gBuffer(byid=TRUE, width=0)
@@ -244,7 +245,7 @@ rasterize_soilcode <- function(fac_rs_fn, rs_template){
 #' Rasterize seepage point data
 rasterize_kwel <- function(kwel_fn, rs_template){
   # load seepage point shape
-  kwel <- st_read(kwel_fn) %>% st_transform(28992)
+  kwel <- st_read(kwel_fn, quiet = T) %>% st_transform(28992)
   
   ## Create a raster template ----
   
@@ -312,3 +313,38 @@ rasterize_om <- function(num_rs_fn, rs_template){
   
   return(om_rs) 
 }
+
+
+
+## Rasterize water depth and ahn for all waterway cells
+rasterize_width <- function(ww_fn, rs_template, water_eag_r_fn){
+  
+  # Load point shape of water width and ahn
+  ww <- st_read(ww_fn, quiet = T)%>% st_transform(28992)
+  # load raster data of waterways 'water_eag_r'
+  load(water_eag_r_fn)
+  
+  # when pnt_breedte = 0, remove the record
+  setDT(ww)
+  ww <- ww[pnt_breedte != 0, ]
+  ww <- st_as_sf(ww)
+  
+  #split raster of resolution 100m into 25m
+  water_eag_r25 <- disaggregate(water_eag_r, fact = 4)
+  
+  # rasterize water width
+  width_rs <- rasterize(ww, water_eag_r25, field = "pnt_breedte", fun = mean)
+  names(width_rs) <- "pnt_breedte"
+  #writeRaster(pnt_bd_rs, filename = paste0(iloc_project, "diepte/temp_pnt_bd_rs.tif"))
+  
+  # rasterize ahn width
+  ahn_rs <- rasterize(ww, water_eag_r25, field = "pnt_ahn", fun = mean)
+  names(ahn_rs) <- "pnt_ahn"
+  
+  ww_ahn_rs <- stack(width_rs, ahn_rs)
+
+  return(ww_ahn_rs)
+   
+}
+
+

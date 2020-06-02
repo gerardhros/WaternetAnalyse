@@ -5,8 +5,11 @@ library(raster)
 source('diepte/funs_rasterize.R')
 source('diepte/fun_iloc.R')
 
-## define folder names (iloc_onedrive, iloc_project, iloc_afk)
-fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+## define folder names
+iloc <- fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+iloc_onedrive <- iloc[1]
+iloc_project <- iloc[2]
+iloc_afk <- iloc[3]
 
 
 
@@ -27,10 +30,10 @@ if(file.exists(paste0(iloc_project, "diepte/eag_r.RData"))){
 } else {
   eag <- st_read(eag_fn) %>% st_transform(28992)
   tb_eag <- data.table(eag_id = 1:length(unique(eag$EAGIDENT)),EAG = unique(eag$EAGIDENT))
-  eag_r <- rasterize_eag(tb_eag, "data/EAG20191205.gpkg", rs_template)# (THIS TAKES CA. 15 MIN!!!)
+  eag_r <- rasterize_eag(tb_eag, eag_fn, rs_template)# (THIS TAKES CA. 15 MIN!!!)
 }
 
-# Rasterize waterways
+# Rasterize waterways (both from lines and polygons)
 if(file.exists(paste0(iloc_project, "diepte/water_r.RData"))){
   load(paste0(iloc_project, "diepte/water_r.RData"))
 } else {
@@ -46,35 +49,4 @@ water_eag_r <- mask(eag_r, water_r)
 #write.csv(tb_eag, file = paste0(iloc_project, "diepte/tb_eag.csv"), row.names = F)
 
 
-## Rasterize water depth for all waterways
-# Load data
-ww_fn <- paste0(iloc_project, "diepte/200512_oeverpunten_corrected.gpkg")
-ww <- st_read(ww_fn)%>% st_transform(28992)
 
-# when pnt_breedte = 0, remove the record
-setDT(ww)
-ww <- ww[pnt_breedte != 0, ]
-ww <- st_as_sf(ww)
-#split raster of resolution 100m into 25m
-water_eag_r25 <- disaggregate(water_eag_r, fact = 4)
-# rasterize
-pnt_bd_rs <- rasterize(ww, water_eag_r25, field = "pnt_breedte", fun = mean)
-#writeRaster(pnt_bd_rs, filename = paste0(iloc_project, "diepte/temp_pnt_bd_rs.tif"))
-# # check how many measurement points overlap with the rater
-# temp_overlap <-extract(pnt_bd_rs, loc_sf) # -> 3432/ 7372 points overlap (within lijnvormig, 3148/5019 points overlap)
-
-
-# # temp # rasterize waterways (from polygon) with smaller resolution
-# rs_template25 <- create_raster_template(eag_fn, res = 25)
-# rs_template100 <- create_raster_template(eag_fn, res = 100)
-# water <- st_read(water_fn) %>% st_transform(28992)
-# tb_eag <- data.table(eag_id = 1:length(unique(water$GAFIDENT)),EAG = unique(water$GAFIDENT))
-# water <- left_join(water, tb_eag, by = c("GAFIDENT" = "EAG"))
-# water_rs <- fasterize(water, rs_template25, field = "eag_id")
-# water_rs100 <- fasterize(water, rs_template100, field = "eag_id")
-# temp<-extract(water_rs, loc_sf)  # 3441 / 7372 points overlaied with waterways
-# temp100<-extract(water_rs100, loc_sf) # 2616 / 7372 points  overlaied with waterways
-# 
-# load(paste0(iloc_project, "diepte/water_eag_r.RData"))
-# temp_line<-extract(water_eag_r, loc_sf) # 7363 / 7372 points  overlaied with waterways
-# # --> So, it is necessary to rasterize from lines!! 

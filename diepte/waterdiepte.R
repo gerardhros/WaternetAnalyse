@@ -4,7 +4,6 @@ library(data.table); library(dplyr); library(sf); library(ggplot2);
 library(fasterize);  library(raster);  library(sp); library(tmap);
 library(OBIC)
 library(rgeos)
-library(automap)
 
 # source functions
 source('scripts/ppr_funs.R')
@@ -12,8 +11,11 @@ source('diepte/funs_rasterize.R')
 source('diepte/funs_datappr.R')
 source('diepte/fun_iloc.R')
 
-## define folder names (iloc_onedrive, iloc_project, iloc_afk)
-fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+## define folder names
+iloc <- fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+iloc_onedrive <- iloc[1]
+iloc_project <- iloc[2]
+iloc_afk <- iloc[3]
 
 
 # name of EAG polygon shape
@@ -24,7 +26,7 @@ eag_fn <- "data/EAG20191205.gpkg"
 # locaties van alle metingen (water, biologie, en slootbodem)
 locaties <- fread('data/Location.csv')
 
-# locaties van EAG oppervlaktes (this includes "type")
+# locaties van EAG oppervlaktes
 eag_wl <- fread('data/EAG_Opp_kenmerken_20200218.csv')
 eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 
@@ -32,8 +34,7 @@ eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 hybi_ori <- readRDS('data/alles_reliable.rds')
 hybi_ori <- ppr_hybi(db = hybi_ori, syear = 2006, wtype = eag_wl, mlocs = locaties)
 
-# Make a raster template for the extent of EAG
-rs_template <- create_raster_template(eag_fn, res = 100)
+
 
 
 ## Pre-process files ------------
@@ -74,6 +75,9 @@ loc_sf <- st_as_sf(dt_loc, coords = c("XCOORD", "YCOORD"), crs = 28992)
 #write_sf(loc_sf, paste0(iloc_project, "diepte/loc_sf.gpkg"))
 
 
+
+## Make a raster template for the extent of EAG ----
+rs_template <- create_raster_template(eag_fn, res = 100)
 
 ## Extract waterpeil info around measurement point ------
 # waterpeil file name
@@ -130,9 +134,17 @@ loc_sf <- get_theowater(watth_fn, loc_sf)
 ## Extract water width around measurement points ------
 ww_fn <- paste0(iloc_project, "diepte/200512_oeverpunten_corrected.gpkg")
 
+# make a raster of water width and ahn
+# Here use a smaller resolution (25m, instead of 100m)
+# (this takes ca. 1 min)
+ww_ahn_rs <- rasterize_width(ww_fn, rs_template, water_eag_r_fn)
+
+# check how many measurement points overlap with the rater
+ww_overlap <-extract(ww_ahn_rs[['pnt_breedte']], loc_sf) 
+
 # Get valuve of water width and water surface AHN from water shore data
 # (THIS TAKES CA. 8 MIN)
-loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn)
+loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn,  update = FALSE, loc_v_fn = loc_v_fn)
 #loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn, update = TRUE) # re-calculate distance and save loc_v
 
 ## Extract OM around measurement points ----
@@ -148,7 +160,7 @@ loc_sf <- get_value_from_raster(loc_sf, om_rs, buffer = 300)
 
 # TO DO: use smaller raster size, or intersect points and polygons directly
 
-## Fine-tuning data table -----------
+## Post-processing data table -----------
 
 # Make a new variable which combines measured and computed water width.
 # When meausred width is available, use that. Otherwise use water width which was calculated on GIS
@@ -168,8 +180,17 @@ loc_sf <- st_as_sf(loc_sf)
 
 #st_write(loc_sf, paste0(iloc_project, "diepte/loc_sf.gpkg"), append = FALSE)
 
+##  Make a raster stack of covariables ----
+# Make a raster stack of resolution 25m
+covars_pre <- disaggregate(stack(waterpeil_rs, soilcode_rs, kwel_rs, om_rs), fact = 4)
+covars_pre2 <- stack(covars_pre, ww_ahn_rs)
 
+# crop for waterways
+# load raster data of waterways 'water_eag_r'
+load(water_eag_r_fn)
+covars_rs <- mask(covars_pre2, disaggregate(water_eag_r, fact = 4))
 
+#save(covars_rs, file = paste0(iloc_project, "diepte/covers_rs.RData"))
 
 
 # # draw maps of measurement points & EAG boundary
