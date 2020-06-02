@@ -126,19 +126,20 @@ draw_map <- function(pl, dt, bkpl = NULL,
 #'@import ggnewscale
 #'
 #'@return gp (ggplot object) map of polygons with pie chart
+#'
 
 make_map_pie <- function(pl, dt, bkpl = NULL,
                          col_ekr = "EKR", ekr_fac = FALSE,  
                          ekr_order = c("slecht","ontoereikend","matig","goed"), 
                          ekr_col = c("red", "orange", "yellow", "green"),
                          ekr_breaks = matrix(rep(c(0, 0.25, 0.5, 0.75, 1), each = 4), ncol = 5),
-                         col_area_sf = "SGBP3_NAAM", col_area_dt = "waterlichaam", 
+                         col_area_sf = "OWMIDENT", col_area_dt = "KRW_SGBP3", 
                          col_ekrtype = "GHPR_level",
                          label_type = c("Fytoplankton", "Overige waterflora", "Macrofauna", "Vis")){
   
   # make copy
- dt <- copy(dt)
- pl <- copy(pl)
+  dt <- copy(dt) # dt <- copy(ekr_scores1) 
+  pl <- copy(pl) # pl <- copy(gKRW)
   
   # change column names
   setDT(pl)
@@ -157,7 +158,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
   
   
   ## Join Data table to map ----
-  if(ekr_fac ==TRUE){
+  if(ekr_fac == TRUE){
     # when EKR is factor, convert that to integer 1 - 4
    dt$ekrval <- as.numeric(factor(as.factor(dt$ekrval), levels = ekr_order))
   }
@@ -238,7 +239,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
   ## Add pie chart (same proportions but different colors)
   #for (i in 1:2){
   for (i in 1:nrow(dt_pie)){
-    gp <- gp + 
+    gp <- gpbs + 
       ggnewscale::new_scale_fill() +
       scatterpie::geom_scatterpie(aes(x=X, y=Y, r = r), data = dt_pie[i, ],
                                   show.legend = FALSE,

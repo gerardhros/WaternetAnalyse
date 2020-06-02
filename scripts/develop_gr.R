@@ -33,8 +33,9 @@
   st_write(s1,'data/WBPKRW20170611.gpkg')
 
   # aanpassen shape file from shp to gpkg van Laura
-  s1 <- st_read('../GIS/KRWwaterdelen_AGV_concept_December2019_2.shp') %>% st_transform(28992)
-  st_write(s1,'data/WBPKRW20191220.gpkg')
+  s1 <- st_read('GIS/KRWwaterdelen_AGV_concept_Februari2020.shp') %>% st_set_crs(28992) %>% st_transform(28992)
+  st_write(s1,'../data/WBPKRW20200525.gpkg')
+  
   s1 <- st_read('../GIS/EAGs_20191205.shp') %>% st_transform(28992)
   domein <- read_xlsx("../GIS/EAG.xlsx", sheet = 2)
   s1 <- merge(s1, domein, by.x = "OWMTYPE", by.y = "CODE", all.x =T)
