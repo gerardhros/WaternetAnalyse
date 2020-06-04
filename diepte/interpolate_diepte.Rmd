@@ -75,6 +75,16 @@ loc_v_fn <- paste0(iloc_project, "diepte/loc_v.RData")
 
 ```
 
+De meeste van de bovenstaande gegevens worden opgeslagen op de server van het NMI. Ik heb twee belangrijke resultaten (_loc_sf_ and _pred_wd_rs_) opgeslagen op de Github. Met deze bestanden kan de analyse van hoofdstuk 3, 4, 6, 7 (behalf 7-3) worden uitgevoerd. Ook kan de uiteindelijke kaart van waterdiepte (hoofdstuk 8-3) worden getekend.
+
+```{r}
+# load sf object of hybi location data, with location-median water depth, water width, slib depth, total depth,
+# and other covariables
+# loc_sf <- st_read("../data/loc_sf.gpkg"), quiet = T) %>% st_transform(28992)
+# 
+# The final raster data of water depth ('pred_wd_rs'), made by combining RF model prediction and EAG-median, on all waterways. resolution 25m
+# load(paste0("../data/pred_wd_rs.RData"))
+```
 
 ## Data inladen
 
@@ -576,10 +586,10 @@ pred_wd_eag <- disaggregate(ls_eag$eag_med_wd, fact = 4)
 # When the prediction of RF is NA, use the EAG-median value
 pred_wd_rs <- overlay(pred_wd_rf_rs,pred_wd_eag, fun = function(x, y) {
    x <- ifelse(is.na(x), y, x)
-  
-  #x[is.na(x)] <- y
   return(x)
 })
+
+# save(pred_wd_rs, file = paste0(iloc_project, "diepte/pred_wd_rs.RData"))
 
 # draw raster data of RF + EAG-mean
 tm_eagrf <- tm_shape(pred_wd_rs) + tm_raster(title = "waterdiepte (m)") +

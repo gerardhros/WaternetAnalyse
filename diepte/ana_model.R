@@ -1,4 +1,5 @@
-# This scripts compares different models to interpolate water depth.
+# This scripts compares different models to interpolate water depth
+# and make the final prediction of water depth (as raster)
 
 rm(list = ls())
 
@@ -177,6 +178,26 @@ if(run_krige == TRUE){
 }
 show(gp)
 
+
+## Make a raster data of predicted water depth by random forest model -------------
+# change layer name of "pnt_breedte" to "breedte" (the variable name used in the random forest model)
+names(covars_rs)[5] <- 'breedte'
+# make spatial prediction
+pred_wd_rf_rs <- raster::predict(model=ls_rf$rf_res, object=covars_rs)
+
+##  Combine Random forest model en EAG-median model ------------
+# change resolution ofEAG-mean (to match RF results)
+pred_wd_eag <- disaggregate(ls_eag$eag_med_wd, fact = 4)
+
+# When the prediction of RF is NA, use the EAG-median value
+pred_wd_rs <- overlay(pred_wd_rf_rs,pred_wd_eag, fun = function(x, y) {
+  x <- ifelse(is.na(x), y, x)
+  return(x)
+})
+
+
+
+
 #return(list(var_res, var_cov, ls_lm, ls_rf, ls_eag, ls_kr, loc_sf, gp))
 
 # save(var_res, var_cov, ls_lm, ls_rf, ls_eag, ls_kr, loc_sf, gp,
@@ -188,6 +209,3 @@ show(gp)
 #   
 
 
-# ## XGBoost
-# require(xgboost)
-# xgboost(data = as.matrix(loc_t[train,]), label = train, max.depth = 2, eta = 1, nthread = 2, nrounds = 2)
