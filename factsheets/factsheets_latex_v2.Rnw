@@ -41,7 +41,8 @@ lx_owner <- out$waterlichamenwl$Eigenaren
 lx_motstat <- out$waterlichamenwl$motstat
 lx_partners <- if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}
 lx_monwens <- gsub('\r\n','',gsub('&','en',out$waterlichamenwl$MonitoringAnalyseWensen))
-
+lx_litverw <- ifelse(out$waterlichamenwl$Literatuurverwijzing=='','',paste0('en ',out$waterlichamenwl$Literatuurverwijzing))
+  
 # text for ecologische analyse op hoofdlijnen
 eah_doel <- if(!is.na(out$waterlichamenwl$Doelen)){out$waterlichamenwl$Doelen} else {'onbekend'}
 eah_oorz <- if(!is.na(out$waterlichamenwl$Oorzaken)){out$waterlichamenwl$Oorzaken} else {'onbekend'}
@@ -94,7 +95,8 @@ cf_tit <- min(1,12 / nchar(lx_title)) * c(108,99,96,88)
     enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
     colback=white,opacityback=1,colframe=black!5!white,colbacktitle=agvblue,coltitle=white,
     %title style={left color=blue,right color=blue},
-    fonttitle=\bfseries\small\scshape,
+    fonttitle=\fon{phv}\bfseries\small\scshape,
+    fontupper=\fon{phv}
   }
   ]
   
@@ -129,14 +131,14 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   % add frame for figuur EKR score huidige toestand (routput/figure/plot_ekrtoestand-1.pdf)
   \posterbox[adjusted title=Huidige toestand,height = 6cm,valign=center]{name=fig4,column=7,span=2,below=gb}{
     \centering
-    \includegraphics[height = 3.5cm,keepaspectratio]{\Sexpr{mapEKR}}
+    \includegraphics[height = 4cm,keepaspectratio]{\Sexpr{mapEKR}}
   }
 
  %add reference methodology information in the bottom
-  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=8,above=bottom}{
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\fon{phv}\small,colupper=black]{name=ref,column=1,span=8,above=bottom}{
   
    % reduce size of the font
-  \fontsize{8}{9.6}\selectfont Auteur: laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}.
+  \fontsize{8}{9.6}\selectfont Auteur: laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 \Sexpr{lx_litverw}.
     }  
   
   % add frame for the ESF tabel plus explanation
@@ -163,7 +165,7 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   }
 
    % add frame for Ecologische Analyse op hoofdlijnen
-  \posterbox[adjusted title=Ecologische Analyse of Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
+  \posterbox[adjusted title=Ecologische Analyse op Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
   
   % reduce size of the font
   \fontsize{9}{10.8}\selectfont
@@ -197,7 +199,8 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
     enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
     colback=white,opacityback=1,colframe=black!5!white,colbacktitle=agvblue,coltitle=white,
     %title style={left color=blue,right color=blue},
-    fonttitle=\bfseries\Large\scshape
+    fonttitle=\fon{phv}\bfseries\small\scshape,
+    fontupper=\fon{phv}
   }
   ]
   
@@ -254,10 +257,10 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   }
   
  %add reference methodology information in the bottom
-  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=10,above=bottom}{
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\fon{phv}\small,colupper=black]{name=ref,column=1,span=10,above=bottom}{
   
    % reduce size of the font
-  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 \Sexpr{lx_litverw}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
     }  
     
   \end{tcbposter}
@@ -272,7 +275,8 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
     enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
     colback=white,opacityback=1,colframe=black!5!white,colbacktitle=agvblue,coltitle=white,
     %title style={left color=blue,right color=blue},
-    fonttitle=\bfseries\Large\scshape
+    fonttitle=\fon{phv}\bfseries\small\scshape,
+    fontupper=\fon{phv}
   }
   ]
   
@@ -285,21 +289,21 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
     }
   
   % add frame for Motivering KRW status en herbegrenzing
-  \posterbox[adjusted title=Motivering KRW status en herbegrenzing,fonttitle=\bfseries\scshape,valign=top,equal height group=A]{name=krwstatus,column=1,span=3,below=title}{
+  \posterbox[adjusted title=Motivering KRW status en herbegrenzing,valign=top,equal height group=A]{name=krwstatus,column=1,span=3,below=title}{
     \vspace{5mm}
     \Sexpr{lx_motstat}
     \vspace{5mm}
   }
   
   % add frame for Monitoringswensen
-  \posterbox[adjusted title=Monitoringswensen,fonttitle=\bfseries\scshape,valign=top,equal height group=A]{name=monwens,column=4,span=3,below=title}{
+  \posterbox[adjusted title=Monitoringswensen,valign=top,equal height group=A]{name=monwens,column=4,span=3,below=title}{
   \vspace{5mm}
   \Sexpr{lx_monwens}
   \vspace{5mm}
   } 
 
   % add frame for ESF1 productiviteit
-  \posterbox[adjusted title=ESF1 productiviteit,fonttitle=\bfseries\scshape,valign=center,height = 10cm]{name=p3fig1,column=1,span=2,below=monwens}{
+  \posterbox[adjusted title=ESF1 productiviteit,valign=center,height = 10cm]{name=p3fig1,column=1,span=2,below=monwens}{
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotPwbal}}
     \vspace{5mm}
@@ -308,7 +312,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   }
   
   % add frame for ESF2 lichtklimaat
-  \posterbox[adjusted title=ESF2 lichtklimaat,fonttitle=\bfseries\scshape,valign=center,height = 10cm]{name=p3fig2,column=3,span=2,below=monwens}{
+  \posterbox[adjusted title=ESF2 lichtklimaat,valign=center,height = 10cm]{name=p3fig2,column=3,span=2,below=monwens}{
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotLichtklimaat}}
     \vspace{5mm}
@@ -317,7 +321,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   }
   
   % add frame for ESF4 Waterdiepte
-  \posterbox[adjusted title=ESF4 Waterdiepte,fonttitle=\bfseries\scshape,valign=center,height = 10cm]{name=p3fig3,column=5,span=2,below=monwens}{
+  \posterbox[adjusted title=ESF4 Waterdiepte,valign=center,height = 10cm]{name=p3fig3,column=5,span=2,below=monwens}{
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotWaterdiepte}}
     \vspace{5mm}
@@ -327,7 +331,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   
    
   % add frame for ESF1 en 3 waterbodem
-  \posterbox[adjusted title=ESF1 en 3 waterbodem,fonttitle=\bfseries\scshape,valign=center,height = 10cm]{name=p3fig4,column=1,span=2,below=p3fig1}{
+  \posterbox[adjusted title=ESF1 en 3 waterbodem,valign=center,height = 10cm]{name=p3fig4,column=1,span=2,below=p3fig1}{
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotbodFW}}
     \vspace{5mm}
@@ -336,7 +340,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   }
   
    % add frame for ESF1 en 3 waterbodem
-  \posterbox[adjusted title=ESF1 en 3 waterbodem,fonttitle=\bfseries\scshape,valign=center,height = 10cm]{name=p3fig5,column=3,span=2,below=p3fig1}{
+  \posterbox[adjusted title=ESF1 en 3 waterbodem,valign=center,height = 10cm]{name=p3fig5,column=3,span=2,below=p3fig1}{
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotqPW}}
     \vspace{5mm}
@@ -347,10 +351,10 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
    
   
   %add reference methodology information in the bottom
-  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=6,above=bottom}{
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\fon{phv}\small,colupper=black]{name=ref,column=1,span=6,above=bottom}{
   
    % reduce size of the font
-  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 \Sexpr{lx_litverw}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
     }  
   \end{tcbposter}
   
@@ -364,7 +368,8 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
     enhanced standard jigsaw,sharp corners=all,arc=3mm,boxrule=0.5mm,
     colback=white,opacityback=1,colframe=black!5!white,colbacktitle=agvblue,coltitle=white,
     %title style={left color=blue,right color=blue},
-    fonttitle=\bfseries\Large\scshape
+    fonttitle=\fon{phv}\bfseries\small\scshape,
+    fontupper=\fon{phv}
   }
   ]
   
@@ -422,10 +427,10 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   }
   
   %add reference methodology information in the bottom
-  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\small,colupper=black]{name=ref,column=1,span=6,above=bottom}{
+  \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\fon{phv}\small,colupper=black]{name=ref,column=1,span=6,above=bottom}{
   
    % reduce size of the font
-  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en \Sexpr{out$waterlichamenwl$Literatuurverwijzing}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 \Sexpr{lx_litverw}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
     }  
   \end{tcbposter}
   
