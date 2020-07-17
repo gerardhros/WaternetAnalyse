@@ -103,3 +103,42 @@ s3.eag[is.na(perc_perc_high),perc_perc_high := 0]
 s3.eag <- st_as_sf(s3.eag)
 
 st_write(s3.eag,dsn='C:/Users/gerard.ros.nmi/Agrocares/NMI_Data - Documenten/project/1729 waternet/deelgebied_maatregelen.gpkg')
+
+# maak concretisering per deelgebied
+require(sf);require(data.table)
+
+s4.dt <- copy(s3.dt)
+
+s4.dt[,bm := ifelse(A_P_VG > 0.20 | A_P_CC > 4,'uitmijnen',NA)]
+s4.dt[bodem=='veen' & is.na(bm),bm := 'drinkbak']
+s4.dt[bodem=='veen' & bm=='uitmijnen',bm := 'drinkbak-uitmijnen']
+s4.dt[buisdrains=='nee' & pri > 0.5 & is.na(bm),bm:='bufferzone']
+s4.dt[buisdrains=='nee' & pri > 0.5 & bm !='bufferzone',bm := paste0(bm,'-bufferzone')]
+s4.dt[B_OV_WENR=='groot' & buisdrains=='nee' & is.na(bm),bm:='bufferzone']
+s4.dt[buisdrains=='ja' & pri > 0.5 & is.na(bm),bm:='uitmijnen-bodemverbetering']
+s4.dt[buisdrains=='ja' & pri > 0.3 & is.na(bm),bm:='bodemverbetering']
+s4.dt[grepl('natuurbeheer|Hoofdfunctie natuur',GWS_GEWAS) & is.na(bm),bm:='geen']
+s4.dt[is.na(bm),bm:='glp']
+s4.dt[,bm:=as.character(bm)]
+
+s4.dt.sf <- st_as_sf(s4.dt)
+st_write(s4.dt.sf,dsn='C:/Users/gerard.ros.nmi/Agrocares/NMI_Data - Documenten/project/1729 waternet/deelgebied_maatregelen_perperceel2.gpkg')
+
+s4.dt <- s4.dt[,.(LANDBOUWGEB,bm)]
+s4.dt <- s4.dt[!is.na(bm)]
+s4.dt[,N := .N,bm]
+s4.dt <- unique(s4.dt)
+s4.dt[,N := sum(N),by=.(LANDBOUWGEB,bm)]
+s4.dt <- unique(s4.dt)
+s4.dt[,Nrank := frank(-N),by='LANDBOUWGEB']
+s4.dt <- s4.dt[Nrank<=10]
+setorder(s4.dt,LANDBOUWGEB,Nrank)
+s4.dt[,id := 1:.N,by='LANDBOUWGEB']
+s4.dt <- dcast(s4.dt,LANDBOUWGEB~id,value.var = 'bm')
+setnames(s4.dt,c('LANDBOUWGEB',paste0('m',1:10)))
+s4.dt[,bestmeasgebied := paste(m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,sep="-")]
+s4.dt[,c(paste0('m',1:8)):=NULL]
+s4.eag <- merge(w2,s4.dt,by='LANDBOUWGEB')
+st_write(s4.eag,dsn='C:/Users/gerard.ros.nmi/Agrocares/NMI_Data - Documenten/project/1729 waternet/deelgebied_maatregelen2.gpkg')
+
+
