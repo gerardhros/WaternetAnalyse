@@ -25,7 +25,7 @@ require(data.table,quietly = TRUE)
 source('../scripts/kable_fixerror.R')
 
 # read file from earlier saved ourput file (not required, can be used for testing on single pdf)
-out = readRDS('routput/out.rds')
+#out = readRDS('routput/out.rds')
 
 lx_title <- out$my_title
 lx_wtype <- unique(out$eagwl$watertype)
@@ -120,18 +120,18 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
 
  % add frame for figuur Ligging waterlichaam (if not saved earlier, use: routput/figure/plot_wlligging-1.pdf)
   \posterbox[adjusted title=Ligging waterlichaam,height = 6cm,valign=center]{name=fig2,column=3,span=2,below=gb}{
-     \centering \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{mapEAG}}
+     \centering \includegraphics[height = 5cm,keepaspectratio]{\Sexpr{mapEAG}}
   }
   
   % add frame plot Ligging deelgebieden (if not saved earlier, use: routput/figure/plot_deelgebiedligging-1.pdf)
   \posterbox[adjusted title=Ligging deelgebieden,height = 6cm,valign=center]{name=fig3,column=5,span=2,below=gb}{
-    \centering \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{mapDEELGEBIED}}
+    \centering \includegraphics[height = 5cm,keepaspectratio]{\Sexpr{mapDEELGEBIED}}
   }
 
   % add frame for figuur EKR score huidige toestand (routput/figure/plot_ekrtoestand-1.pdf)
   \posterbox[adjusted title=Huidige toestand,height = 6cm,valign=center]{name=fig4,column=7,span=2,below=gb}{
     \centering
-    \includegraphics[height = 4cm,keepaspectratio]{\Sexpr{mapEKR}}
+    \includegraphics[height = 4.5cm,keepaspectratio]{\Sexpr{mapEKR}}
   }
 
  %add reference methodology information in the bottom
@@ -172,20 +172,20 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   
   % add text voor de doelen
     \textbf{Doel: } \Sexpr{eah_doel}
-    \vspace{5mm}
+    \vspace{3mm}
     
     % huidige toestand vergeleken met doel
     \textbf{De huidige toestand: } \Sexpr{out$d3$oordeel_2022}
-    \vspace{5mm}
+    \vspace{3mm}
     De toestand in \Sexpr{lx_naam} (zwarte lijnen in de figuur hierboven) is \Sexpr{out$d3$oordeel_2022}. Het slechts scorende biologische kwaliteitselement is \Sexpr{as.character(out$d3$facet_wrap_code)}. \Sexpr{eah_message}\\
 
     % add oorzaken
     \textbf{Oorzaken:} \Sexpr{eah_oorz}
-    \vspace{5mm}
+    \vspace{3mm}
     
     % add Maatregelen op hoofdlijnen
     \textbf{Maatregelen:} \Sexpr{eah_maat}
-    \vspace{5mm}
+    \vspace{3mm}
   }
   
   \end{tcbposter}
