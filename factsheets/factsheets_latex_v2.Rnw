@@ -48,7 +48,9 @@ eah_doel <- if(!is.na(out$waterlichamenwl$Doelen)){out$waterlichamenwl$Doelen} e
 eah_oorz <- if(!is.na(out$waterlichamenwl$Oorzaken)){out$waterlichamenwl$Oorzaken} else {'onbekend'}
 eah_maat <- if(!is.na(out$waterlichamenwl$Maatregelen)){out$waterlichamenwl$Maatregelen} else {'onbekend'}
 eah_m1 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){paste0("De slechts scorende deelmaatlat van dit kwaliteitselement is ",out$d3_deel$GHPR,".")} else {NULL} 
-eah_m2 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,".")}} else {NULL}
+eah_m2 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){
+              if(out$d3_deel$GHPR == 'Abundantie groeivormen macrofyten'){
+                  paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR[1],".")}} else {NULL}
 eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){gsub('µ','micro',out$waterlichamenwl$Toestand,fixed = TRUE)} else {NULL}
 eah_m4 <- if(!is.na(out$waterlichamenwl$Trend)){gsub('µ','micro',out$waterlichamenwl$Trend,fixed = TRUE)} else {NULL}
 eah_message <- paste(eah_m1,eah_m2,eah_m3,eah_m4)
@@ -63,7 +65,11 @@ cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdIni
 maatregelen2 <- as.data.table(out$maatregelen2)[,mget(cols)]
 # change text Waterschap Amstel, Gooi en Vecht to AGV
 maatregelen2[,BeoogdInitiatiefnemer := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',BeoogdInitiatiefnemer)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',BeoogdInitiatiefnemer)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staats bosbeheer',BeoogdInitiatiefnemer)]
 maatregelen2[,Gebiedspartner := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',Gebiedspartner)]
+maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',Gebiedspartner)]
+maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staats bosbeheer',Gebiedspartner)]
 maatregelen2[,Toelichting_latex := gsub('m³','m3',Toelichting_latex)]
 
 #replace NA in first row (eagnr 20, to be solved later)
@@ -223,7 +229,41 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   
 <<corfac,echo=FALSE,message=FALSE,warning=FALSE>>=
 if(nrow(maatregelen2)>4){
-  cf = 4900 / sum(nchar(out$maatregelen2$Toelichting_latex))
+  
+  # text size of the toelichting column
+  tsize = sum(nchar(out$maatregelen2$Toelichting_latex))
+  cf = 0
+  # make special correction factor for some factsheets
+  if(grepl('vinkeve',tolower(out$my_title2))){cf = 7400 / tsize}
+  if(grepl('sloterplas',tolower(out$my_title2))){cf = 4200 / tsize}
+  if(grepl('noorderijplas',tolower(out$my_title2))){cf = 2800 / tsize} 
+  if(grepl('gaasper',tolower(out$my_title2))){cf = 4500 / tsize} 
+  if(grepl('ouderkerkerplas',tolower(out$my_title2))){cf = 6500 / tsize} 
+  if(grepl('loosdrechtseplas1tm5',tolower(out$my_title2))){cf = 9500 / tsize} 
+  if(grepl('amstellandboezem',tolower(out$my_title2))){cf = 6400 / tsize}
+  if(grepl('^vecht$',tolower(out$my_title2))){cf = 5400 / tsize}
+  if(grepl('vaartenamsterdam',tolower(out$my_title2))){cf = 4000 / tsize}
+  if(grepl('vaartenvechtstreek',tolower(out$my_title2))){cf = 6200 / tsize}
+  if(grepl('vaartengrootmijdrecht',tolower(out$my_title2))){cf = 4000 / tsize}
+  if(grepl('spiegelplas',tolower(out$my_title2))){cf = 6500 / tsize}
+  if(grepl('wijdeblik',tolower(out$my_title2))){cf = 4000 / tsize}
+  if(grepl('waterleidingplas',tolower(out$my_title2))){cf = 2000 / tsize}
+  if(grepl('naardermeer',tolower(out$my_title2))){cf = 4300 / tsize}
+  if(grepl('kievitsbuurt',tolower(out$my_title2))){cf = 5400 / tsize}
+  if(grepl('breukeleveenscheplas',tolower(out$my_title2))){cf = 6000 / tsize}
+  if(grepl('tienhovenseplassen',tolower(out$my_title2))){cf = 6200 / tsize}
+  if(grepl('sterenzodden',tolower(out$my_title2))){cf = 7200 / tsize}
+  if(grepl('hollandsankeveenseplassen',tolower(out$my_title2))){cf = 6500 / tsize}
+  if(grepl('hethol',tolower(out$my_title2))){cf = 4400 / tsize}
+  if(grepl('wijdegat',tolower(out$my_title2))){cf = 5700 / tsize}
+  if(grepl('hilversumskanaal',tolower(out$my_title2))){cf = 3500 / tsize}
+  if(grepl('oostelijkebinnenpolder',tolower(out$my_title2))){cf = 5500 / tsize}
+  if(grepl('botshol',tolower(out$my_title2))){cf = 6500 / tsize}
+  if(grepl('tussenboezemvinkeveena',tolower(out$my_title2))){cf = 4300 / tsize}
+  if(grepl('mijdrechtsebovenlanden',tolower(out$my_title2))){cf = 4300 / tsize}
+  
+  if(cf==0) {cf = 4900 / tsize}
+  
 } else {cf = 1}
 
 ls1 = 9 *cf;ls2 = 10.8 * cf
@@ -245,9 +285,10 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
           column_spec(1, width = "1cm", border_right = F,color = "black") %>%          
           column_spec(2, width = "1.5cm", border_right = F,color = "black") %>%        
           column_spec(3, width = "4cm",border_right = F,color = "black") %>%
-          column_spec(4, width = "16cm",border_right = F,color = "black") %>%
+          column_spec(4, width = "15cm",border_right = F,color = "black") %>%
           column_spec(5:6, width = "2cm", border_right = F,color = "black")  %>%
-          column_spec(7:8, width = "1.5cm", border_right = F,color = "black")  %>%
+          column_spec(7, width = "1.5cm", border_right = F,color = "black")  %>%
+          column_spec(8, width = "2.5cm", border_right = F,color = "black")  %>%
           collapse_rows_gr(columns=1, valign="top")
 
 @

@@ -39,7 +39,7 @@ for(eagnr in 3 : nrow(brondata$ESFoordelen)){
   #                  output_dir = "factsheets/output/")
   
   # save relavant output and run file for latex pdf
-  #saveRDS(out,'factsheets/routput/out.rds')
+  saveRDS(out,'factsheets/routput/out.rds')
   
   # change working directory (needed for knit2pdf)
   setwd("factsheets")
