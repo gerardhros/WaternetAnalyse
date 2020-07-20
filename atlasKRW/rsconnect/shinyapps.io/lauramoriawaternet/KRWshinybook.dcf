@@ -1,0 +1,13 @@
+name: KRWshinybook
+title:
+username:
+account: lauramoriawaternet
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 694405
+bundleId: 3206472
+url: https://lauramoriawaternet.shinyapps.io/KRWshinybook/
+when: 1590789439.25104
+asMultiple: TRUE
+asStatic: FALSE
+ignoredFiles: OverigWatershinybook.Rmd

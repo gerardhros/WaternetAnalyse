@@ -1,0 +1,599 @@
+---
+title: "Interpolate diepte AGV"
+author: "Yuki Fujita"
+date: "6/2/2020"
+output:
+  html_document:
+    self_contained: true
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Dit document beschrijft de ontwikkeling van een aantal ruimtelijke kaarten met de huidige en gewenste waterdiepte binnen het beheergebied van waterschap Amstel, Gooi en Vecht. 
+
+
+# 1. Data pre-processing
+
+```{r echo=FALSE, include=FALSE}
+#Loading libraries and functions
+library(data.table); library(dplyr); library(sf); library(ggplot2); 
+library(fasterize);  library(raster);  library(sp); library(tmap);library(rgeos)
+library(OBIC)
+library(randomForest); library(cowplot)
+
+source('../scripts/ppr_funs.R') 
+source('../diepte/funs_datappr.R')
+source('../diepte/funs_rasterize.R')
+source('../diepte/fun_iloc.R')
+source('../diepte/funs_model.R')
+
+## define folder names
+iloc <- fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+iloc_onedrive <- iloc[1]
+iloc_project <- iloc[2]
+iloc_afk <- iloc[3]
+
+# set default theme of ggplot
+theme_set(theme_light() + theme(legend.position = "right"))
+```
+
+Path van input gegevens
+
+```{r}
+# locations of all measurements
+locaties_fn <- '../data/Location.csv'
+# information of EAG
+eag_wl_fn <- '../data/EAG_Opp_kenmerken_20200218.csv'
+# hydrobiological data
+hybi_fn <- '../data/alles_reliable.rds'
+# EAG polygon shape
+eag_fn <- "../data/EAG20191205.gpkg"
+# waterpeil polygon shape
+waterpeil_fn <- paste0(iloc_afk, "peilgebieden.gpkg")
+# rasterstack of factor variables
+fac_rs_fn <- paste0(iloc_onedrive, "NMI_Data - Documents/rasterstack/products/fac_rs.RData")
+# rasterstack of numerical variables
+num_rs_fn <- paste0(iloc_onedrive, "NMI_Data - Documents/rasterstack/products/num_rs.RData")
+# seepage point data name
+kwel_fn <- paste0(iloc_afk, "kwel.gpkg")
+# water width on ditch shore points (calculated in GIS)
+ww_fn <- paste0(iloc_project, "diepte/200512_oeverpunten_corrected.gpkg")
+# file name of theoretical water depth
+watth_fn <- paste0(iloc_project, "diepte/HydrovakkenLegger2015/HydrovakkenLegger2015.shp")
+# file name of rasterized waterways (this was made with the R script "ppr_raster.R")
+water_eag_r_fn <- paste0(iloc_project, "diepte/water_eag_r.RData")
+#table of EAG id's (used in the raster data 'water_eag_r')
+tb_eag_fn <- paste0(iloc_project, "diepte/tb_eag.csv")
+# data table in which water width and AHN of nearest shore point for each hybi measurement point is stored.
+# This file can be made using the function 'get_width_ahn' (yet it takes ca. 8 min)
+# This is needed only when update = FALSE in 'get_width_ahn'.
+loc_v_fn <- paste0(iloc_project, "diepte/loc_v.RData")
+
+```
+
+De meeste van de bovenstaande gegevens worden opgeslagen op de server van het NMI. Ik heb twee belangrijke resultaten (_loc_sf_ and _pred_wd_rs_) opgeslagen op de Github. Met deze bestanden kan de analyse van hoofdstuk 3, 4, 6, 7 (behalf 7-3) worden uitgevoerd. Ook kan de uiteindelijke kaart van waterdiepte (hoofdstuk 8-3) worden getekend.
+
+```{r}
+# load sf object of hybi location data, with location-median water depth, water width, slib depth, total depth,
+# and other covariables
+# loc_sf <- st_read("../data/loc_sf.gpkg"), quiet = T) %>% st_transform(28992)
+# 
+# The final raster data of water depth ('pred_wd_rs'), made by combining RF model prediction and EAG-median, on all waterways. resolution 25m
+# load(paste0("../data/pred_wd_rs.RData"))
+```
+
+## Data inladen
+
+```{r}
+# locaties van alle metingen (water, biologie, en slootbodem)
+locaties <- fread(locaties_fn)
+
+# locaties van EAG oppervlaktes
+eag_wl <- fread(eag_wl_fn)
+eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
+
+# gegevens hydrobiologie (only data after 2006) 
+hybi_ori <- readRDS(hybi_fn)
+hybi_ori <- ppr_hybi(db = hybi_ori, syear = 2006, wtype = eag_wl, mlocs = locaties)
+
+```
+
+## Data preprocessing
+
+Hier zijn de volgende wijzigingen gemaakt:  
+* EAG ID is correct ingesteld  
+* _hybi_ records met -999 waarden en duplicaten zijn verwijderd  
+* breedtegegevens van _hybi_ met onrealistische waarden zijn verwijderd.   
+* De totale diepte van de sloot (water + slib) zijn berekend.  
+
+```{r}
+# overwrite GAF of locaties
+locaties[, GAFIDENT := as.integer(substr(EAGIDENT, 1, 4))]
+
+# delete a record with obscure EAG
+eag_wl <- eag_wl[GAFIDENT != "3???-EAG-1", ]
+# add EAGIDENT and correct GAFIDENT (Because GAFIDENT is actually EAGIDENT in the original file)
+eag_wl[, EAGIDENT := GAFIDENT]
+eag_wl[, GAFIDENT := as.integer(substr(EAGIDENT, 1, 4))]
+
+# remove record of meetwaarde == -999
+hybi <- hybi_ori[meetwaarde != -999, ]
+
+# remove completely same records
+hybi <- remove_duplicate(hybi[, .(locatiecode, datum, jaar, fewsparameter, meetwaarde, eenheid)])
+
+# add a parameter TOTDTE_m (= WATDTE_m + SLIBDTE_m)
+hybi <- calc_totdepth(hybi)
+
+# merge location info to hybi
+hybi <- merge(hybi, locaties[, .(CODE, XCOORD, YCOORD, MORFOLOGIE)], by.x = "locatiecode", by.y = "CODE", all.x = T)
+
+# remove hybi data with unrealistic WATDTE_M and WATBTE_m from line features
+hybi <- remove_unrealistic(hybi, max_d = 5, max_b = 50, print = FALSE)
+
+```
+
+
+# 2. Location statistics van diepte metingen
+
+De mediaanwaarden van waterdiepte (_WATDTE_m_), slibdiepte (_SLIBDTE_m_) en totale diepte (water + slib, _TOTDTE_m_) en waterbreedte (_WATERBTE_m_) worden voor elke locatie berekend.De resulterende datatabel wordt geconverteerd naar een sf-object _loc_sf_. 
+
+```{r}
+# Make location-based summary of data 
+dt_loc <- location_summary(hybi, year2u = 2006:2019)
+# Merge location info
+dt_loc <- merge(dt_loc, locaties[, .(CODE, XCOORD, YCOORD, EAGIDENT, GAFIDENT, MORFOLOGIE, WATERTYPE)], by.x = "locatiecode", by.y = "CODE", all.x= T)
+# convert location-based hybi data to sf
+loc_sf <- st_as_sf(dt_loc, coords = c("XCOORD", "YCOORD"), crs = 28992)
+```
+
+
+# 3. Kaart maken van dipte metingen per locatie
+
+Hier worden kaarten gemaakt met locatie-mediane waarden van waterdiepte, slibdiepte, totale diepte en waterbreedte. Indien specifieke jaren van metingen moeten worden geselecteerd, verander dan de waarden _jaar2u_ in de bovenstaande chunk.
+
+```{r, warning=FALSE, out.width = '100%'}
+# load shape of EAG
+eag <- st_read(eag_fn, quiet = T) %>% st_transform(28992)
+
+# function to draw maps of measurement points & EAG boundary
+fun_tm_draw <- function(loc_sf, var2u, legendtitle, eag){
+  val_var2u <- st_drop_geometry(loc_sf[, grepl(var2u, names(loc_sf))])
+  tm <- tm_shape(loc_sf) + 
+    tm_dots(col = var2u, size = 0.2, title = legendtitle, colorNA = NULL,
+            breaks = quantile(val_var2u , probs = seq(0, 1, length.out = 7), na.rm=T)) +
+    tm_layout(legend.outside = TRUE) + 
+    tm_shape(eag) + tm_polygons(alpha = 0)
+  return(tm)
+}
+# draw and show map of water depth
+tm_wd <- fun_tm_draw(loc_sf, "med_wd", "waterdiepte (m)", eag)
+show(tm_wd)
+# draw and show map of slib depth
+tm_sd <- fun_tm_draw(loc_sf, "med_sd", "slibdiepte (m)", eag)
+show(tm_sd)
+# draw and show map of total depth
+tm_td <- fun_tm_draw(loc_sf, "med_td", "total diepte (water + slib) (m)", eag)  
+show(tm_td)
+# draw and show map of water width
+tm_wb <- fun_tm_draw(loc_sf, "med_wb", "waterbreedte (m)", eag)
+show(tm_wb)
+
+```
+
+
+# 4. Onzekerheid van diepte metingen
+
+Het kan zijn dat hoe breder de sloot, hoe groter de onzekerheid op de meting van slootdiepte (ivm de gebruikte meetmethode). Om dat onzerkerheid te visualiseren, is een figuur gemaakt van waterdiepte vs waterbreedte.
+
+```{r, warning = FALSE}
+
+setDT(loc_sf)
+loc_sf1 <- loc_sf[!is.na(med_wd) & !is.na(med_wb),] 
+loc_sf <- st_as_sf(loc_sf)
+
+# Water depth vs water width
+gp1 <- ggplot(loc_sf1) + 
+  geom_point(aes(x = med_wb, y = med_wd, col = MORFOLOGIE)) +
+  xlab("water breedte (m)") + ylab("water diepte (m)")
+
+gp1_1 <- gp1 +
+  geom_smooth(aes(x = med_wb, y = med_wd), formula = y ~log(x),
+              method = "lm", se = FALSE, color="black", lty = 2) +
+  xlim(c(0,50)) 
+show(gp1_1)
+# results of regression model
+lmres <- summary(lm(med_wd ~ log(med_wb), data = loc_sf1))
+
+# # show x-axis with log-scale
+# gp1_2 <- gp1 + scale_x_log10()
+# show(gp1_2)
+
+```
+
+De waterdiepte wordt groter bij een grotere waterbreedte, hoewel deze geleidelijk afneemt. Het regressiemodel verklaart ca.  `r 100 * round(lmres$r.squared, 3)`  % van de variatie. 
+Het is inderdaad zo dat de variatie in waterdiepte groter wordt bij een grotere waterbreedte. Bij grote waterbreedtes wordt de kans groter dat de diepte wordt onderschat. Dit geeft aan dat de onzekerheid over de waterdiepte van brede sloten groot is. 
+
+
+
+
+# 5. Covariables berekenen (op elke meetpunten & als raster)
+
+Om een voorspelmodel te maken voor de waterdiepte, zijn per meetpunt relevante covariabelen verkregen. Wanneer een covariabele gebiedsdekkend is, worden de covariabelen opgeslagen als rastergegevens met dezelfde ruimtelijke configuratie. 
+
+Eerst maken we een raster template van het AGV gebied.
+```{r}
+rs_template <- create_raster_template(eag_fn, res = 100)
+```
+
+
+## waterpeil (_PEIL_) 
+
+```{r}
+# rasterize waterpeil
+waterpeil_rs <- rasterize_waterpeil(waterpeil_fn, rs_template)
+# get values for measurement points
+loc_sf <- get_value_from_raster(loc_sf, waterpeil_rs)
+```
+
+## Bodemtype (_soiltypen_, 1: zand/2: klei/3: veen)
+
+```{r}
+# Make a raster with the same extent as other rasters of this project
+soilcode_rs <- rasterize_soilcode(fac_rs_fn, rs_template)
+# get values for measurement points
+loc_sf <- get_value_from_raster(loc_sf, soilcode_rs)
+```
+
+## kwel (_KWEL_)
+
+```{r}
+# Rasterize seepage point data (& filling gaps based on neighbours)
+kwel_rs <- rasterize_kwel(kwel_fn, rs_template)
+
+# Get seepage value for measurement points
+loc_sf <- get_value_from_raster(loc_sf, kwel_rs)
+```
+
+## theoretische waterdiepte (_theo_dep_)
+
+```{r}
+# Get theoretical water depth
+# (Note: data is available only for majoy waterways)
+loc_sf <- get_theowater(watth_fn, loc_sf)
+```
+
+## Waterbreedte (berekend met GIS) en AHN van wateroppervlak (_pnt_breedte_, _pnt_ahn_)
+
+```{r}
+
+# make a raster of water width and ahn
+# Here use a smaller resolution (25m, instead of 100m)
+# (this takes ca. 1 min)
+ww_ahn_rs <- rasterize_width(ww_fn, rs_template, water_eag_r_fn)
+
+# check how many measurement points overlap with the rater
+ww_overlap <-extract(ww_ahn_rs[['pnt_breedte']], loc_sf) 
+
+# Get values of water width and water surface AHN from nearest shore data point
+loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn, update = FALSE, loc_v_fn = loc_v_fn) # this uses previously-made data table of values in the nearest shore points
+#loc_sf <- get_width_ahn(loc_sf, ww_fn, eag_fn, update = TRUE) # re-calculate distance and save loc_v, THIS TAKES CA. 8 MIN!)
+```
+
+Let op: de gegevens van de waterbreedte en de AHN slechts een deel van de hele waterwegen omvatten. Van `r length(ww_overlap) ` meetpunten van _hybi_, overlappen `r length(ww_overlap[!is.na(ww_overlap)]) ` punten met de gerasterizeerde AHN en waterbredte. 
+Zie de kaart hieronder voor de overlapping tussen de _hybi_ metingen en de raster data van de AHN & waterbreedte.
+
+```{r fig.cap = "Figure. Overlap tussen hybi meetpunten (zwante punten) en waterbreedte rater"}
+# draw GIS-based width data and hybi measurement points
+tm_ww <- tm_shape(loc_sf) + 
+    tm_dots(col = "black", title = "hybi metingen") +
+    tm_layout(legend.outside = TRUE, bg.color = "grey85") + 
+    tm_shape(ww_ahn_rs[['pnt_breedte']]) + tm_raster(title = "GIS breedte data")
+  
+show(tm_ww)
+```
+Het lijkt erop dat de waterbreedte gegevens in de stad en in de plassen ontbreken. Aangezien de waterbreedte een van de belangrijkste voorspellers van de waterdiepte is (zie hoofdstuk 7), moeten de raster gegevens van de waterbreedte worden aangepast om het hele gebied te bedekken.
+
+
+
+## Bodem organische stof (_A_OS_GV_)
+```{r}
+# Make a raster with the same extent as other rasters of this project
+om_rs <- rasterize_om(num_rs_fn, rs_template)
+# get OM value for each measurement point, with 300m buffer
+loc_sf <- get_value_from_raster(loc_sf, om_rs, buffer = 300)
+```
+
+
+## Post-processing datatable en raster
+
+Maak een nieuwe variabele van water breedte, _breedte_, die gemeten en berekende waterbreedte combineert. Als er een gemeten breedte beschikbaar is, gebruik die dan. Gebruik anders de waterbreedte die is berekend op GIS.
+
+```{r}
+setDT(loc_sf)
+loc_sf[, breedte := med_wb]
+loc_sf[is.na(med_wb), breedte := pnt_breedte]
+```
+
+Bereken de afwijking van ahn ten opzichte van peil (_afw_ahn_). Een positieve waarde betekent dat het werkelijke wateroppervlak hoger is dan peil.
+
+```{r}
+loc_sf[, afw_ahn := pnt_ahn - PEIL]
+```
+
+factorvariabelen omrekenen naar factor
+
+```{r}
+fvar <- c("EAGIDENT", "GAFIDENT", "MORFOLOGIE", "WATERTYPE", "soiltypen" )
+loc_sf[, (fvar) := lapply(.SD, as.factor), .SDcols = fvar]
+```
+
+```{r, cache=TRUE, include = FALSE}
+loc_sf <- st_as_sf(loc_sf)
+```
+
+Een raster stack maken van gebiedsdekkende covariables
+
+```{r, cache=TRUE}
+
+# Make a raster stack of resolution 25m
+covars_pre <- disaggregate(stack(waterpeil_rs, soilcode_rs, kwel_rs, om_rs), fact = 4)
+covars_pre2 <- stack(covars_pre, ww_ahn_rs)
+
+
+# load raster data of waterways 'water_eag_r'
+load(water_eag_r_fn)
+# crop for waterways
+covars_rs <- mask(covars_pre2, disaggregate(water_eag_r, fact = 4))
+
+```
+
+
+Voor visuele controle, worden rasterkaarten van de covariables gemaakt.
+
+```{r, warning = FALSE, message=FALSE}
+# draw maps of all covariables
+
+tm1 <- tm_shape(covars_rs[["PEIL"]]) + tm_raster() + tm_layout(legend.outside = TRUE)
+tm2 <- tm_shape(covars_rs[["soiltypen"]]) + tm_raster(breaks = c(0, 1.5, 2.5, 3.5), labels = c("zand", "klei", "veen")) + tm_layout(legend.outside = TRUE)
+tm3 <- tm_shape(covars_rs[["KWEL"]]) + tm_raster() + tm_layout(legend.outside = TRUE)
+tm4 <- tm_shape(covars_rs[["A_OS_GV"]]) + tm_raster() + tm_layout(legend.outside = TRUE)
+tm5 <- tm_shape(covars_rs[["pnt_breedte"]]) + tm_raster() + tm_layout(legend.outside = TRUE)
+tm6 <- tm_shape(covars_rs[["pnt_ahn"]]) + tm_raster() + tm_layout(legend.outside = TRUE)
+
+tm_agg <- tmap_arrange(tm1, tm2, tm3, tm4, tm5, tm6, ncol = 2)
+show(tm_agg)
+```
+
+
+
+# 6. Relatie tussen waterdiepte en covariables visualiseren
+
+Voordat er een voorspellingsmodel wordt gebouwd, worden de relaties tussen waterdiepte en een aantal covariabelen vergeleken. 
+
+```{r, warning = FALSE}
+# melt 
+setDT(loc_sf)
+# melt for numerical covariables
+loc_m_num <- melt(loc_sf, id.vars = c("locatiecode","med_wd", "MORFOLOGIE"), 
+              measure.vars = c("PEIL","KWEL", "theo_dep",
+                               "pnt_ahn","A_OS_GV","breedte","med_sd"))
+loc_sf <- st_as_sf(loc_sf)
+
+gp_num <- ggplot(loc_m_num) +
+  geom_point(aes(x = value, y = med_wd, col = MORFOLOGIE)) +
+  facet_wrap(vars(variable), ncol = 3, scales = "free") + 
+  ylim(c(0,3)) +  ylab("water diepte (m)") + xlab("covariable waarden")
+
+show(gp_num)
+
+```
+
+Er wordt aangegeven dat er verschillende covariabelen zijn die een (zwake) invloed hebben op de waterdiepte.  Namelijk, de waterdiepte is groter wanneer het peil hoger is, wanneer de kwel negatief is, wanneer de theoretische diepte hoger is, wanneer het water breder is en wanneer de slibdiepte groter is.
+Let op dat niet alle covariables gebiedsdekkend zijn, maar slechts voor een beperkt aantal punten beschikbaar (zoals theoretische diepte _theo_dep_, slibdiepte _med_sd_). Daarom worden deze covariables niet gebruikt in het model.
+
+Verder vergelijken we de waterdiepte met factorvariabelen.
+
+```{r, warning = FALSE}
+# melt 
+setDT(loc_sf)
+# melt for factor covariables
+loc_m_fac <- melt(loc_sf, id.vars = c("locatiecode","med_wd", "MORFOLOGIE"), 
+              measure.vars = c("MORFOLOGIE","WATERTYPE","soiltypen"), value.factor = T)
+loc_sf <- st_as_sf(loc_sf)
+
+gp_fac <- ggplot(loc_m_fac) +
+  geom_boxplot(aes(x = value, y = med_wd)) +
+  facet_wrap(vars(variable), ncol = 2, scales = "free") + 
+  ylim(c(0,3)) +  ylab("water diepte (m)") + xlab("covariable waarden") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+show(gp_fac)
+```
+
+De waterdiepte is kleiner in lijnvormig type. Watertype en bodemtype lijken geen duidelijke relatie te hebben op waterdiepte.
+
+
+# 7. Model van waterdiepte maken 
+
+Eerst de modelconditie instellen (bijv. responsvariabel en covaraibels, fractie van de training / testset).
+
+```{r}
+## Preparation ----------------
+# Column with point ID names
+var_id <- "locatiecode"
+
+# fraction of training set
+fr_train <- 0.8
+
+##  Define response & explanatory variables ----------------
+# response variable
+var_res <- "med_wd"
+var_res_nm <- "waterdiepte (m)"
+# covariables
+var_cov <- c("breedte", "PEIL", "soiltypen", "KWEL", "pnt_ahn", "A_OS_GV") 
+```
+
+Daarna training set en testing set maken
+
+```{r}
+
+# make a dataset with relevant columns and rows, split test & training sets
+loc_t <- ppr_dataset(loc_sf, var_id, var_res, var_cov, fr_train)
+```
+
+## 7-1. Random forest model
+Nu maken we een random forest model. 
+
+```{r}
+## Random forest --------
+# Run random forest
+ls_rf <- fun_rf(loc_t, var_id, var_cov, 
+                check_mtry = FALSE, 
+                #check_mtry = TRUE, # Checking differetn mtry. this costs extra 30 sec
+                mtry = round(length(var_cov)/3, 0),
+                ntree = 400)
+
+# merge prediction and residuals to sf object
+cols <- c("locatiecode", "pred_rf", "resid_rf", "set")
+loc_sf <- merge(loc_sf, ls_rf$loc_t[, ..cols], by = "locatiecode", all.x = T)
+
+# compute R2 of test set
+test_r2_rf <- test_r2(loc_sf, var_res, "pred_rf")
+```
+De random forest model verklaart ca. `r 100 * round(test_r2_rf, 3)` % of variatie van de test set.
+
+## 7-2. Step-wise linear model 
+Nu maken we een linear regression model met stepwise selection
+
+```{r}
+## Step-wise linear regression ----------------
+
+ls_lm <- fun_lm(loc_t, var_cov)
+
+# merge prediction of lm to loc_sf
+cols = c("locatiecode", "pred_lm")
+loc_sf <- merge(loc_sf, ls_lm$loc_t[, ..cols], by = "locatiecode", all.x = T)
+
+# compute R2 of test set
+test_r2_lm <- test_r2(loc_sf, var_res, "pred_lm")
+
+```
+De linear model verklaart ca. `r 100 * round(test_r2_lm, 3)` % of variatie van de test set.
+
+## 7-3. EAG-mediaan model 
+Naast de twee bovenstaande modellen (random forest model en linear model), werd een ander eenvoudig model gemaakt waarin de EAG-mediane waterdiepte werd berekend. In dit model is de waterdiepte binnen een EAG allemaal hetzelfde.
+
+```{r}
+## EAG-median model -----------
+
+# Load table of EAG id's (used in the raster data 'water_eag_r')
+tb_eag <- as.data.table(read.csv(file = tb_eag_fn))
+
+# Get EAG-median values of med_wd for measurement points
+ls_eag <- fun_eagmed(loc_sf, var_res, water_eag_r, tb_eag)
+loc_sf <- ls_eag$loc_sf
+
+# compute R2 of test set (Note that, for EAG-median model, all data (inc. testing and training sets) are used to calculate the median values)
+test_r2_eag <- test_r2(loc_sf, var_res, paste0("eag_", var_res))
+```
+De EAG-mediaan model verklaart ca. `r 100 * round(test_r2_eag, 3)` % of variatie van de test set.
+
+
+
+Tot slot worden de resultaten van alle drie modellen hieronder visueel weergegeven.
+
+```{r warning = FALSE}
+## Visualisation of models -----------
+
+gp_rf <- ggplot(loc_sf) + 
+  geom_point(aes_string(x = var_res, y = "pred_rf", colour = "set")) +
+  xlim(c(0,3))+
+  xlab(paste0(var_res_nm, " gemeten")) + ylab(paste0(var_res_nm, " model")) +
+  labs(title = "RF model",
+       subtitle = paste0("R2 test set: ", round(test_r2_rf, 2)),
+       col = "")
+
+
+gp_lm <- ggplot(loc_sf) + 
+  geom_point(aes_string(x = var_res, y = "pred_lm", colour = "set")) +
+  xlim(c(0,3))+
+  xlab(paste0(var_res_nm, " gemeten")) + ylab(paste0(var_res_nm, " model")) +
+  labs(title = "Linear model",
+       subtitle = paste0("R2 test set: ", round(test_r2_lm, 2)),
+       col = "")
+
+gp_eag <- ggplot(loc_sf) + 
+  geom_point(aes_string(x = var_res, y = paste0("eag_", var_res), colour = "set")) +
+  xlim(c(0,3)) + 
+  xlab(paste0(var_res_nm, " gemeten")) + ylab(paste0(var_res_nm, " model")) +
+  labs(title = "EAG-median",
+       subtitle = paste0("R2 test set: ", round(test_r2_eag, 2)),
+       col = "")
+
+
+gp <- plot_grid(gp_lm, gp_eag, gp_rf, ls_rf$gp_imp, ncol=2)
+show(gp)
+```
+
+De model fit was het beste bij het RF-model. Van de 6 gebruikte covariables is de waterbreedte het belangrijkst, gevolgd door kwel.
+
+Ik heb ook geprobeerd het random forest model te verbeteren door kriging van de residuals van het random forest model (resultaten niet getoond), maar het verbetert het model slechts marginaal en de rekentijd is vrij lang. Daarom zal ik in het volgende hoofdstuk het random forest model (zonder kriging) gebruiken om de waterdieptegegevens te interpoleren naar de hele regio. 
+
+
+
+# 8. Waterdiepte interpoleren
+
+## 8-1. Geinterpoleerde water diepte met EAG-mediaan 
+
+Hieronder is een kaart van EAG-mediane water diepte weegegeven.
+```{r}
+# draw raster data of EAG-median water depth
+tm_eag <- tm_shape(ls_eag$eag_med_wd) + tm_raster(title = "EAG-mediane waterdiepte (m)") +
+  tm_layout(legend.outside = TRUE) 
+show(tm_eag)
+
+```
+
+
+## 8-2. Geinterpoleerde water diepte met random forest model
+
+Hieronder is een kaart van geinterpoleerde water diepte met RF model weegegeven.
+```{r}
+# change layer name of "pnt_breedte" to "breedte" (the variable name used in the random forest model)
+ names(covars_rs)[5] <- 'breedte'
+# make spatial prediction
+pred_wd_rf_rs <- raster::predict(model=ls_rf$rf_res, object=covars_rs)
+
+# draw raster data of interpolated water depth with the random forest model
+tm_eag <- tm_shape(pred_wd_rf_rs) + tm_raster(title = "RF waterdiepte (m)") +
+  tm_layout(legend.outside = TRUE) 
+show(tm_eag)
+```
+
+
+## 8-3. Random forest model en EAG-mediaan combineren
+Omdat de waterdiepte geinterpoleerd door random forest model niet volledig is, combineren we beide modellen. Als de voorspelling van RF model NA is, dan is de EAG-mediane waarde gebruikt.
+```{r}
+# change resolution ofEAG-mean (to match RF results)
+pred_wd_eag <- disaggregate(ls_eag$eag_med_wd, fact = 4)
+
+
+# When the prediction of RF is NA, use the EAG-median value
+pred_wd_rs <- overlay(pred_wd_rf_rs,pred_wd_eag, fun = function(x, y) {
+   x <- ifelse(is.na(x), y, x)
+  return(x)
+})
+
+# save(pred_wd_rs, file = paste0(iloc_project, "diepte/pred_wd_rs.RData"))
+
+# draw raster data of RF + EAG-mean
+tm_eagrf <- tm_shape(pred_wd_rs) + tm_raster(title = "waterdiepte (m)") +
+  tm_layout(legend.outside = TRUE) 
+show(tm_eagrf)
+
+```

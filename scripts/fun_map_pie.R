@@ -167,7 +167,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
   dt_dc <- dcast(dt[, .(areaID_dt, type_krw, ekrval)],
                      areaID_dt ~  type_krw,
                      fun.aggregate = last,
-                     value.var = 'ekrval', fill = T)
+                     value.var = 'ekrval',fill=TRUE)
   #print(paste0(names(dt_dc)[-1], " are changed to cat", 1:4))
   setnames(dt_dc, old = names(dt_dc),
            new = c( "areaID_dt", "cat1", "cat2", "cat3", "cat4"))

@@ -264,7 +264,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     mapEAG <- ggplot() +
       geom_sf(data = waterschappen, color = 'white',fill="white", size = 1) +
       geom_sf(data = gEAG,
-              color = 'grey45', fill = "white", size = 0.2) +
+              color = 'grey25', fill = "white", size = 0.2) +
       geom_sf(data = waterpereag_sel,
               color = NA, fill = '#345bdb') +#3498DB
       geom_sf(data = gEAG_sel,
@@ -297,6 +297,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     # create map
     mapDEELGEBIED <-ggplot() +
       geom_sf(data = waterschappen, color = 'white',fill="white", size = 1) +
+      geom_sf(data = gEAG, color = 'grey25', fill = "white", size = 0.2) +
       geom_sf(data = waterpereag_sel,color = NA, fill = '#3498DB') +
       geom_sf(data = gEAG_sel,color = '#d73027', fill = NA, size = 1.5) +
       geom_sf_label(data = gEAG_sel, aes(label = GAFIDENT))+
@@ -311,7 +312,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
             axis.ticks.y=element_blank(),
             #panel.border = element_rect(colour = "lightgrey", fill=NA, size=1),
             legend.position="none") +
-      coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
+      coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax) + c(-250,250), 
+               ylim = c(bboxEAG$ymin,bboxEAG$ymax) + c(-250,250), datum = NA)
     
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',my_title2,'/mapDEELGEBIED.png'), units='cm',dpi=600)}

@@ -30,7 +30,6 @@ ekr_breaks = rbind(c(0, 0.22, 0.5, 0.7, 1), #"Fytoplankton
 #ekr_breaks = matrix(rep(c(0, 0.25, 0.5, 0.75, 1), each = 4), ncol = 5)
 
 
-
 # Make a map with pie chart (based on the numerical variable "EKR") and save as JPEG
 gp_c <- draw_map(WL_EAG, krwset, bkpl = eag,
                  col_ekr = "EKR", ekr_fac = FALSE, 
