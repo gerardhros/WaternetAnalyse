@@ -47,7 +47,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   simoni <- readRDS('data/simoni.rds')
 
   ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
-  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
+  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200701.csv')
   eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
   
   # KRW doelen 
@@ -139,7 +139,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 # --- extractfunctie for relevant properties needed for single factsheet ----
   
   factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
-    # Naardermeer i <- 28
+    # Naardermeer i <- 30
     # subset data ----
     # subset ESFoordelen and get ESF
     waterlichamenwl <- ESFoordelen[i,] 
@@ -452,7 +452,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen1[,Initiatiefnemer := Initiatiefnemer.naam]
     maatregelen1[,BeoogdInitiatiefnemer := Initiatiefnemer.waternet]
     maatregelen1[,esffrst := substr(esf,1,4)]
-    maatregelen1[nchar(esffrst)==0, esffrst := NA]
+    maatregelen1[nchar(esffrst)==0, esffrst := "NVT"]
     
     # join measures with ESF-tabel
     cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer',
@@ -463,6 +463,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     cols <- c('ESFoordeel','ESFoordeel_latex','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
     maatregelen2[,ESFoordeel := OORDEEL]
     maatregelen2[,ESFoordeel_latex := piclatex]
+    maatregelen2[is.na(ESFoordeel), ESFoordeel := '![esficon](esf/9grijsnummer.jpg ){width=50px}' ]
+    maatregelen2[,ESFoordeel_latex := 'esf/9grijsnummer.jpg']
     maatregelen2 <- maatregelen2[,mget(cols)] 
     
     # sorteer met oplopend jaar en ESF
