@@ -22,9 +22,9 @@ options(encoding = "UTF-8")
 knitr::opts_chunk$set(echo = TRUE)
 
 # invoeropties
-mode <- "weergeven" # "genereren" of "weergeven"
-gebiedlevel <- "OvWater" # "KRW" of "OvWater"
-toetsjaar <- "2019"
+mode <- "genereren" # "genereren" of "weergeven"
+gebiedlevel <- "KRW" # "KRW" of "OvWater"
+toetsjaar <- "2020"
 
 #  Directories and names------------------------------------------
 dirExportAquo <- paste0("./input/Rapportagefiles_",gebiedlevel,toetsjaar)    
@@ -38,8 +38,8 @@ require(data.table)
 require(rmarkdown)
 require(bookdown)
 require(flexdashboard)
-#source('../scripts/postProces.R') # alleen als mode = generen
-source('scripts/createOutput.R')
+source('../scripts/postProces.R') # alleen als mode = generen
+source('../scripts/createOutput.R')
 # source('../scripts/PolarBarchart.R')
 #devtools::install_github('hadley/ggplot2')
 
@@ -60,10 +60,8 @@ EKRlijst <- EKRlijst[!EKRlijst$KRWwatertype.code == 'R6',] # alleen gewogen scor
 EKRlijst$Toetsdatumtijd <- as.Date(EKRlijst$Toetsdatumtijd, format = "%Y-%m-%d %H:%M")
 EKRlijst <- EKRlijst[!(EKRlijst$HoortBijGeoObjectCode %in% c('NL11_Amstellandboezem', 'NL11_Vecht') & EKRlijst$Toetsdatumtijd < '2020-03-28'),]
 
-doelen <- fread('../hydrobiologie/Doelen.csv')
-
 meetpuntenAquo <- importMeetpunten(path = dirMeetpuntenAquo)
-meetpuntenGebied <- fread('../data/Location.csv')
+meetpuntenGebied <- fread('./input/meetpuntenInfo2/meetlocaties_gebied.csv')
 
 # # Bewerken data---------------------------------------------------
 EKRlijst <- convertDatum(EKRlijst)
@@ -114,15 +112,17 @@ EKRset$GGW <- EKRset$GNW/EKRset$.
 saveRDS(EKRset, file= paste0("EKRset",gebiedlevel,".rds"))
 saveRDS(EKRlijst, file= paste0("EKRlijst",gebiedlevel,".rds"))
 }
+
 if(mode == "weergeven"){
 
 # inlezen toetsdata
 EKRset <- readRDS('hydrobiologie/EKRsetKRW.rds')
 # EKRset2 <- readRDS('hydrobiologie/EKRsetOvWater.rds')
 # KRW doelen 
-doelen <- data.table::fread('hydrobiologie/Doelen.csv')
-eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
+doelen <- data.table::fread('../hydrobiologie/Doelen.csv')
+eag_wl <- data.table::fread('../data/EAG_Opp_kenmerken_20200701.csv')
 EKRset <- ppr_ekr(krwset = EKRset, ovwatset = NULL, eag_wl = eag_wl, doelen = doelen) # let op ekr1 = krw
+# saveRDS(EKRset, file= paste0("EKRsetKRW",".rds"))
 
 ## calculate EKR scores from EKRset1
 ekr_scores <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "hoofd")
@@ -132,8 +132,9 @@ ekr_scores[,oordeelsort := EKR / GEP_2022]
 ekr_scores1 <- ekr_scores[!grepl("^NL11_*",id), ] # alleen gewogen scores selecteren
 ekr_scores2 <- ekr_scores[!is.na(ekr_scores$EAGIDENT), ] # alleen ongewogen scores selecteren
 ekr_scores2$KRW_SGBP3 <- "" # leegmaken zodat facet goed wordt gemaakt per eag
-
-  }
+ # saveRDS(ekr_scores1, file= paste0("ekr_scores1",".rds"))
+ # saveRDS(ekr_scores2, file= paste0("ekr_scores2",".rds"))
+}
 
 ```
 
@@ -299,6 +300,8 @@ server <- function(input, output) {
 
 ```{r shiny run, echo = FALSE, message= FALSE, out.width= '100%'}
 # Run the application 
+# library(profvis)
+# profvis(runApp(shinyApp(ui = ui, server = server, options = list(height = 800))))
 shinyApp(ui = ui, server = server, options = list(height = 800))
 ```
 
