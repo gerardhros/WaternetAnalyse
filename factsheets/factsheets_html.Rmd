@@ -1,5 +1,5 @@
 ---
-title: "krw factsheets AGV"
+title: "KRW factsheets AGV"
 date: "`r Sys.Date()`"
 output: 
   flexdashboard::flex_dashboard:
@@ -74,6 +74,8 @@ De toestand in `r out$waterlichamenwl$OWMNAAM_SGBP3` (zwarte lijnen in de figuur
 `r if(!unique(out$d3$facet_wrap_code) %in% "Macrofauna"){if(unique(out$d3_deel$GHPR) == 'Abundantie groeivormen macrofyten'){unique(paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR,"."))}}`
 `r if(!is.na(out$waterlichamenwl$Toestand)){out$waterlichamenwl$Toestand}`
 `r if(!is.na(out$waterlichamenwl$Trend)){out$waterlichamenwl$Trend}`
+`r if(!is.na(out$waterlichamenwl$Trend)){out$waterlichamenwl$TrendChemie}`
+
 <br>
 
 **Oorzaken op hoofdlijnen**

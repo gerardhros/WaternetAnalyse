@@ -1,48 +1,354 @@
 GeoObject.code;HoortBijGeoobject.identificatie;GHPR;gebied;Gbdafk;Doel;bronddoel;HandelingsperspectiefWBP;Doel_2022
-NL11_2_1;NL11_VaartenAmsterdam;Overige waterflora-kwaliteit;1000-EAG-1;BzmADM,O;0.6;KRW_2016;;0.2
-NL11_2_1;NL11_VaartenAmsterdam;Fytoplankton-kwaliteit  ;1000-EAG-1;BzmADM,O;0.6;KRW_2016;;0.78
-NL11_2_1;NL11_VaartenAmsterdam;Macrofauna-kwaliteit ;1000-EAG-1;BzmADM,O;0.6;KRW_2016;;0.37
-NL11_2_1;NL11_VaartenAmsterdam;Overige waterflora-kwaliteit;1000-EAG-2;BzmADM,O;0.6;KRW_2016;;0.2
-NL11_2_1;NL11_VaartenAmsterdam;Fytoplankton-kwaliteit  ;1000-EAG-2;BzmADM,O;0.6;KRW_2016;;0.78
-NL11_2_1;NL11_VaartenAmsterdam;Macrofauna-kwaliteit ;1000-EAG-2;BzmADM,O;0.6;KRW_2016;;0.37
-NL11_2_1;NL11_VaartenAmsterdam;Overige waterflora-kwaliteit;1000-EAG-4;BzmADM,O;0.6;KRW_2016;;0.2
-NL11_2_1;NL11_VaartenAmsterdam;Fytoplankton-kwaliteit  ;1000-EAG-4;BzmADM,O;0.6;KRW_2016;;0.78
-NL11_2_1;NL11_VaartenAmsterdam;Macrofauna-kwaliteit ;1000-EAG-4;BzmADM,O;0.6;KRW_2016;;0.37
-NL11_2_1;NL11_VaartenAmsterdam;Vis-kwaliteit ;1000-EAG-1;BzmADM,O;0.6;KRW_2016;;0.36
-NL11_2_1;NL11_VaartenAmsterdam;Vis-kwaliteit ;1000-EAG-2;BzmADM,O;0.6;KRW_2016;;0.36
-NL11_2_1;NL11_VaartenAmsterdam;Vis-kwaliteit ;1000-EAG-4;BzmADM,O;0.6;KRW_2016;;0.36
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-1;BzAmslW,N;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-1;BzAmslW,N;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-1;BzAmslW,N;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-1;BzAmslW,N;0.6;KRW_2021;;0.38
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-2;BzAmslW,NW;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-2;BzAmslW,NW;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-2;BzAmslW,NW;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-2;BzAmslW,NW;0.6;KRW_2021;;0.38
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-3;BzAmslW,NO;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-3;BzAmslW,NO;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-3;BzAmslW,NO;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-3;BzAmslW,NO;0.6;KRW_2021;;0.38
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-4;BzAmslW,O;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-4;BzAmslW,O;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-4;BzAmslW,O;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-4;BzAmslW,O;0.6;KRW_2021;;0.38
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-5;BzAmslW,mid;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-5;BzAmslW,mid;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-5;BzAmslW,mid;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-5;BzAmslW,mid;0.6;KRW_2021;;0.38
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-6;BzAmslW,W;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-6;BzAmslW,W;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-6;BzAmslW,W;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-6;BzAmslW,W;0.6;KRW_2021;;0.38
+NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-7;BzAmslW,Z;0.6;KRW_2021;;0.64
+NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-7;BzAmslW,Z;0.6;KRW_2021;;0.47
+NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-7;BzAmslW,Z;0.6;KRW_2021;;0.71
+NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-7;BzAmslW,Z;0.6;KRW_2021;;0.38
+NL11_1_2;NL11_Vecht;Overige waterflora-kwaliteit;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2021;;0.38
+NL11_1_2;NL11_Vecht;Overige waterflora-kwaliteit;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2021;;0.38
+NL11_1_2;NL11_Vecht;Overige waterflora-kwaliteit;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2021;;0.38
+NL11_1_2;NL11_Vecht;Fytoplankton-kwaliteit  ;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2021;;0.63
+NL11_1_2;NL11_Vecht;Fytoplankton-kwaliteit  ;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2021;;0.63
+NL11_1_2;NL11_Vecht;Fytoplankton-kwaliteit  ;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2021;;0.63
+NL11_1_2;NL11_Vecht;Macrofauna-kwaliteit ;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2021;;0.61
+NL11_1_2;NL11_Vecht;Macrofauna-kwaliteit ;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2021;;0.61
+NL11_1_2;NL11_Vecht;Macrofauna-kwaliteit ;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2021;;0.61
+NL11_1_2;NL11_Vecht;Vis-kwaliteit ;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2021;;0.8
+NL11_1_2;NL11_Vecht;Vis-kwaliteit ;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2021;;0.8
+NL11_1_2;NL11_Vecht;Vis-kwaliteit ;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2021;;0.8
+NL11_2_1;NL11_VaartenAmsterdam;Overige waterflora-kwaliteit;1000-EAG-1;BzmADM,O;0.6;KRW_2021;;0.2
+NL11_2_1;NL11_VaartenAmsterdam;Fytoplankton-kwaliteit  ;1000-EAG-1;BzmADM,O;0.6;KRW_2021;;0.78
+NL11_2_1;NL11_VaartenAmsterdam;Macrofauna-kwaliteit ;1000-EAG-1;BzmADM,O;0.6;KRW_2021;;0.36
+NL11_2_1;NL11_VaartenAmsterdam;Overige waterflora-kwaliteit;1000-EAG-2;BzmADM,O;0.6;KRW_2021;;0.2
+NL11_2_1;NL11_VaartenAmsterdam;Fytoplankton-kwaliteit  ;1000-EAG-2;BzmADM,O;0.6;KRW_2021;;0.78
+NL11_2_1;NL11_VaartenAmsterdam;Macrofauna-kwaliteit ;1000-EAG-2;BzmADM,O;0.6;KRW_2021;;0.36
+NL11_2_1;NL11_VaartenAmsterdam;Overige waterflora-kwaliteit;1000-EAG-4;BzmADM,O;0.6;KRW_2021;;0.2
+NL11_2_1;NL11_VaartenAmsterdam;Fytoplankton-kwaliteit  ;1000-EAG-4;BzmADM,O;0.6;KRW_2021;;0.78
+NL11_2_1;NL11_VaartenAmsterdam;Macrofauna-kwaliteit ;1000-EAG-4;BzmADM,O;0.6;KRW_2021;;0.36
+NL11_2_1;NL11_VaartenAmsterdam;Vis-kwaliteit ;1000-EAG-1;BzmADM,O;0.6;KRW_2021;;0.41
+NL11_2_1;NL11_VaartenAmsterdam;Vis-kwaliteit ;1000-EAG-2;BzmADM,O;0.6;KRW_2021;;0.41
+NL11_2_1;NL11_VaartenAmsterdam;Vis-kwaliteit ;1000-EAG-4;BzmADM,O;0.6;KRW_2021;;0.41
+NL11_2_10;NL11_PolderDemmerik;Macrofauna-kwaliteit ;2501-EAG-1;;0.6;KRW_2021;;0.29
+NL11_2_10;NL11_PolderDemmerik;Vis-kwaliteit ;2501-EAG-1;;0.6;KRW_2021;;0.8
+NL11_2_10;NL11_PolderDemmerik;Macrofauna-kwaliteit ;2501-EAG-2;;0.6;KRW_2021;;0.29
+NL11_2_10;NL11_PolderDemmerik;Vis-kwaliteit ;2501-EAG-2;;0.6;KRW_2021;;0.8
+NL11_2_10;NL11_PolderDemmerik;Overige waterflora-kwaliteit;2501-EAG-1;Oukoop;0.42;WGP_GWV;0.1;0.5
+NL11_2_10;NL11_PolderDemmerik;Overige waterflora-kwaliteit;2501-EAG-2;Demmerik;0.47;WGP_GWV;0.2;0.5
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Fytoplankton-kwaliteit  ;2510-EAG-1;;0.6;KRW_2021;;0.46
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Macrofauna-kwaliteit ;2510-EAG-1;;0.6;KRW_2021;;0.39
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Vis-kwaliteit ;2510-EAG-1;;0.6;KRW_2021;;0.8
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Fytoplankton-kwaliteit  ;2510-EAG-3;;0.6;KRW_2021;;0.46
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Macrofauna-kwaliteit ;2510-EAG-3;;0.6;KRW_2021;;0.39
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Vis-kwaliteit ;2510-EAG-3;;0.6;KRW_2021;;0.8
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Overige waterflora-kwaliteit;2510-EAG-1;GWVZ,HcpGeer;0.46;WGP_GWV;0.17;0.49
+NL11_2_11;NL11_GrootWilnis-VinkeveenZuid;Overige waterflora-kwaliteit;2510-EAG-3;GWVZ,bvnland;0.55;WGP_GWV;0.2;0.49
+NL11_2_12;NL11_Westveen;Fytoplankton-kwaliteit  ;2630-EAG-3;;0.6;Default GEP;;0.8
+NL11_2_12;NL11_Westveen;Macrofauna-kwaliteit ;2630-EAG-3;;0.6;Default GEP;;0.8
+NL11_2_12;NL11_Westveen;Vis-kwaliteit ;2630-EAG-3;;0.6;Default GEP;;0.7
+NL11_2_12;NL11_Westveen;Overige waterflora-kwaliteit;2630-EAG-3;NrBrstWvnWvn;0.465;handelingsperspectief_score2008-2014;0.1975;0.8
+NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2021;;0.55
+NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2021;;0.54
+NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2021;;0.72
+NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2021;;0.47
+NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-3;Karnemelksloot;0.6;KRW_2021;;0.55
+NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-3;Karnemelksloot;0.6;KRW_2021;;0.54
+NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-3;Karnemelksloot;0.6;KRW_2021;;0.72
+NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-3;Karnemelksloot;0.6;KRW_2021;;0.47
+NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-4;NaardertrekVrt;0.6;KRW_2021;;0.55
+NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-4;NaardertrekVrt;0.6;KRW_2021;;0.54
+NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-4;NaardertrekVrt;0.6;KRW_2021;;0.72
+NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-4;NaardertrekVrt;0.6;KRW_2021;;0.47
+NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-6;VestingNaard;0.6;KRW_2021;;0.55
+NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-6;VestingNaard;0.6;KRW_2021;;0.72
+NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-6;VestingNaard;0.6;KRW_2021;;0.54
+NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-6;VestingNaard;0.6;KRW_2021;;0.47
+NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-7;Naard-Bussum;0.6;KRW_2021;;0.72
+NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-7;Naard-Bussum;0.6;KRW_2021;;0.55
+NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-7;Naard-Bussum;0.6;KRW_2021;;0.54
+NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-7;Naard-Bussum;0.6;KRW_2021;;0.47
+NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-8;ZanderijVrt;0.6;KRW_2021;;0.55
+NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-8;ZanderijVrt;0.6;KRW_2021;;0.72
+NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-8;ZanderijVrt;0.6;KRW_2021;;0.54
+NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-8;ZanderijVrt;0.6;KRW_2021;;0.47
+NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-1;PZevhov,bmlgbd;0.6;KRW_2021;;0.41
+NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-1;PZevhov,bmlgbd;0.6;KRW_2021;;0.8
+NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-1;PZevhov,bmlgbd;0.6;KRW_2021;;0.49
+NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-5;PZevhov,OdDspJnk;0.6;KRW_2021;;0.41
+NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-5;PZevhov,OdDspJnk;0.6;KRW_2021;;0.8
+NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-5;PZevhov,OdDspJnk;0.6;KRW_2021;;0.49
+NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-6;PZ,Achtwg;0.6;KRW_2021;;0.41
+NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-6;PZ,Achtwg;0.6;KRW_2021;;0.8
+NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-6;PZ,Achtwg;0.6;KRW_2021;;0.49
+NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-8;PZevhov,Ksmltcht;0.6;KRW_2021;;0.41
+NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-8;PZevhov,Ksmltcht;0.6;KRW_2021;;0.8
+NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-8;PZevhov,Ksmltcht;0.6;KRW_2021;;0.49
+NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-1;PdeRndHp,bmlgbd;0.6;KRW_2021;0.14;0.72
+NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-1;PdeRndHp,bmlgbd;0.6;KRW_2021;0.14;0.76
+NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-1;PdeRndHp,bmlgbd;0.6;KRW_2021;0.14;0.8
+NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-2;PdeRndHp,ZW;0.6;KRW_2021;0.14;0.72
+NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-2;PdeRndHp,ZW;0.6;KRW_2021;0.14;0.76
+NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-2;PdeRndHp,ZW;0.6;KRW_2021;0.14;0.8
+NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-3;PdeRndHp,NW;0.6;KRW_2021;0.14;0.72
+NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-3;PdeRndHp,NW;0.6;KRW_2021;0.14;0.76
+NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-3;PdeRndHp,NW;0.6;KRW_2021;0.14;0.8
+NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-4;PdeRndHp,NO;0.6;KRW_2021;0.14;0.72
+NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-4;PdeRndHp,NO;0.6;KRW_2021;0.14;0.76
+NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-4;PdeRndHp,NO;0.6;KRW_2021;0.14;0.8
+NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-5;PdeRndHp,wdvglGb;0.6;KRW_2021;0.14;0.72
+NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-5;PdeRndHp,wdvglGb;0.6;KRW_2021;0.14;0.76
+NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-5;PdeRndHp,wdvglGb;0.6;KRW_2021;0.14;0.8
+NL11_2_7;NL11_VaartenGrootMijdrec;Overige waterflora-kwaliteit;2540-EAG-1;PGM1eBdkngO,lnd;0.299;handelingsperspectief_score2008-2014;0.05;0.33
+NL11_2_7;NL11_VaartenGrootMijdrec;Macrofauna-kwaliteit ;2540-EAG-1;;0.6;KRW_2021;;0.27
+NL11_2_7;NL11_VaartenGrootMijdrec;Vis-kwaliteit ;2540-EAG-1;;0.6;KRW_2021;;0.14
+NL11_2_8;NL11_Bovenkerkerpolder;Overige waterflora-kwaliteit;2120-EAG-1;BKP,lnd;0.52;WGP_Westeramstel;;0.36
+NL11_2_8;NL11_Bovenkerkerpolder;Macrofauna-kwaliteit ;2120-EAG-1;BKP,lnd;0.6;KRW_2021;;0.25
+NL11_2_8;NL11_Bovenkerkerpolder;Vis-kwaliteit ;2120-EAG-1;BKP,lnd;0.6;KRW_2021;;0.59
+NL11_2_9;NL11_Noorderlegmeer;Overige waterflora-kwaliteit;2130-EAG-1;NdrLgmrP,lnd;0.53;WGP_Westeramstel;;0.4
+NL11_2_9;NL11_Noorderlegmeer;Macrofauna-kwaliteit ;2130-EAG-1;NdrLgmrP,lnd;0.6;KRW_2021;;0.35
+NL11_2_9;NL11_Noorderlegmeer;Vis-kwaliteit ;2130-EAG-1;NdrLgmrP,lnd;0.6;KRW_2021;;0.66
+NL11_3_1;NL11_Sloterplas;Fytoplankton-kwaliteit  ;8070-EAG-1;Sloterplas;0.6;KRW_2021;;0.71
+NL11_3_1;NL11_Sloterplas;Macrofauna-kwaliteit ;8070-EAG-1;Sloterplas;0.5;KRW_2021;;0.47
+NL11_3_1;NL11_Sloterplas;Vis-kwaliteit ;8070-EAG-1;Sloterplas;0.511;KRW_2021;;0.72
+NL11_3_1;NL11_Sloterplas;Overige waterflora-kwaliteit;8070-EAG-1;Sloterplas;0.537;KRW_2021;;0.4
+NL11_3_2;NL11_Gaasperplas;Overige waterflora-kwaliteit;2220-EAG-1;Gaasperplas;0.534;KRW_2021;;0.75
+NL11_3_2;NL11_Gaasperplas;Fytoplankton-kwaliteit  ;2220-EAG-1;Gaasperplas;0.6;KRW_2021;;0.8
+NL11_3_2;NL11_Gaasperplas;Macrofauna-kwaliteit ;2220-EAG-1;Gaasperplas;0.5;KRW_2021;;0.56
+NL11_3_2;NL11_Gaasperplas;Vis-kwaliteit ;2220-EAG-1;Gaasperplas;0.6;KRW_2021;;0.65
+NL11_3_3;NL11_Ouderkerkerplas;Overige waterflora-kwaliteit;2250-EAG-1;Ouderkerkerplas;0.504;KRW_2021;;0.39
+NL11_3_3;NL11_Ouderkerkerplas;Fytoplankton-kwaliteit  ;2250-EAG-1;Ouderkerkerplas;0.6;KRW_2021;;0.65
+NL11_3_3;NL11_Ouderkerkerplas;Macrofauna-kwaliteit ;2250-EAG-1;Ouderkerkerplas;0.5;KRW_2021;;0.36
+NL11_3_3;NL11_Ouderkerkerplas;Vis-kwaliteit ;2250-EAG-1;Ouderkerkerplas;0.51;KRW_2021;;0.41
+NL11_3_4;NL11_Vinkeveenseplassen;Fytoplankton-kwaliteit  ;2500-EAG-3;GWV,Klnplas;0.6;KRW_2021;;0.74
+NL11_3_4;NL11_Vinkeveenseplassen;Macrofauna-kwaliteit ;2500-EAG-3;GWV,Klnplas;0.522;KRW_2021;;0.63
+NL11_3_4;NL11_Vinkeveenseplassen;Vis-kwaliteit ;2500-EAG-3;GWV,Klnplas;0.501;KRW_2021;;0.66
+NL11_3_4;NL11_Vinkeveenseplassen;Overige waterflora-kwaliteit;2500-EAG-3;GWV,Klnplas;0.54;KRW_2021;;0.61
+NL11_3_4;NL11_Vinkeveenseplassen;Fytoplankton-kwaliteit  ;2500-EAG-4;GWV,Zplas;0.6;KRW_2021;;0.74
+NL11_3_4;NL11_Vinkeveenseplassen;Macrofauna-kwaliteit ;2500-EAG-4;GWV,Zplas;0.522;KRW_2021;;0.63
+NL11_3_4;NL11_Vinkeveenseplassen;Vis-kwaliteit ;2500-EAG-4;GWV,Zplas;0.501;KRW_2021;;0.66
+NL11_3_4;NL11_Vinkeveenseplassen;Overige waterflora-kwaliteit;2500-EAG-4;GWV,Zplas;0.54;KRW_2021;;0.61
+NL11_3_4;NL11_Vinkeveenseplassen;Fytoplankton-kwaliteit  ;2500-EAG-5;GWV,Nplas;0.6;KRW_2021;;0.74
+NL11_3_4;NL11_Vinkeveenseplassen;Macrofauna-kwaliteit ;2500-EAG-5;GWV,Nplas;0.522;KRW_2021;;0.63
+NL11_3_4;NL11_Vinkeveenseplassen;Vis-kwaliteit ;2500-EAG-5;GWV,Nplas;0.501;KRW_2021;;0.66
+NL11_3_4;NL11_Vinkeveenseplassen;Overige waterflora-kwaliteit;2500-EAG-5;GWV,Nplas;0.54;KRW_2021;;0.61
+NL11_3_6;NL11_Spiegelplas;Fytoplankton-kwaliteit  ;3200-EAG-1;Spiegelplas;0.6;KRW_2021;;0.79
+NL11_3_6;NL11_Spiegelplas;Macrofauna-kwaliteit ;3200-EAG-1;Spiegelplas;0.6;KRW_2021;;0.69
+NL11_3_6;NL11_Spiegelplas;Vis-kwaliteit ;3200-EAG-1;Spiegelplas;0.6;KRW_2021;;0.8
+NL11_3_6;NL11_Spiegelplas;Overige waterflora-kwaliteit;3200-EAG-1;Spiegelplas;0.551;KRW_2021;;0.63
+NL11_3_7;NL11_WijdeBlik;Fytoplankton-kwaliteit  ;3230-EAG-2;PKH,WijdeBlik;0.6;KRW_2021;;0.42
+NL11_3_7;NL11_WijdeBlik;Macrofauna-kwaliteit ;3230-EAG-2;PKH,WijdeBlik;0.5;KRW_2021;;0.55
+NL11_3_7;NL11_WijdeBlik;Vis-kwaliteit ;3230-EAG-2;PKH,WijdeBlik;0.512;KRW_2021;;0.7
+NL11_3_7;NL11_WijdeBlik;Overige waterflora-kwaliteit;3230-EAG-2;PKH,WijdeBlik;0.536;KRW_2021;;0.64
+NL11_3_8;NL11_GroteMaarsseveensep;Fytoplankton-kwaliteit  ;3360-EAG-11;GrMrsvnsPlas;0.6;KRW_2021;;0.8
+NL11_3_8;NL11_GroteMaarsseveensep;Macrofauna-kwaliteit ;3360-EAG-11;GrMrsvnsPlas;0.532;KRW_2021;;0.46
+NL11_3_8;NL11_GroteMaarsseveensep;Vis-kwaliteit ;3360-EAG-11;GrMrsvnsPlas;0.6;KRW_2021;;0.61
+NL11_3_8;NL11_GroteMaarsseveensep;Overige waterflora-kwaliteit;3360-EAG-11;GrMrsvnsPlas;0.535;KRW_2021;;0.49
+NL11_3_9;NL11_Waterleidingplas;Fytoplankton-kwaliteit  ;3310-EAG-2;Waterleidingplas;0.6;KRW_2021;;0.8
+NL11_3_9;NL11_Waterleidingplas;Macrofauna-kwaliteit ;3310-EAG-2;Waterleidingplas;0.5;KRW_2021;;0.63
+NL11_3_9;NL11_Waterleidingplas;Vis-kwaliteit ;3310-EAG-2;Waterleidingplas;0.556;KRW_2021;;0.62
+NL11_3_9;NL11_Waterleidingplas;Overige waterflora-kwaliteit;3310-EAG-2;Waterleidingplas;0.53;KRW_2021;;0.59
+NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2021;;0.69
+NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2021;;0.61
+NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2021;;0.6
+NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2021;;0.71
+NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2021;;0.69
+NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2021;;0.61
+NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2021;;0.6
+NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2021;;0.71
+NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2021;;0.69
+NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2021;;0.61
+NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2021;;0.6
+NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2021;;0.71
+NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-4;Ndrmr40morg;0.6;KRW_2021;;0.69
+NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-4;Ndrmr40morg;0.6;KRW_2021;;0.61
+NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-4;Ndrmr40morg;0.6;KRW_2021;;0.6
+NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-4;Ndrmr40morg;0.6;KRW_2021;;0.71
+NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2021;;0.69
+NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2021;;0.61
+NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2021;;0.6
+NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2021;;0.71
+NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2021;;0.6
+NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2021;;0.71
+NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2021;;0.69
+NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2021;;0.61
+NL11_5_3;NL11_Loenderveenoost;Fytoplankton-kwaliteit  ;3320-EAG-4;LoendervnschePlas;0.6;KRW_2021;;0.62
+NL11_5_3;NL11_Loenderveenoost;Macrofauna-kwaliteit ;3320-EAG-4;LoendervnschePlas;0.5;KRW_2021;;0.53
+NL11_5_3;NL11_Loenderveenoost;Vis-kwaliteit ;3320-EAG-4;LoendervnschePlas;0.586;KRW_2021;;0.79
+NL11_5_3;NL11_Loenderveenoost;Overige waterflora-kwaliteit;3320-EAG-4;LoendervnschePlas;0.506;KRW_2021;;0.39
+NL11_5_4;NL11_TerraNova;Fytoplankton-kwaliteit  ;3320-EAG-1;TerraNovalndN;0.6;KRW_2021;;0.8
+NL11_5_4;NL11_TerraNova;Macrofauna-kwaliteit ;3320-EAG-1;TerraNovalndN;0.5;KRW_2021;;0.58
+NL11_5_4;NL11_TerraNova;Vis-kwaliteit ;3320-EAG-1;TerraNovalndN;0.416;KRW_2021;;0.7
+NL11_5_4;NL11_TerraNova;Overige waterflora-kwaliteit;3320-EAG-1;TerraNovalndN;0.551;KRW_2021;;0.58
+NL11_5_4;NL11_TerraNova;Fytoplankton-kwaliteit  ;3320-EAG-2;TerraNova;0.6;KRW_2021;;0.8
+NL11_5_4;NL11_TerraNova;Macrofauna-kwaliteit ;3320-EAG-2;TerraNova;0.5;KRW_2021;;0.58
+NL11_5_4;NL11_TerraNova;Vis-kwaliteit ;3320-EAG-2;TerraNova;0.416;KRW_2021;;0.7
+NL11_5_4;NL11_TerraNova;Overige waterflora-kwaliteit;3320-EAG-2;TerraNova;0.551;KRW_2021;;0.58
+NL11_5_5;NL11_LoosdrechtsePlas1tm5;Fytoplankton-kwaliteit  ;3300-EAG-1;LoosdrechtschePlas;0.6;KRW_2021;;0.47
+NL11_5_5;NL11_LoosdrechtsePlas1tm5;Macrofauna-kwaliteit ;3300-EAG-1;LoosdrechtschePlas;0.588;KRW_2021;;0.52
+NL11_5_5;NL11_LoosdrechtsePlas1tm5;Vis-kwaliteit ;3300-EAG-1;LoosdrechtschePlas;0.548;KRW_2021;;0.62
+NL11_5_5;NL11_LoosdrechtsePlas1tm5;Overige waterflora-kwaliteit;3300-EAG-1;LoosdrechtschePlas;0.551;KRW_2021;;0.41
+NL11_5_6;NL11_Kievitsbuurt;Fytoplankton-kwaliteit  ;3300-EAG-3;KievitsbuurtN;0.6;KRW_2021;;0.49
+NL11_5_6;NL11_Kievitsbuurt;Macrofauna-kwaliteit ;3300-EAG-3;KievitsbuurtN;0.588;KRW_2021;;0.54
+NL11_5_6;NL11_Kievitsbuurt;Vis-kwaliteit ;3300-EAG-3;KievitsbuurtN;0.548;KRW_2021;;0.75
+NL11_5_6;NL11_Kievitsbuurt;Overige waterflora-kwaliteit;3300-EAG-3;KievitsbuurtN;0.551;KRW_2021;;0.42
+NL11_5_6;NL11_Kievitsbuurt;Fytoplankton-kwaliteit  ;3300-EAG-4;KievitsbuurtZ;0.6;KRW_2021;;0.49
+NL11_5_6;NL11_Kievitsbuurt;Macrofauna-kwaliteit ;3300-EAG-4;KievitsbuurtZ;0.588;KRW_2021;;0.54
+NL11_5_6;NL11_Kievitsbuurt;Vis-kwaliteit ;3300-EAG-4;KievitsbuurtZ;0.548;KRW_2021;;0.75
+NL11_5_6;NL11_Kievitsbuurt;Overige waterflora-kwaliteit;3300-EAG-4;KievitsbuurtZ;0.551;KRW_2021;;0.42
+NL11_5_7;NL11_BreukeleveenschePlas;Fytoplankton-kwaliteit  ;3300-EAG-5;BreukelevnschePlas;0.6;KRW_2021;;0.54
+NL11_5_7;NL11_BreukeleveenschePlas;Macrofauna-kwaliteit ;3300-EAG-5;BreukelevnschePlas;0.588;KRW_2021;;0.5
+NL11_5_7;NL11_BreukeleveenschePlas;Vis-kwaliteit ;3300-EAG-5;BreukelevnschePlas;0.548;KRW_2021;;0.47
+NL11_5_7;NL11_BreukeleveenschePlas;Overige waterflora-kwaliteit;3300-EAG-5;BreukelevnschePlas;0.551;KRW_2021;;0.41
+NL11_5_8;NL11_TienhovensePlassen;Fytoplankton-kwaliteit  ;3300-EAG-6;TihovschePlassN;0.6;KRW_2021;;0.74
+NL11_5_8;NL11_TienhovensePlassen;Macrofauna-kwaliteit ;3300-EAG-6;TihovschePlassN;0.588;KRW_2021;;0.66
+NL11_5_8;NL11_TienhovensePlassen;Vis-kwaliteit ;3300-EAG-6;TihovschePlassN;0.548;KRW_2021;;0.8
+NL11_5_8;NL11_TienhovensePlassen;Overige waterflora-kwaliteit;3300-EAG-6;TihovschePlassN;0.551;KRW_2021;;0.55
+NL11_5_8;NL11_TienhovensePlassen;Fytoplankton-kwaliteit  ;3300-EAG-7;TihovschePlassZ;0.6;KRW_2021;;0.74
+NL11_5_8;NL11_TienhovensePlassen;Macrofauna-kwaliteit ;3300-EAG-7;TihovschePlassZ;0.588;KRW_2021;;0.66
+NL11_5_8;NL11_TienhovensePlassen;Vis-kwaliteit ;3300-EAG-7;TihovschePlassZ;0.548;KRW_2021;;0.8
+NL11_5_8;NL11_TienhovensePlassen;Overige waterflora-kwaliteit;3300-EAG-7;TihovschePlassZ;0.551;KRW_2021;;0.55
+NL11_5_9;NL11_Vuntus;Fytoplankton-kwaliteit  ;3300-EAG-8;Vuntus;0.6;KRW_2021;;0.58
+NL11_5_9;NL11_Vuntus;Macrofauna-kwaliteit ;3300-EAG-8;Vuntus;0.588;KRW_2021;;0.64
+NL11_5_9;NL11_Vuntus;Vis-kwaliteit ;3300-EAG-8;Vuntus;0.548;KRW_2021;;0.53
+NL11_5_9;NL11_Vuntus;Overige waterflora-kwaliteit;3300-EAG-8;Vuntus;0.551;KRW_2021;;0.43
+NL11_6_1;NL11_Sterenzodden;Fytoplankton-kwaliteit  ;3300-EAG-13;;0.6;KRW_2021;;0.38
+NL11_6_1;NL11_Sterenzodden;Macrofauna-kwaliteit ;3300-EAG-13;;0.6;KRW_2021;;0.64
+NL11_6_1;NL11_Sterenzodden;Vis-kwaliteit ;3300-EAG-13;;0.6;KRW_2021;;0.69
+NL11_6_1;NL11_Sterenzodden;Overige waterflora-kwaliteit;3300-EAG-13;;0.550833;KRW_2021;;0.49
+NL11_6_1;NL11_Sterenzodden;Fytoplankton-kwaliteit  ;3300-EAG-14;;0.6;KRW_2021;;0.38
+NL11_6_1;NL11_Sterenzodden;Macrofauna-kwaliteit ;3300-EAG-14;;0.6;KRW_2021;;0.64
+NL11_6_1;NL11_Sterenzodden;Vis-kwaliteit ;3300-EAG-14;;0.6;KRW_2021;;0.69
+NL11_6_1;NL11_Sterenzodden;Overige waterflora-kwaliteit;3300-EAG-14;;0.550833;KRW_2021;;0.49
+NL11_6_1;NL11_Sterenzodden;Fytoplankton-kwaliteit  ;3300-EAG-15;;0.6;KRW_2021;;0.38
+NL11_6_1;NL11_Sterenzodden;Macrofauna-kwaliteit ;3300-EAG-15;;0.6;KRW_2021;;0.64
+NL11_6_1;NL11_Sterenzodden;Vis-kwaliteit ;3300-EAG-15;;0.6;KRW_2021;;0.69
+NL11_6_1;NL11_Sterenzodden;Overige waterflora-kwaliteit;3300-EAG-15;;0.550833;KRW_2021;;0.49
+NL11_6_1;NL11_Sterenzodden;Fytoplankton-kwaliteit  ;3300-EAG-16;;0.6;KRW_2021;;0.38
+NL11_6_1;NL11_Sterenzodden;Macrofauna-kwaliteit ;3300-EAG-16;;0.6;KRW_2021;;0.64
+NL11_6_1;NL11_Sterenzodden;Vis-kwaliteit ;3300-EAG-16;;0.6;KRW_2021;;0.69
+NL11_6_1;NL11_Sterenzodden;Overige waterflora-kwaliteit;3300-EAG-16;;0.550833;KRW_2021;;0.49
+NL11_6_1;NL11_Sterenzodden;Fytoplankton-kwaliteit  ;3300-EAG-9;KrommeRade;0.6;KRW_2021;;0.38
+NL11_6_1;NL11_Sterenzodden;Macrofauna-kwaliteit ;3300-EAG-9;KrommeRade;0.6;KRW_2021;;0.64
+NL11_6_1;NL11_Sterenzodden;Vis-kwaliteit ;3300-EAG-9;KrommeRade;0.6;KRW_2021;;0.69
+NL11_6_1;NL11_Sterenzodden;Overige waterflora-kwaliteit;3300-EAG-9;KrommeRade;0.551;KRW_2021;;0.49
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Fytoplankton-kwaliteit  ;3360-EAG-10;PMWBMrsvnsZodd;0.6;KRW_2021;;0.61
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Macrofauna-kwaliteit ;3360-EAG-10;PMWBMrsvnsZodd;0.6;KRW_2021;;0.65
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Vis-kwaliteit ;3360-EAG-10;PMWBMrsvnsZodd;0.6;KRW_2021;;0.77
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Overige waterflora-kwaliteit;3360-EAG-10;PMWBMrsvnsZodd;0.543;KRW_2021;;0.44
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Fytoplankton-kwaliteit  ;3360-EAG-13;PMWBKleinMolP;0.6;KRW_2021;;0.61
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Macrofauna-kwaliteit ;3360-EAG-13;PMWBKleinMolP;0.6;KRW_2021;;0.65
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Vis-kwaliteit ;3360-EAG-13;PMWBKleinMolP;0.6;KRW_2021;;0.77
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Overige waterflora-kwaliteit;3360-EAG-13;PMWBKleinMolP;0.543;KRW_2021;;0.44
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Fytoplankton-kwaliteit  ;3360-EAG-14;PMWBTrtpntZodd;0.6;KRW_2021;;0.61
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Macrofauna-kwaliteit ;3360-EAG-14;PMWBTrtpntZodd;0.6;KRW_2021;;0.65
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Vis-kwaliteit ;3360-EAG-14;PMWBTrtpntZodd;0.6;KRW_2021;;0.77
+NL11_6_10;NL11_MaarsseveenseZoddenenomgeving;Overige waterflora-kwaliteit;3360-EAG-14;PMWBTrtpntZodd;0.543;KRW_2021;;0.44
+NL11_6_11;NL11_MolenpolderenWestbroek;Fytoplankton-kwaliteit  ;3360-EAG-16;PMWMolPNtr;0.6;KRW_2021;;0.8
+NL11_6_11;NL11_MolenpolderenWestbroek;Macrofauna-kwaliteit ;3360-EAG-16;PMWMolPNtr;0.6;KRW_2021;;0.6
+NL11_6_11;NL11_MolenpolderenWestbroek;Vis-kwaliteit ;3360-EAG-16;PMWMolPNtr;0.6;KRW_2021;;0.8
+NL11_6_11;NL11_MolenpolderenWestbroek;Overige waterflora-kwaliteit;3360-EAG-16;PMWMolPNtr;0.543;KRW_2021;;0.45
+NL11_6_11;NL11_MolenpolderenWestbroek;Fytoplankton-kwaliteit  ;3360-EAG-17;PMWBWbroekseZodd;0.6;KRW_2021;;0.8
+NL11_6_11;NL11_MolenpolderenWestbroek;Macrofauna-kwaliteit ;3360-EAG-17;PMWBWbroekseZodd;0.6;KRW_2021;;0.6
+NL11_6_11;NL11_MolenpolderenWestbroek;Vis-kwaliteit ;3360-EAG-17;PMWBWbroekseZodd;0.6;KRW_2021;;0.8
+NL11_6_11;NL11_MolenpolderenWestbroek;Overige waterflora-kwaliteit;3360-EAG-17;PMWBWbroekseZodd;0.543;KRW_2021;;0.45
+NL11_6_2;NL11_HollandsAnkeveen;Fytoplankton-kwaliteit  ;4210-EAG-1;HAPbemal;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Macrofauna-kwaliteit ;4210-EAG-1;HAPbemal;0.6;KRW_2021;;0.57
+NL11_6_2;NL11_HollandsAnkeveen;Vis-kwaliteit ;4210-EAG-1;HAPbemal;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Overige waterflora-kwaliteit;4210-EAG-1;HAPbemal;0.551;KRW_2021;;0.76
+NL11_6_2;NL11_HollandsAnkeveen;Fytoplankton-kwaliteit  ;4210-EAG-2;HAPN;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Macrofauna-kwaliteit ;4210-EAG-2;HAPN;0.6;KRW_2021;;0.57
+NL11_6_2;NL11_HollandsAnkeveen;Vis-kwaliteit ;4210-EAG-2;HAPN;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Overige waterflora-kwaliteit;4210-EAG-2;HAPN;0.551;KRW_2021;;0.76
+NL11_6_2;NL11_HollandsAnkeveen;Fytoplankton-kwaliteit  ;4210-EAG-3;HAPZ;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Macrofauna-kwaliteit ;4210-EAG-3;HAPZ;0.6;KRW_2021;;0.57
+NL11_6_2;NL11_HollandsAnkeveen;Vis-kwaliteit ;4210-EAG-3;HAPZ;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Overige waterflora-kwaliteit;4210-EAG-3;HAPZ;0.551;KRW_2021;;0.76
+NL11_6_2;NL11_HollandsAnkeveen;Fytoplankton-kwaliteit  ;4210-EAG-5;HAPO;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Macrofauna-kwaliteit ;4210-EAG-5;HAPO;0.6;KRW_2021;;0.57
+NL11_6_2;NL11_HollandsAnkeveen;Vis-kwaliteit ;4210-EAG-5;HAPO;0.6;KRW_2021;;0.8
+NL11_6_2;NL11_HollandsAnkeveen;Overige waterflora-kwaliteit;4210-EAG-5;HAPO;0.551;KRW_2021;;0.76
+NL11_6_3;NL11_StichtsAnkeveen;Fytoplankton-kwaliteit  ;3201-EAG-1;SAPN;0.6;KRW_2021;;0.68
+NL11_6_3;NL11_StichtsAnkeveen;Macrofauna-kwaliteit ;3201-EAG-1;SAPN;0.6;KRW_2021;;0.62
+NL11_6_3;NL11_StichtsAnkeveen;Vis-kwaliteit ;3201-EAG-1;SAPN;0.6;KRW_2021;;0.68
+NL11_6_3;NL11_StichtsAnkeveen;Overige waterflora-kwaliteit;3201-EAG-1;SAPN;0.551;KRW_2021;;0.61
+NL11_6_3;NL11_StichtsAnkeveen;Fytoplankton-kwaliteit  ;3201-EAG-2;SAPZ;0.6;KRW_2021;;0.68
+NL11_6_3;NL11_StichtsAnkeveen;Macrofauna-kwaliteit ;3201-EAG-2;SAPZ;0.6;KRW_2021;;0.62
+NL11_6_3;NL11_StichtsAnkeveen;Overige waterflora-kwaliteit;3201-EAG-2;SAPZ;0.551;KRW_2021;;0.61
+NL11_6_3;NL11_StichtsAnkeveen;Vis-kwaliteit ;3201-EAG-2;SAPZ;0.6;KRW_2021;;0.68
+NL11_6_6;NL11_HetHol;Fytoplankton-kwaliteit  ;3230-EAG-1;PKH,Hol;0.6;KRW_2021;;0.8
+NL11_6_6;NL11_HetHol;Macrofauna-kwaliteit ;3230-EAG-1;PKH,Hol;0.6;KRW_2021;;0.62
+NL11_6_6;NL11_HetHol;Vis-kwaliteit ;3230-EAG-1;PKH,Hol;0.6;KRW_2021;;0.8
+NL11_6_6;NL11_HetHol;Overige waterflora-kwaliteit;3230-EAG-1;PKH,Hol;0.551;KRW_2021;;0.4
+NL11_6_7;NL11_WijdeGat;Fytoplankton-kwaliteit  ;3230-EAG-3;PKhf,WijdeGat;0.6;KRW_2021;;0.55
+NL11_6_7;NL11_WijdeGat;Macrofauna-kwaliteit ;3230-EAG-3;PKhf,WijdeGat;0.6;KRW_2021;;0.52
+NL11_6_7;NL11_WijdeGat;Vis-kwaliteit ;3230-EAG-3;PKhf,WijdeGat;0.6;KRW_2021;;0.57
+NL11_6_7;NL11_WijdeGat;Overige waterflora-kwaliteit;3230-EAG-3;PKhf,WijdeGat;0.551;KRW_2021;;0.43
+NL11_6_8;NL11_HilversumsKanaal;Fytoplankton-kwaliteit  ;3230-EAG-5;HilvKanplas/dras;0.6;KRW_2021;;0.48
+NL11_6_8;NL11_HilversumsKanaal;Macrofauna-kwaliteit ;3230-EAG-5;HilvKanplas/dras;0.6;KRW_2021;;0.54
+NL11_6_8;NL11_HilversumsKanaal;Vis-kwaliteit ;3230-EAG-5;HilvKanplas/dras;0.6;KRW_2021;;0.44
+NL11_6_8;NL11_HilversumsKanaal;Overige waterflora-kwaliteit;3230-EAG-5;HilvKanplas/dras;0.551;KRW_2021;;0.26
+NL11_6_8;NL11_HilversumsKanaal;Fytoplankton-kwaliteit  ;3230-EAG-6;HilvKan;0.6;KRW_2021;;0.48
+NL11_6_8;NL11_HilversumsKanaal;Macrofauna-kwaliteit ;3230-EAG-6;HilvKan;0.6;KRW_2021;;0.54
+NL11_6_8;NL11_HilversumsKanaal;Vis-kwaliteit ;3230-EAG-6;HilvKan;0.6;KRW_2021;;0.44
+NL11_6_8;NL11_HilversumsKanaal;Overige waterflora-kwaliteit;3230-EAG-6;HilvKan;0.551;KRW_2021;;0.26
+NL11_6_9;NL11_OostelijkeBinnenpolder;Fytoplankton-kwaliteit  ;3302-EAG-1;OBToverig;0.6;KRW_2021;;0.8
+NL11_6_9;NL11_OostelijkeBinnenpolder;Macrofauna-kwaliteit ;3302-EAG-1;OBToverig;0.6;KRW_2021;;0.68
+NL11_6_9;NL11_OostelijkeBinnenpolder;Vis-kwaliteit ;3302-EAG-1;OBToverig;0.6;KRW_2021;;0.73
+NL11_6_9;NL11_OostelijkeBinnenpolder;Overige waterflora-kwaliteit;3302-EAG-1;;0.543;KRW_2021;;0.58
+NL11_6_9;NL11_OostelijkeBinnenpolder;Fytoplankton-kwaliteit  ;3302-EAG-2;OBTpetgat;0.6;KRW_2021;;0.8
+NL11_6_9;NL11_OostelijkeBinnenpolder;Macrofauna-kwaliteit ;3302-EAG-2;OBTpetgat;0.6;KRW_2021;;0.68
+NL11_6_9;NL11_OostelijkeBinnenpolder;Vis-kwaliteit ;3302-EAG-2;OBTpetgat;0.6;KRW_2021;;0.73
+NL11_6_9;NL11_OostelijkeBinnenpolder;Overige waterflora-kwaliteit;3302-EAG-2;OBTpetgat;0.543;KRW_2021;;0.58
+NL11_6_9;NL11_OostelijkeBinnenpolder;Fytoplankton-kwaliteit  ;3360-EAG-19;;0.6;KRW_2021;;0.8
+NL11_6_9;NL11_OostelijkeBinnenpolder;Macrofauna-kwaliteit ;3360-EAG-19;;0.6;KRW_2021;;0.68
+NL11_6_9;NL11_OostelijkeBinnenpolder;Vis-kwaliteit ;3360-EAG-19;;0.6;KRW_2021;;0.73
+NL11_6_9;NL11_OostelijkeBinnenpolder;Overige waterflora-kwaliteit;3360-EAG-19;;0.543;KRW_2021;;0.58
+NL11_7_1;NL11_Botshol;Fytoplankton-kwaliteit  ;2550-EAG-1;Botsholmid;0.6;KRW_2021;;0.8
+NL11_7_1;NL11_Botshol;Macrofauna-kwaliteit ;2550-EAG-1;Botsholmid;0.5;KRW_2021;;0.54
+NL11_7_1;NL11_Botshol;Vis-kwaliteit ;2550-EAG-1;Botsholmid;0.5;KRW_2021;;0.62
+NL11_7_1;NL11_Botshol;Overige waterflora-kwaliteit;2550-EAG-1;Botsholmid;0.558;KRW_2021;;0.68
+NL11_7_1;NL11_Botshol;Vis-kwaliteit ;2550-EAG-2;Botsholmid;0.5;KRW_2021;;0.62
+NL11_7_1;NL11_Botshol;Overige waterflora-kwaliteit;2550-EAG-2;Botsholmid;0.558;KRW_2021;;0.68
+NL11_7_1;NL11_Botshol;Fytoplankton-kwaliteit  ;2550-EAG-2;Botsholmid;0.6;KRW_2021;;0.8
+NL11_7_1;NL11_Botshol;Macrofauna-kwaliteit ;2550-EAG-2;Botsholmid;0.5;KRW_2021;;0.54
+NL11_7_2;NL11_NoorderIJplas;Fytoplankton-kwaliteit  ;6100-EAG-1;NdrIJplas;0.6;KRW_2021;;0.55
+NL11_7_2;NL11_NoorderIJplas;Macrofauna-kwaliteit ;6100-EAG-1;NdrIJplas;0.5;KRW_2021;;0.53
+NL11_7_2;NL11_NoorderIJplas;Vis-kwaliteit ;6100-EAG-1;NdrIJplas;0.5;KRW_2021;;0.54
+NL11_7_2;NL11_NoorderIJplas;Overige waterflora-kwaliteit;6100-EAG-1;NdrIJplas;0.501;KRW_2021;;0.52
+NL11_8_1;NL11_Tussenboezema;Overige waterflora-kwaliteit;2500-EAG-2;RsvtDemmerik;0.6;KRW_2021;;0.53
+NL11_8_1;NL11_Tussenboezema;Fytoplankton-kwaliteit  ;2500-EAG-2;RsvtDemmerik;0.6;KRW_2021;;0.57
+NL11_8_1;NL11_Tussenboezema;Macrofauna-kwaliteit ;2500-EAG-2;RsvtDemmerik;0.6;KRW_2021;;0.52
+NL11_8_1;NL11_Tussenboezema;Vis-kwaliteit ;2500-EAG-2;RsvtDemmerik;0.6;KRW_2021;;0.59
+NL11_8_3;NL11_MijdrechtseBovenlanden;Overige waterflora-kwaliteit;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2021;;0.29
+NL11_8_3;NL11_MijdrechtseBovenlanden;Fytoplankton-kwaliteit  ;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2021;;0.34
+NL11_8_3;NL11_MijdrechtseBovenlanden;Macrofauna-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2021;;0.21
+NL11_8_3;NL11_MijdrechtseBovenlanden;Vis-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.547;KRW_2021;;0.38
 ;NL11_OvWa_1010-EAG-1_Erasmusp;Overige waterflora-kwaliteit;1010-EAG-1;Erasmusprk;0.6;Default GEP;;0.6
 ;NL11_OvWa_1020-EAG-1_Westerpa;Overige waterflora-kwaliteit;1020-EAG-1;Wrprk;0.6;Default GEP;;0.6
 ;NL11_OvWa_1050-EAG-1_SP_Zuid_;Overige waterflora-kwaliteit;1050-EAG-1;SPZ;0.6;Default GEP;;0.6
 ;NL11_OvWa_1060-EAG-1_Vondelpa;Overige waterflora-kwaliteit;1060-EAG-1;Vondelprk;0.6;Default GEP;;0.6
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-1;BzAmslW,N;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-1;BzAmslW,N;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-1;BzAmslW,N;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-1;BzAmslW,N;0.6;KRW_2016;;0.35
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-2;BzAmslW,NW;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-2;BzAmslW,NW;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-2;BzAmslW,NW;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-2;BzAmslW,NW;0.6;KRW_2016;;0.35
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-3;BzAmslW,NO;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-3;BzAmslW,NO;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-3;BzAmslW,NO;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-3;BzAmslW,NO;0.6;KRW_2016;;0.35
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-4;BzAmslW,O;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-4;BzAmslW,O;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-4;BzAmslW,O;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-4;BzAmslW,O;0.6;KRW_2016;;0.35
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-5;BzAmslW,mid;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-5;BzAmslW,mid;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-5;BzAmslW,mid;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-5;BzAmslW,mid;0.6;KRW_2016;;0.35
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-6;BzAmslW,W;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-6;BzAmslW,W;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-6;BzAmslW,W;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-6;BzAmslW,W;0.6;KRW_2016;;0.35
-NL11_1_1;NL11_Amstellandboezem;Fytoplankton-kwaliteit  ;2000-EAG-7;BzAmslW,Z;0.6;KRW_2016;;0.66
-NL11_1_1;NL11_Amstellandboezem;Macrofauna-kwaliteit ;2000-EAG-7;BzAmslW,Z;0.6;KRW_2016;;0.47
-NL11_1_1;NL11_Amstellandboezem;Vis-kwaliteit ;2000-EAG-7;BzAmslW,Z;0.6;KRW_2016;;0.77
-NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-7;BzAmslW,Z;0.6;KRW_2016;;0.35
 ;NL11_OvWa_2010-EAG-1_Diemerpo;Overige waterflora-kwaliteit;2010-EAG-1;DiemerP,Dm-N;0.6;Default GEP;;0.6
 ;NL11_OvWa_2010-EAG-2_Diemerpo;Overige waterflora-kwaliteit;2010-EAG-2;DiemerP,Dm;0.6;Default GEP;;0.6
 ;NL11_OvWa_2020-EAG-1_Flevopar;Overige waterflora-kwaliteit;2020-EAG-1;Flevoprk;0.6;Default GEP;;0.6
@@ -56,16 +362,8 @@ NL11_1_1;NL11_Amstellandboezem;Overige waterflora-kwaliteit;2000-EAG-7;BzAmslW,Z
 ;NL11_OvWa_2110-EAG-4_Middelpo;Overige waterflora-kwaliteit;2110-EAG-4;MiPAmsvNtrGeb;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
 ;NL11_OvWa_2110-EAG-5_Middelpo;Overige waterflora-kwaliteit;2110-EAG-5;MiPAmsvbebGbd;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
 ;NL11_OvWa_2110-EAG-6_Middelpo;Overige waterflora-kwaliteit;2110-EAG-6;MiPAmsvlndsprtpk;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
-NL11_2_8;NL11_Bovenkerkerpolder;Overige waterflora-kwaliteit;2120-EAG-1;BKP,lnd;0.52;WGP_Westeramstel;;0.36
-NL11_2_8;NL11_Bovenkerkerpolder;Fytoplankton-kwaliteit  ;2120-EAG-1;BKP,lnd;0.6;KRW_2016;;
-NL11_2_8;NL11_Bovenkerkerpolder;Macrofauna-kwaliteit ;2120-EAG-1;BKP,lnd;0.6;KRW_2016;;0.25
-NL11_2_8;NL11_Bovenkerkerpolder;Vis-kwaliteit ;2120-EAG-1;BKP,lnd;0.6;KRW_2016;;0.72
 ;NL11_OvWa_2120-EAG-2_Bovenker;Overige waterflora-kwaliteit;2120-EAG-2;BKP,AmsdijkZ;0.52;WGP_Westeramstel;;0.1125
 ;NL11_OvWa_2120-EAG-3_Bovenker;Overige waterflora-kwaliteit;2120-EAG-3;BKP,Amsvn;0.52;WGP_Westeramstel;;0.1125
-NL11_2_9;NL11_Noorderlegmeer;Overige waterflora-kwaliteit;2130-EAG-1;NdrLgmrP,lnd;0.53;WGP_Westeramstel;;0.4
-NL11_2_9;NL11_Noorderlegmeer;Fytoplankton-kwaliteit  ;2130-EAG-1;NdrLgmrP,lnd;0.6;KRW_2016;;
-NL11_2_9;NL11_Noorderlegmeer;Macrofauna-kwaliteit ;2130-EAG-1;NdrLgmrP,lnd;0.6;KRW_2016;;0.35
-NL11_2_9;NL11_Noorderlegmeer;Vis-kwaliteit ;2130-EAG-1;NdrLgmrP,lnd;0.6;KRW_2016;;0.8
 ;NL11_OvWa_2130-EAG-2_Noorder_;Overige waterflora-kwaliteit;2130-EAG-2;NdrLgmrP,bvnkerk;0.53;WGP_Westeramstel;0.07;0.53
 ;NL11_OvWa_2130-EAG-3_Noorder_;Overige waterflora-kwaliteit;2130-EAG-3;NdrLgmrP,Uithr;0.53;WGP_Westeramstel;0.07;0.53
 ;NL11_OvWa_2140-EAG-1_Uithoorn;Overige waterflora-kwaliteit;2140-EAG-1;UithrnPmid;0.44;WGP_Westeramstel;;0.44
@@ -79,19 +377,11 @@ NL11_2_9;NL11_Noorderlegmeer;Vis-kwaliteit ;2130-EAG-1;NdrLgmrP,lnd;0.6;KRW_2016
 ;NL11_OvWa_2160-EAG-1_Fred_Roe;Overige waterflora-kwaliteit;2160-EAG-1;FredRoeskestr;0.6;Default GEP;;0.6
 ;NL11_OvWa_2200-EAG-1_Venserpo;Overige waterflora-kwaliteit;2200-EAG-1;VserPvlktn;0.6;Default GEP;;0.6
 ;NL11_OvWa_2210-EAG-1_Bijlmer_;Overige waterflora-kwaliteit;2210-EAG-1;Blmr;0.6;Default GEP;;0.6
-NL11_3_2;NL11_Gaasperplas;Overige waterflora-kwaliteit;2220-EAG-1;Gaasperplas;0.534;KRW_2016;;0.8
-NL11_3_2;NL11_Gaasperplas;Fytoplankton-kwaliteit  ;2220-EAG-1;Gaasperplas;0.6;KRW_2016;;0.8
-NL11_3_2;NL11_Gaasperplas;Macrofauna-kwaliteit ;2220-EAG-1;Gaasperplas;0.5;KRW_2016;;0.6
-NL11_3_2;NL11_Gaasperplas;Vis-kwaliteit ;2220-EAG-1;Gaasperplas;0.6;KRW_2016;;0.8
 ;NL11_OvWa_2220-EAG-2_Zuid_Bij;Overige waterflora-kwaliteit;2220-EAG-2;ZBlmr,Gsprdm;0.74;handelingsperspectief_score2008-2014;0.1;0.7395
 ;NL11_OvWa_2220-EAG-3_Zuid_Bij;Overige waterflora-kwaliteit;2220-EAG-3;ZBlmr,HgeDijk;0.74;handelingsperspectief_score2008-2014;0.1;0.7395
 ;NL11_OvWa_2230-EAG-1_Broekzij;Overige waterflora-kwaliteit;2230-EAG-1;BrkZP,lnd;0.177;handelingsperspectief_score2008-2014;0.08;0.177
 ;NL11_OvWa_2230-EAG-2_Broekzij;Overige waterflora-kwaliteit;2230-EAG-2;BrkZP,Abcoude;0.177;handelingsperspectief_score2015-2017;0.08;0.177
 ;NL11_OvWa_2240-EAG-1_Holendre;Overige waterflora-kwaliteit;2240-EAG-1;HBPZW;0.381;handelingsperspectief_score2008-2014;0.1;0.381428571
-NL11_3_3;NL11_Ouderkerkerplas;Overige waterflora-kwaliteit;2250-EAG-1;Ouderkerkerplas;0.504;KRW_2016;;0.46
-NL11_3_3;NL11_Ouderkerkerplas;Fytoplankton-kwaliteit  ;2250-EAG-1;Ouderkerkerplas;0.6;KRW_2016;;0.65
-NL11_3_3;NL11_Ouderkerkerplas;Macrofauna-kwaliteit ;2250-EAG-1;Ouderkerkerplas;0.5;KRW_2016;;0.39
-NL11_3_3;NL11_Ouderkerkerplas;Vis-kwaliteit ;2250-EAG-1;Ouderkerkerplas;0.51;KRW_2016;;0.28
 ;NL11_OvWa_2250-EAG-2_Polder_d;Overige waterflora-kwaliteit;2250-EAG-2;PNBWKrtDwarswg;0.065;handelingsperspectief_score2008-2014;0.065;0.065
 ;NL11_OvWa_2250-EAG-3_Polder_d;Overige waterflora-kwaliteit;2250-EAG-3;PNBWOdrkrkadAms;0.065;handelingsperspectief_score2015-2017;0.065;0.065
 ;NL11_OvWa_2250-EAG-4_Polder_d;Overige waterflora-kwaliteit;2250-EAG-4;PNBWAMC;0.065;handelingsperspectief_score2008-2014;0.065;0.065
@@ -111,75 +401,18 @@ NL11_3_3;NL11_Ouderkerkerplas;Vis-kwaliteit ;2250-EAG-1;Ouderkerkerplas;0.51;KRW
 ;NL11_OvWa_2370-EAG-1_Gemeensc;Overige waterflora-kwaliteit;2370-EAG-1;GmsPWBetlem;0.6;Default GEP;;0.6
 ;NL11_OvWa_2380-EAG-1_Honderds;Overige waterflora-kwaliteit;2380-EAG-1;;0.6;Default GEP;;0.6
 ;NL11_2380-EAG-1_Honderds;Overige waterflora-kwaliteit;2380-EAG-1;;0.6;Default GEP;;0.6
-NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-1;PdeRndHp,bmlgbd;0.6;KRW_2016;0.14;0.72
-NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-1;PdeRndHp,bmlgbd;0.6;KRW_2016;0.14;0.75
-NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-1;PdeRndHp,bmlgbd;0.6;KRW_2016;0.14;0.8
-NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-2;PdeRndHp,ZW;0.6;KRW_2016;0.14;0.72
-NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-2;PdeRndHp,ZW;0.6;KRW_2016;0.14;0.75
-NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-2;PdeRndHp,ZW;0.6;KRW_2016;0.14;0.8
-NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-3;PdeRndHp,NW;0.6;KRW_2016;0.14;0.72
-NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-3;PdeRndHp,NW;0.6;KRW_2016;0.14;0.75
-NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-3;PdeRndHp,NW;0.6;KRW_2016;0.14;0.8
-NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-4;PdeRndHp,NO;0.6;KRW_2016;0.14;0.72
-NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-4;PdeRndHp,NO;0.6;KRW_2016;0.14;0.75
-NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-4;PdeRndHp,NO;0.6;KRW_2016;0.14;0.8
-NL11_2_5;NL11_VaartenRondeHoep;Overige waterflora-kwaliteit;2400-EAG-5;PdeRndHp,wdvglGb;0.6;KRW_2016;0.14;0.72
-NL11_2_5;NL11_VaartenRondeHoep;Macrofauna-kwaliteit ;2400-EAG-5;PdeRndHp,wdvglGb;0.6;KRW_2016;0.14;0.75
-NL11_2_5;NL11_VaartenRondeHoep;Vis-kwaliteit ;2400-EAG-5;PdeRndHp,wdvglGb;0.6;KRW_2016;0.14;0.8
 ;NL11_OvWa_2400-EAG-6_Polder_d;Overige waterflora-kwaliteit;2400-EAG-6;PdeRndHp,OukrkAms;0.351;handelingsperspectief_score2008-2014;0.14;0.351
 ;NL11_OvWa_2410-EAG-1_Polder_W;Overige waterflora-kwaliteit;2410-EAG-1;HDRTerP;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
 ;NL11_OvWa_2410-EAG-2_Polder_W;Overige waterflora-kwaliteit;2410-EAG-2;PWrdHDRT,stdlijkNd;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
 ;NL11_OvWa_2410-EAG-3_Polder_W;Overige waterflora-kwaliteit;2410-EAG-3;PWrdHDRT,stdlijkZ;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
 ;NL11_OvWa_2410-EAG-4_Polder_W;Overige waterflora-kwaliteit;2410-EAG-4;PWrdHDRT,SlotP;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
 ;NL11_OvWa_2500-EAG-1_Polder_G;Overige waterflora-kwaliteit;2500-EAG-1;GWV,Overig;0.409;handelingsperspectief_score2008-2014;0;0.409026316
-NL11_8_1;NL11_TussenboezemVinkev;Overige waterflora-kwaliteit;2500-EAG-2;RsvtDemmerik;0.6;KRW_2016;;0.53
-NL11_8_1;NL11_TussenboezemVinkev;Fytoplankton-kwaliteit  ;2500-EAG-2;RsvtDemmerik;0.6;KRW_2016;;0.57
-NL11_8_1;NL11_TussenboezemVinkev;Macrofauna-kwaliteit ;2500-EAG-2;RsvtDemmerik;0.6;KRW_2016;;0.52
-NL11_8_1;NL11_TussenboezemVinkev;Vis-kwaliteit ;2500-EAG-2;RsvtDemmerik;0.6;KRW_2016;;0.49
-NL11_3_4;NL11_VinkeveensePlassen;Fytoplankton-kwaliteit  ;2500-EAG-3;GWV,Klnplas;0.6;KRW_2016;;0.74
-NL11_3_4;NL11_VinkeveensePlassen;Macrofauna-kwaliteit ;2500-EAG-3;GWV,Klnplas;0.522;KRW_2016;;0.66
-NL11_3_4;NL11_VinkeveensePlassen;Vis-kwaliteit ;2500-EAG-3;GWV,Klnplas;0.501;KRW_2016;;0.69
-NL11_3_4;NL11_VinkeveensePlassen;Overige waterflora-kwaliteit;2500-EAG-3;GWV,Klnplas;0.54;KRW_2016;;0.68
-NL11_3_4;NL11_VinkeveensePlassen;Fytoplankton-kwaliteit  ;2500-EAG-4;GWV,Zplas;0.6;KRW_2016;;0.74
-NL11_3_4;NL11_VinkeveensePlassen;Macrofauna-kwaliteit ;2500-EAG-4;GWV,Zplas;0.522;KRW_2016;;0.66
-NL11_3_4;NL11_VinkeveensePlassen;Vis-kwaliteit ;2500-EAG-4;GWV,Zplas;0.501;KRW_2016;;0.69
-NL11_3_4;NL11_VinkeveensePlassen;Overige waterflora-kwaliteit;2500-EAG-4;GWV,Zplas;0.54;KRW_2016;;0.68
-NL11_3_4;NL11_VinkeveensePlassen;Fytoplankton-kwaliteit  ;2500-EAG-5;GWV,Nplas;0.6;KRW_2016;;0.74
-NL11_3_4;NL11_VinkeveensePlassen;Macrofauna-kwaliteit ;2500-EAG-5;GWV,Nplas;0.522;KRW_2016;;0.66
-NL11_3_4;NL11_VinkeveensePlassen;Vis-kwaliteit ;2500-EAG-5;GWV,Nplas;0.501;KRW_2016;;0.69
-NL11_3_4;NL11_VinkeveensePlassen;Overige waterflora-kwaliteit;2500-EAG-5;GWV,Nplas;0.54;KRW_2016;;0.68
-NL11_8_3;NL11_MijdrechtseBovenla;Overige waterflora-kwaliteit;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2016;;0.29
-NL11_8_3;NL11_MijdrechtseBovenla;Fytoplankton-kwaliteit  ;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2016;;0.34
-NL11_8_3;NL11_MijdrechtseBovenla;Macrofauna-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2016;;0.21
-NL11_8_3;NL11_MijdrechtseBovenla;Vis-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.547;KRW_2016;;0.24
-NL11_2_10;NL11_PolderDemmerik;Fytoplankton-kwaliteit  ;2501-EAG-1;;0.6;KRW_2016;;
-NL11_2_10;NL11_PolderDemmerik;Macrofauna-kwaliteit ;2501-EAG-1;;0.6;KRW_2016;;0.28
-NL11_2_10;NL11_PolderDemmerik;Vis-kwaliteit ;2501-EAG-1;;0.6;KRW_2016;;0.8
-NL11_2_10;NL11_PolderDemmerik;Overige waterflora-kwaliteit;2501-EAG-1;Oukoop;0.42;WGP_GWV;0.1;0.5
-NL11_2_10;NL11_PolderDemmerik;Fytoplankton-kwaliteit  ;2501-EAG-2;;0.6;KRW_2016;;
-NL11_2_10;NL11_PolderDemmerik;Macrofauna-kwaliteit ;2501-EAG-2;;0.6;KRW_2016;;0.28
-NL11_2_10;NL11_PolderDemmerik;Vis-kwaliteit ;2501-EAG-2;;0.6;KRW_2016;;0.8
-NL11_2_10;NL11_PolderDemmerik;Overige waterflora-kwaliteit;2501-EAG-2;Demmerik;0.47;WGP_GWV;0.2;0.5
-;;Overige waterflora-kwaliteit;2501-EAG-3;;0.6;KRW_2016;;0.516034188
-;;Fytoplankton-kwaliteit  ;2501-EAG-3;;0.6;KRW_2016;;0.516034188
-;;Macrofauna-kwaliteit ;2501-EAG-3;;0.6;KRW_2016;;0.516034188
-;;Vis-kwaliteit ;2501-EAG-3;;0.6;KRW_2016;;0.516034188
 ;NL11_OvWa_2502-EAG-1_Polder_G;Overige waterflora-kwaliteit;2502-EAG-1;GWVmid,O;0.41;WGP_GWV;0.1475;0.41
 ;NL11_OvWa_2502-EAG-2_Polder_G;Overige waterflora-kwaliteit;2502-EAG-2;GWVmid,W;0.41;WGP_GWV;0.1475;0.41
 ;NL11_OvWa_2503-EAG-1_Polder_W;Overige waterflora-kwaliteit;2503-EAG-1;PWilnis-Veldzijde;0.36;WGP_GWV;0.1;0.36
 ;NL11_OvWa_2504-EAG-1_Polder_d;Overige waterflora-kwaliteit;2504-EAG-1;P2eBdkng;0.538;handelingsperspectief_score2008-2014;0.145;0.53825
 ;NL11_OvWa_2505-EAG-1_Veldhuis;Overige waterflora-kwaliteit;2505-EAG-1;Veldhuiswtrng;0.44;WGP_GWV;0.2;0.44
-NL11_2_11;NL11_GrootWilnisVinkev;Fytoplankton-kwaliteit  ;2510-EAG-1;;0.6;KRW_2016;;0.46
-NL11_2_11;NL11_GrootWilnisVinkev;Macrofauna-kwaliteit ;2510-EAG-1;;0.6;KRW_2016;;0.38
-NL11_2_11;NL11_GrootWilnisVinkev;Vis-kwaliteit ;2510-EAG-1;;0.6;KRW_2016;;0.8
-NL11_2_11;NL11_GrootWilnisVinkev;Overige waterflora-kwaliteit;2510-EAG-1;GWVZ,HcpGeer;0.46;WGP_GWV;0.17;0.48
 ;NL11_OvWa_2510-EAG-2_Groot_Wi;Overige waterflora-kwaliteit;2510-EAG-2;GWVZ,Armland;0.6;Default GEP;;0.516034188
-NL11_2_11;NL11_GrootWilnisVinkev;Fytoplankton-kwaliteit  ;2510-EAG-3;;0.6;KRW_2016;;0.46
-NL11_2_11;NL11_GrootWilnisVinkev;Macrofauna-kwaliteit ;2510-EAG-3;;0.6;KRW_2016;;0.38
-NL11_2_11;NL11_GrootWilnisVinkev;Vis-kwaliteit ;2510-EAG-3;;0.6;KRW_2016;;0.8
-NL11_2_11;NL11_GrootWilnisVinkev;Overige waterflora-kwaliteit;2510-EAG-3;GWVZ,bvnland;0.55;WGP_GWV;0.2;0.48
-;;Overige waterflora-kwaliteit;2510-EAG-4;;0.6;KRW_2016;;0.516034188
-;;Overige waterflora-kwaliteit;2510-EAG-5;;0.6;KRW_2016;;0.516034188
 ;NL11_OvWa_2511-EAG-1_Hoogwate;Overige waterflora-kwaliteit;2511-EAG-1;HWZAmskadeP1;0.267;handelingsperspectief_score2008-2014;0;0.267
 ;NL11_OvWa_2512-EAG-1_Hoogwate;Overige waterflora-kwaliteit;2512-EAG-1;HWZAmskadeP2;0.6;Default GEP;;0.6
 ;NL11_OvWa_2520-EAG-1_Polder_d;Overige waterflora-kwaliteit;2520-EAG-1;PDrdBeding,stdlijklnd;0.257;handelingsperspectief_score2008-2014;0.085;0.257
@@ -187,54 +420,21 @@ NL11_2_11;NL11_GrootWilnisVinkev;Overige waterflora-kwaliteit;2510-EAG-3;GWVZ,bv
 ;NL11_OvWa_2520-EAG-4_Polder_d;Overige waterflora-kwaliteit;2520-EAG-4;PDrdBeding,stdlijkkass;0.257;handelingsperspectief_score2008-2014;0.085;0.257
 ;NL11_OvWa_2530-EAG-1_Polder_d;Overige waterflora-kwaliteit;2530-EAG-1;P1eBdkngWW;0.53;handelingsperspectief_score2008-2014;0.095;0.529647619
 ;NL11_OvWa_2530-EAG-2_Polder_d;Overige waterflora-kwaliteit;2530-EAG-2;P1eBdkngWO;0.53;handelingsperspectief_score2008-2014;0.095;0.529647619
-NL11_2_7;NL11_VaartenGrootMijdr;Fytoplankton-kwaliteit  ;2540-EAG-1;;0.6;KRW_2016;;
-NL11_2_7;NL11_VaartenGrootMijdr;Macrofauna-kwaliteit ;2540-EAG-1;;0.6;KRW_2016;;0.27
-NL11_2_7;NL11_VaartenGrootMijdr;Vis-kwaliteit ;2540-EAG-1;;0.6;KRW_2016;;0.34
-NL11_2_7;NL11_VaartenGrootMijdr;Overige waterflora-kwaliteit;2540-EAG-1;PGM1eBdkngO,lnd;0.299;handelingsperspectief_score2008-2014;0.05;0.32
 ;NL11_OvWa_2540-EAG-2_Polder_G;Overige waterflora-kwaliteit;2540-EAG-2;PGM1eBdkngO,Ntrreservaat;0.138;handelingsperspectief_score2015-2017;0.05;0.138
 ;NL11_OvWa_2540-EAG-3_Polder_G;Overige waterflora-kwaliteit;2540-EAG-3;PGMij,BotsholW;0.138;handelingsperspectief_score2008-2014;0.05;0.138
 ;NL11_OvWa_2540-EAG-4_Polder_G;Overige waterflora-kwaliteit;2540-EAG-4;PGM1eBdkngO,stdlijk;0.138;handelingsperspectief_score2015-2017;0.05;0.138
 ;NL11_OvWa_2540-EAG-5_Polder_G;Overige waterflora-kwaliteit;2540-EAG-5;PGM1eBdkngO,Veldwg;0.138;handelingsperspectief_score2015-2017;0.05;0.138
-NL11_7_1;NL11_Botshol;Fytoplankton-kwaliteit  ;2550-EAG-1;Botsholmid;0.6;KRW_2016;;0.8
-NL11_7_1;NL11_Botshol;Macrofauna-kwaliteit ;2550-EAG-1;Botsholmid;0.5;KRW_2016;;0.54
-NL11_7_1;NL11_Botshol;Vis-kwaliteit ;2550-EAG-1;Botsholmid;0.5;KRW_2016;;0.67
-NL11_7_1;NL11_Botshol;Overige waterflora-kwaliteit;2550-EAG-1;Botsholmid;0.558;KRW_2016;;0.69
-NL11_7_1;NL11_Botshol;Vis-kwaliteit ;2550-EAG-2;Botsholmid;0.5;KRW_2016;;0.67
-NL11_7_1;NL11_Botshol;Overige waterflora-kwaliteit;2550-EAG-2;Botsholmid;0.558;KRW_2016;;0.69
-NL11_7_1;NL11_Botshol;Fytoplankton-kwaliteit  ;2550-EAG-2;Botsholmid;0.6;KRW_2016;;0.8
-NL11_7_1;NL11_Botshol;Macrofauna-kwaliteit ;2550-EAG-2;Botsholmid;0.5;KRW_2016;;0.54
 ;NL11_OvWa_2550-EAG-4_Noorderp;Overige waterflora-kwaliteit;2550-EAG-4;Botshol,NdrPW;0.37;handelingsperspectief_score2008-2014;0.1;0.369595238
 ;NL11_OvWa_2550-EAG-5_Noorderp;Overige waterflora-kwaliteit;2550-EAG-5;Botshol,NdrPW;0.37;handelingsperspectief_score2008-2014;0.1;0.369595238
 ;NL11_OvWa_2560-EAG-1_Noorderp;Overige waterflora-kwaliteit;2560-EAG-1;BotsholNellesteinagrarisch;0.471;handelingsperspectief_score2008-2014;0.085;0.47075
 ;NL11_OvWa_2560-EAG-2_Noorderp;Overige waterflora-kwaliteit;2560-EAG-2;BotsholNellesteinNtrGeb;0.471;handelingsperspectief_score2008-2014;0.085;0.47075
 ;NL11_OvWa_2570-EAG-1_Baambrug;Overige waterflora-kwaliteit;2570-EAG-1;BmbrgWzijds,P;0.47;handelingsperspectief_score2008-2014;0.085;0.469509804
 ;NL11_OvWa_2570-EAG-2_Baambrug;Overige waterflora-kwaliteit;2570-EAG-2;BBW,SchrbbrP;0.47;handelingsperspectief_score2008-2014;0.085;0.469509804
-NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-1;PZevhov,bmlgbd;0.6;KRW_2016;;0.41
-NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-1;PZevhov,bmlgbd;0.6;KRW_2016;;0.8
-NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-1;PZevhov,bmlgbd;0.6;KRW_2016;;0.49
-;NL11_OvWa_2600-EAG-2_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-2;PZevhov,OdNwvnswg;0.229;KRW_2016;;0.229
-;NL11_OvWa_2600-EAG-3_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-3;PZevhov,NieuwAms;0.229;KRW_2016;;0.229
 ;NL11_OvWa_2600-EAG-4_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-4;PZevhov,Bloklandsewg;0.229;handelingsperspectief_score2008-2014;0.06;0.229
-NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-5;PZevhov,OdDspJnk;0.6;KRW_2016;;0.41
-NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-5;PZevhov,OdDspJnk;0.6;KRW_2016;;0.8
-NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-5;PZevhov,OdDspJnk;0.6;KRW_2016;;0.49
-NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-6;PZ,Achtwg;0.6;KRW_2016;;0.41
-NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-6;PZ,Achtwg;0.6;KRW_2016;;0.8
-NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-6;PZ,Achtwg;0.6;KRW_2016;;0.49
-NL11_2_4;NL11_VaartenZevenhoven;Macrofauna-kwaliteit ;2600-EAG-8;PZevhov,Ksmltcht;0.6;KRW_2016;;0.41
-NL11_2_4;NL11_VaartenZevenhoven;Vis-kwaliteit ;2600-EAG-8;PZevhov,Ksmltcht;0.6;KRW_2016;;0.8
-NL11_2_4;NL11_VaartenZevenhoven;Overige waterflora-kwaliteit;2600-EAG-8;PZevhov,Ksmltcht;0.6;KRW_2016;;0.49
-;NL11_OvWa_2600-EAG-9_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-9;PZ,GroenJonker;0.229;KRW_2016;;0.229
-;NL11_OvWa_2610-EAG-1_Buitendi;Overige waterflora-kwaliteit;2610-EAG-1;WOB-bmgbd;0.405;KRW_2016;;0.404705882
 ;NL11_OvWa_2610-EAG-1_Buitendi;Overige waterflora-kwaliteit;2610-EAG-1;WOB-bmgbd;0.405;handelingsperspectief_score2008-2014;0.12;0.404705882
-;;Overige waterflora-kwaliteit;2620-EAG-1;VoordijkscheP;0.6;KRW_2016;;0.207304764
 ;NL11_OvWa_2625-EAG-1_Blokland;Overige waterflora-kwaliteit;2625-EAG-1;;0.6;Default GEP;;0.6
 ;NL11_OvWa_2630-EAG-1_Noordse_;Overige waterflora-kwaliteit;2630-EAG-1;NrBrstWvnNseBrt;0.385;handelingsperspectief_score2008-2014;0.1975;0.384583333
 ;NL11_OvWa_2630-EAG-2_Noordse_;Overige waterflora-kwaliteit;2630-EAG-2;NrBrstWvnNsedorp;0.385;handelingsperspectief_score2008-2014;0.1975;0.384583333
-NL11_2_12;NL11_Westveen;Fytoplankton-kwaliteit  ;2630-EAG-3;;0.6;Default GEP;;0.8
-NL11_2_12;NL11_Westveen;Macrofauna-kwaliteit ;2630-EAG-3;;0.6;Default GEP;;0.8
-NL11_2_12;NL11_Westveen;Vis-kwaliteit ;2630-EAG-3;;0.6;Default GEP;;0.8
-NL11_2_12;NL11_Westveen;Overige waterflora-kwaliteit;2630-EAG-3;NrBrstWvnWvn;0.465;handelingsperspectief_score2008-2014;0.1975;0.8
 ;NL11_OvWa_3020-EAG-1_Noorder-;Overige waterflora-kwaliteit;3020-EAG-1;NORlnd;0.6;Default GEP;;0.6
 ;NL11_OvWa_3020-EAG-2_Noorder-;Overige waterflora-kwaliteit;3020-EAG-2;NORKruitfabriekeo;0.6;Default GEP;;0.6
 ;NL11_OvWa_3040-EAG-1_Bloemend;Overige waterflora-kwaliteit;3040-EAG-1;BlmdPN;0.6;Default GEP;;0.6
@@ -242,49 +442,13 @@ NL11_2_12;NL11_Westveen;Overige waterflora-kwaliteit;2630-EAG-3;NrBrstWvnWvn;0.4
 ;NL11_OvWa_3050-EAG-2_Gemeensc;Overige waterflora-kwaliteit;3050-EAG-2;GMsPZO,BlmdPWsp;0.6;Default GEP;;0.6
 ;NL11_OvWa_3070-EAG-1_Holland_;Overige waterflora-kwaliteit;3070-EAG-1;HSVO-Vrbg;0.572;handelingsperspectief_score2008-2014;0.1;0.57167619
 ;NL11_OvWa_3070-EAG-2_Holland_;Overige waterflora-kwaliteit;3070-EAG-2;HSVOEAGz;0.572;handelingsperspectief_score2008-2014;0.1;0.57167619
-NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2016;;0.69
-NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2016;;0.61
-NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2016;;0.66
-NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-1;NdrmrSpookgat;0.6;KRW_2016;;0.7
 ;NL11_OvWa_3100-EAG-10_Naarderm;Overige waterflora-kwaliteit;3100-EAG-10;NdrmrMeerland;0.6;Default GEP;;0.6
-NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2016;;0.69
-NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2016;;0.61
-NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2016;;0.66
-NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-2;NdrmrGrMeerN;0.6;KRW_2016;;0.7
-NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2016;;0.69
-NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2016;;0.61
-NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2016;;0.66
-NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-3;NdrmrGrMeerZO;0.6;KRW_2016;;0.7
-NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-4;Ndrmr40morg;0.6;KRW_2016;;0.69
-NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-4;Ndrmr40morg;0.6;KRW_2016;;0.61
-NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-4;Ndrmr40morg;0.6;KRW_2016;;0.66
-NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-4;Ndrmr40morg;0.6;KRW_2016;;0.7
-NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2016;;0.69
-NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2016;;0.61
-NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2016;;0.66
-NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-5;NdrmrBvnsteBlik;0.6;KRW_2016;;0.7
-NL11_4_1;NL11_Naardermeer;Vis-kwaliteit ;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2016;;0.66
-NL11_4_1;NL11_Naardermeer;Overige waterflora-kwaliteit;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2016;;0.7
-NL11_4_1;NL11_Naardermeer;Fytoplankton-kwaliteit  ;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2016;;0.69
-NL11_4_1;NL11_Naardermeer;Macrofauna-kwaliteit ;3100-EAG-9;NdrmrKwelgbN;0.6;KRW_2016;;0.61
 ;NL11_OvWa_3110-EAG-1_Nieuwe_K;Overige waterflora-kwaliteit;3110-EAG-1;Meerland,LndbwZO;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
 ;NL11_OvWa_3110-EAG-2_Nieuwe_K;Overige waterflora-kwaliteit;3110-EAG-2;Meerland,LndbwZO;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
 ;NL11_OvWa_3110-EAG-3_Nieuwe_K;Overige waterflora-kwaliteit;3110-EAG-3;NKPHilBvMnt,EAGz;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
 ;NL11_OvWa_3110-EAG-4_Nieuwe_K;Overige waterflora-kwaliteit;3110-EAG-4;NKPHilBvMnt,Aalschlvr;0.324;handelingsperspectief_score2015-2017;0.07;0.3235
 ;NL11_OvWa_3110-EAG-5_Nieuwe_K;Overige waterflora-kwaliteit;3110-EAG-5;NKPHilBvMnt,EAGz;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
-NL11_3_6;NL11_Spiegelplas;Fytoplankton-kwaliteit  ;3200-EAG-1;Spiegelplas;0.6;KRW_2016;;0.79
-NL11_3_6;NL11_Spiegelplas;Macrofauna-kwaliteit ;3200-EAG-1;Spiegelplas;0.6;KRW_2016;;0.71
-NL11_3_6;NL11_Spiegelplas;Vis-kwaliteit ;3200-EAG-1;Spiegelplas;0.6;KRW_2016;;0.8
-NL11_3_6;NL11_Spiegelplas;Overige waterflora-kwaliteit;3200-EAG-1;Spiegelplas;0.551;KRW_2016;;0.69
 ;NL11_OvWa_3200-EAG-2_Spiegelp;Overige waterflora-kwaliteit;3200-EAG-2;SpiegelP,Spiegelwg;0.6;WGP_NVP-noord;;0.6
-NL11_6_3;NL11_StichtseAnkeveense;Fytoplankton-kwaliteit  ;3201-EAG-1;SAPN;0.6;KRW_2016;;0.68
-NL11_6_3;NL11_StichtseAnkeveense;Macrofauna-kwaliteit ;3201-EAG-1;SAPN;0.6;KRW_2016;;0.63
-NL11_6_3;NL11_StichtseAnkeveense;Vis-kwaliteit ;3201-EAG-1;SAPN;0.6;KRW_2016;;0.73
-NL11_6_3;NL11_StichtseAnkeveense;Overige waterflora-kwaliteit;3201-EAG-1;SAPN;0.551;KRW_2016;;0.63
-NL11_6_3;NL11_StichtseAnkeveense;Fytoplankton-kwaliteit  ;3201-EAG-2;SAPZ;0.6;KRW_2016;;0.68
-NL11_6_3;NL11_StichtseAnkeveense;Macrofauna-kwaliteit ;3201-EAG-2;SAPZ;0.6;KRW_2016;;0.63
-NL11_6_3;NL11_StichtseAnkeveense;Overige waterflora-kwaliteit;3201-EAG-2;SAPZ;0.551;KRW_2016;;0.63
-NL11_6_3;NL11_StichtseAnkeveense;Vis-kwaliteit ;3201-EAG-2;SAPZ;0.6;KRW_2016;;0.73
 ;NL11_OvWa_3201-EAG-3_Stichtsc;Overige waterflora-kwaliteit;3201-EAG-3;SaPO;0.482;handelingsperspectief_score2008-2014;0.085;0.482035714
 ;NL11_OvWa_3210-EAG-1_Horn-_en;Overige waterflora-kwaliteit;3210-EAG-1;HKPbmlgbd;0.577;handelingsperspectief_score2008-2014;0.15;0.576791667
 ;NL11_OvWa_3210-EAG-2_Horn-_en;Overige waterflora-kwaliteit;3210-EAG-2;HKPgstwdGbd;0.577;handelingsperspectief_score2008-2014;0.15;0.576791667
@@ -295,95 +459,15 @@ NL11_6_3;NL11_StichtseAnkeveense;Vis-kwaliteit ;3201-EAG-2;SAPZ;0.6;KRW_2016;;0.
 ;NL11_OvWa_3220-EAG-4_Horsterm;Overige waterflora-kwaliteit;3220-EAG-4;MuitdkPZ;0.193;handelingsperspectief_score2008-2014;0.05;0.193
 ;NL11_OvWa_3220-EAG-5_Horsterm;Overige waterflora-kwaliteit;3220-EAG-5;MuitdkPN;0.193;handelingsperspectief_score2015-2017;0.05;0.193
 ;NL11_OvWa_3220-EAG-6_Horsterm;Overige waterflora-kwaliteit;3220-EAG-6;HorsSpiegelPZ;0.193;handelingsperspectief_score2008-2014;0.05;0.193
-NL11_6_6;NL11_HetHol;Fytoplankton-kwaliteit  ;3230-EAG-1;PKH,Hol;0.6;KRW_2016;;0.65
-NL11_6_6;NL11_HetHol;Macrofauna-kwaliteit ;3230-EAG-1;PKH,Hol;0.6;KRW_2016;;0.65
-NL11_6_6;NL11_HetHol;Vis-kwaliteit ;3230-EAG-1;PKH,Hol;0.6;KRW_2016;;0.8
-NL11_6_6;NL11_HetHol;Overige waterflora-kwaliteit;3230-EAG-1;PKH,Hol;0.551;KRW_2016;;0.5
-NL11_3_7;NL11_WijdeBlik;Fytoplankton-kwaliteit  ;3230-EAG-2;PKH,WijdeBlik;0.6;KRW_2016;;0.42
-NL11_3_7;NL11_WijdeBlik;Macrofauna-kwaliteit ;3230-EAG-2;PKH,WijdeBlik;0.5;KRW_2016;;0.59
-NL11_3_7;NL11_WijdeBlik;Vis-kwaliteit ;3230-EAG-2;PKH,WijdeBlik;0.512;KRW_2016;;0.78
-NL11_3_7;NL11_WijdeBlik;Overige waterflora-kwaliteit;3230-EAG-2;PKH,WijdeBlik;0.536;KRW_2016;;0.72
-NL11_6_7;NL11_WijdeGat;Fytoplankton-kwaliteit  ;3230-EAG-3;PKhf,WijdeGat;0.6;KRW_2016;;0.55
-NL11_6_7;NL11_WijdeGat;Macrofauna-kwaliteit ;3230-EAG-3;PKhf,WijdeGat;0.6;KRW_2016;;0.53
-NL11_6_7;NL11_WijdeGat;Vis-kwaliteit ;3230-EAG-3;PKhf,WijdeGat;0.6;KRW_2016;;0.7
-NL11_6_7;NL11_WijdeGat;Overige waterflora-kwaliteit;3230-EAG-3;PKhf,WijdeGat;0.551;KRW_2016;;0.44
 ;NL11_OvWa_3230-EAG-4_Polder_K;Overige waterflora-kwaliteit;3230-EAG-4;PKhf;0.408;handelingsperspectief_score2008-2014;0.06;0.40790625
-NL11_6_8;NL11_HilversumsKanaal;Fytoplankton-kwaliteit  ;3230-EAG-5;HilvKanplas/dras;0.6;KRW_2016;;0.48
-NL11_6_8;NL11_HilversumsKanaal;Macrofauna-kwaliteit ;3230-EAG-5;HilvKanplas/dras;0.6;KRW_2016;;0.53
-NL11_6_8;NL11_HilversumsKanaal;Vis-kwaliteit ;3230-EAG-5;HilvKanplas/dras;0.6;KRW_2016;;0.43
-NL11_6_8;NL11_HilversumsKanaal;Overige waterflora-kwaliteit;3230-EAG-5;HilvKanplas/dras;0.551;KRW_2016;;0.25
-NL11_6_8;NL11_HilversumsKanaal;Fytoplankton-kwaliteit  ;3230-EAG-6;HilvKan;0.6;KRW_2016;;0.48
-NL11_6_8;NL11_HilversumsKanaal;Macrofauna-kwaliteit ;3230-EAG-6;HilvKan;0.6;KRW_2016;;0.53
-NL11_6_8;NL11_HilversumsKanaal;Vis-kwaliteit ;3230-EAG-6;HilvKan;0.6;KRW_2016;;0.43
-NL11_6_8;NL11_HilversumsKanaal;Overige waterflora-kwaliteit;3230-EAG-6;HilvKan;0.551;KRW_2016;;0.25
 ;NL11_OvWa_3240-EAG-1_Polder_D;Overige waterflora-kwaliteit;3240-EAG-1;PDorssewrd;0.594;handelingsperspectief_score2008-2014;0.115;0.594
 ;NL11_OvWa_3250-EAG-1_Vreeland;Overige waterflora-kwaliteit;3250-EAG-1;VreelandO;0.6;Default GEP;;0.6
 ;NL11_OvWa_3260-EAG-1_Blijkpol;Overige waterflora-kwaliteit;3260-EAG-1;BlijkP;0.618;handelingsperspectief_score2008-2014;0.075;0.618
-NL11_5_5;NL11_LoosdrechtsePlas1;Fytoplankton-kwaliteit  ;3300-EAG-1;LoosdrechtschePlas;0.6;KRW_2016;;0.47
-NL11_5_5;NL11_LoosdrechtsePlas1;Macrofauna-kwaliteit ;3300-EAG-1;LoosdrechtschePlas;0.588;KRW_2016;;0.52
-NL11_5_5;NL11_LoosdrechtsePlas1;Vis-kwaliteit ;3300-EAG-1;LoosdrechtschePlas;0.548;KRW_2016;;0.41
-NL11_5_5;NL11_LoosdrechtsePlas1;Overige waterflora-kwaliteit;3300-EAG-1;LoosdrechtschePlas;0.551;KRW_2016;;0.41
 ;NL11_OvWa_3300-EAG-12_Muyeveld;Overige waterflora-kwaliteit;3300-EAG-12;DeSter;0.52;handelingsperspectief_score2008-2014;0.055;0.519516667
-NL11_6_1;NL11_SterenZodden;Fytoplankton-kwaliteit  ;3300-EAG-13;;0.6;KRW_2016;;0.38
-NL11_6_1;NL11_SterenZodden;Macrofauna-kwaliteit ;3300-EAG-13;;0.6;KRW_2016;;0.62
-NL11_6_1;NL11_SterenZodden;Vis-kwaliteit ;3300-EAG-13;;0.6;KRW_2016;;0.67
-NL11_6_1;NL11_SterenZodden;Overige waterflora-kwaliteit;3300-EAG-13;;0.550833;KRW_2016;;0.47
-NL11_6_1;NL11_SterenZodden;Fytoplankton-kwaliteit  ;3300-EAG-14;;0.6;KRW_2016;;0.38
-NL11_6_1;NL11_SterenZodden;Macrofauna-kwaliteit ;3300-EAG-14;;0.6;KRW_2016;;0.62
-NL11_6_1;NL11_SterenZodden;Vis-kwaliteit ;3300-EAG-14;;0.6;KRW_2016;;0.67
-NL11_6_1;NL11_SterenZodden;Overige waterflora-kwaliteit;3300-EAG-14;;0.550833;KRW_2016;;0.47
-NL11_6_1;NL11_SterenZodden;Fytoplankton-kwaliteit  ;3300-EAG-15;;0.6;KRW_2016;;0.38
-NL11_6_1;NL11_SterenZodden;Macrofauna-kwaliteit ;3300-EAG-15;;0.6;KRW_2016;;0.62
-NL11_6_1;NL11_SterenZodden;Vis-kwaliteit ;3300-EAG-15;;0.6;KRW_2016;;0.67
-NL11_6_1;NL11_SterenZodden;Overige waterflora-kwaliteit;3300-EAG-15;;0.550833;KRW_2016;;0.47
-NL11_6_1;NL11_SterenZodden;Fytoplankton-kwaliteit  ;3300-EAG-16;;0.6;KRW_2016;;0.38
-NL11_6_1;NL11_SterenZodden;Macrofauna-kwaliteit ;3300-EAG-16;;0.6;KRW_2016;;0.62
-NL11_6_1;NL11_SterenZodden;Vis-kwaliteit ;3300-EAG-16;;0.6;KRW_2016;;0.67
-NL11_6_1;NL11_SterenZodden;Overige waterflora-kwaliteit;3300-EAG-16;;0.550833;KRW_2016;;0.47
-NL11_5_6;NL11_Kievitsbuurt;Fytoplankton-kwaliteit  ;3300-EAG-3;KievitsbuurtN;0.6;KRW_2016;;0.49
-NL11_5_6;NL11_Kievitsbuurt;Macrofauna-kwaliteit ;3300-EAG-3;KievitsbuurtN;0.588;KRW_2016;;0.54
-NL11_5_6;NL11_Kievitsbuurt;Vis-kwaliteit ;3300-EAG-3;KievitsbuurtN;0.548;KRW_2016;;0.51
-NL11_5_6;NL11_Kievitsbuurt;Overige waterflora-kwaliteit;3300-EAG-3;KievitsbuurtN;0.551;KRW_2016;;0.42
-NL11_5_6;NL11_Kievitsbuurt;Fytoplankton-kwaliteit  ;3300-EAG-4;KievitsbuurtZ;0.6;KRW_2016;;0.49
-NL11_5_6;NL11_Kievitsbuurt;Macrofauna-kwaliteit ;3300-EAG-4;KievitsbuurtZ;0.588;KRW_2016;;0.54
-NL11_5_6;NL11_Kievitsbuurt;Vis-kwaliteit ;3300-EAG-4;KievitsbuurtZ;0.548;KRW_2016;;0.51
-NL11_5_6;NL11_Kievitsbuurt;Overige waterflora-kwaliteit;3300-EAG-4;KievitsbuurtZ;0.551;KRW_2016;;0.42
-NL11_5_7;NL11_BreukeleveenschePl;Fytoplankton-kwaliteit  ;3300-EAG-5;BreukelevnschePlas;0.6;KRW_2016;;0.54
-NL11_5_7;NL11_BreukeleveenschePl;Macrofauna-kwaliteit ;3300-EAG-5;BreukelevnschePlas;0.588;KRW_2016;;0.5
-NL11_5_7;NL11_BreukeleveenschePl;Vis-kwaliteit ;3300-EAG-5;BreukelevnschePlas;0.548;KRW_2016;;0.42
-NL11_5_7;NL11_BreukeleveenschePl;Overige waterflora-kwaliteit;3300-EAG-5;BreukelevnschePlas;0.551;KRW_2016;;0.41
-NL11_5_8;NL11_TienhovensePlassen;Fytoplankton-kwaliteit  ;3300-EAG-6;TihovschePlassN;0.6;KRW_2016;;0.74
-NL11_5_8;NL11_TienhovensePlassen;Macrofauna-kwaliteit ;3300-EAG-6;TihovschePlassN;0.588;KRW_2016;;0.66
-NL11_5_8;NL11_TienhovensePlassen;Vis-kwaliteit ;3300-EAG-6;TihovschePlassN;0.548;KRW_2016;;0.71
-NL11_5_8;NL11_TienhovensePlassen;Overige waterflora-kwaliteit;3300-EAG-6;TihovschePlassN;0.551;KRW_2016;;0.55
-NL11_5_8;NL11_TienhovensePlassen;Fytoplankton-kwaliteit  ;3300-EAG-7;TihovschePlassZ;0.6;KRW_2016;;0.74
-NL11_5_8;NL11_TienhovensePlassen;Macrofauna-kwaliteit ;3300-EAG-7;TihovschePlassZ;0.588;KRW_2016;;0.66
-NL11_5_8;NL11_TienhovensePlassen;Vis-kwaliteit ;3300-EAG-7;TihovschePlassZ;0.548;KRW_2016;;0.71
-NL11_5_8;NL11_TienhovensePlassen;Overige waterflora-kwaliteit;3300-EAG-7;TihovschePlassZ;0.551;KRW_2016;;0.55
-NL11_5_9;NL11_Vuntus;Fytoplankton-kwaliteit  ;3300-EAG-8;Vuntus;0.6;KRW_2016;;0.58
-NL11_5_9;NL11_Vuntus;Macrofauna-kwaliteit ;3300-EAG-8;Vuntus;0.588;KRW_2016;;0.64
-NL11_5_9;NL11_Vuntus;Vis-kwaliteit ;3300-EAG-8;Vuntus;0.548;KRW_2016;;0.37
-NL11_5_9;NL11_Vuntus;Overige waterflora-kwaliteit;3300-EAG-8;Vuntus;0.551;KRW_2016;;0.44
-NL11_6_1;NL11_SterenZodden;Fytoplankton-kwaliteit  ;3300-EAG-9;KrommeRade;0.6;KRW_2016;;0.38
-NL11_6_1;NL11_SterenZodden;Macrofauna-kwaliteit ;3300-EAG-9;KrommeRade;0.6;KRW_2016;;0.62
-NL11_6_1;NL11_SterenZodden;Vis-kwaliteit ;3300-EAG-9;KrommeRade;0.6;KRW_2016;;0.67
-NL11_6_1;NL11_SterenZodden;Overige waterflora-kwaliteit;3300-EAG-9;KrommeRade;0.551;KRW_2016;;0.47
 ;NL11_OvWa_3301-EAG-1_Gansenho;Overige waterflora-kwaliteit;3301-EAG-1;GanshoefO;0.475;handelingsperspectief_score2008-2014;0.08;0.47525
 ;NL11_OvWa_3301-EAG-2_Gansenho;Overige waterflora-kwaliteit;3301-EAG-2;GanshoefO,SBB;0.475;handelingsperspectief_score2008-2014;0.0525;0.47525
-NL11_6_9;NL11_OostelijkeBinnenpo;Fytoplankton-kwaliteit  ;3302-EAG-1;OBToverig;0.6;KRW_2016;;0.8
-NL11_6_9;NL11_OostelijkeBinnenpo;Macrofauna-kwaliteit ;3302-EAG-1;OBToverig;0.6;KRW_2016;;0.68
-NL11_6_9;NL11_OostelijkeBinnenpo;Vis-kwaliteit ;3302-EAG-1;OBToverig;0.6;KRW_2016;;0.79
-NL11_6_9;NL11_OostelijkeBinnenpo;Overige waterflora-kwaliteit;3302-EAG-1;;0.543;KRW_2016;;0.58
-NL11_6_9;NL11_OostelijkeBinnenpo;Fytoplankton-kwaliteit  ;3302-EAG-2;OBTpetgat;0.6;KRW_2016;;0.8
-NL11_6_9;NL11_OostelijkeBinnenpo;Macrofauna-kwaliteit ;3302-EAG-2;OBTpetgat;0.6;KRW_2016;;0.68
-NL11_6_9;NL11_OostelijkeBinnenpo;Vis-kwaliteit ;3302-EAG-2;OBTpetgat;0.6;KRW_2016;;0.79
-NL11_6_9;NL11_OostelijkeBinnenpo;Overige waterflora-kwaliteit;3302-EAG-2;OBTpetgat;0.543;KRW_2016;;0.58
 ;NL11_OvWa_3303-EAG-1_Gansenho;Overige waterflora-kwaliteit;3303-EAG-1;GanshoefW;0.6;Default GEP;;0.6
 ;NL11_OvWa_3310-EAG-1_Loenderv;Overige waterflora-kwaliteit;3310-EAG-1;Waterleidingkanaal;0.6;Default GEP;;0.6
-NL11_3_9;NL11_Waterleidingplas;Fytoplankton-kwaliteit  ;3310-EAG-2;Waterleidingplas;0.6;KRW_2016;;0.8
-NL11_3_9;NL11_Waterleidingplas;Macrofauna-kwaliteit ;3310-EAG-2;Waterleidingplas;0.5;KRW_2016;;0.66
-NL11_3_9;NL11_Waterleidingplas;Vis-kwaliteit ;3310-EAG-2;Waterleidingplas;0.556;KRW_2016;;0.74
-NL11_3_9;NL11_Waterleidingplas;Overige waterflora-kwaliteit;3310-EAG-2;Waterleidingplas;0.53;KRW_2016;;0.66
 ;NL11_OvWa_3311-EAG-1_Bethunep;Overige waterflora-kwaliteit;3311-EAG-1;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
 ;NL11_OvWa_3311-EAG-10_Bethunep;Overige waterflora-kwaliteit;3311-EAG-10;;0.453;Default GEP;0.215;0.453333333
 ;NL11_OvWa_3311-EAG-2_Bethunep;Overige waterflora-kwaliteit;3311-EAG-2;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
@@ -393,54 +477,14 @@ NL11_3_9;NL11_Waterleidingplas;Overige waterflora-kwaliteit;3310-EAG-2;Waterleid
 ;NL11_OvWa_3311-EAG-7_Bethunep;Overige waterflora-kwaliteit;3311-EAG-7;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
 ;NL11_OvWa_3311-EAG-8_Bethunep;Overige waterflora-kwaliteit;3311-EAG-8;;0.453;Default GEP;0.215;0.453333333
 ;NL11_OvWa_3311-EAG-9_Bethunep;Overige waterflora-kwaliteit;3311-EAG-9;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
-NL11_5_4;NL11_TerraNova;Fytoplankton-kwaliteit  ;3320-EAG-1;TerraNovalndN;0.6;KRW_2016;;0.8
-NL11_5_4;NL11_TerraNova;Macrofauna-kwaliteit ;3320-EAG-1;TerraNovalndN;0.5;KRW_2016;;0.57
-NL11_5_4;NL11_TerraNova;Vis-kwaliteit ;3320-EAG-1;TerraNovalndN;0.416;KRW_2016;;0.64
-NL11_5_4;NL11_TerraNova;Overige waterflora-kwaliteit;3320-EAG-1;TerraNovalndN;0.551;KRW_2016;;0.53
-NL11_5_4;NL11_TerraNova;Fytoplankton-kwaliteit  ;3320-EAG-2;TerraNova;0.6;KRW_2016;;0.8
-NL11_5_4;NL11_TerraNova;Macrofauna-kwaliteit ;3320-EAG-2;TerraNova;0.5;KRW_2016;;0.57
-NL11_5_4;NL11_TerraNova;Vis-kwaliteit ;3320-EAG-2;TerraNova;0.416;KRW_2016;;0.64
-NL11_5_4;NL11_TerraNova;Overige waterflora-kwaliteit;3320-EAG-2;TerraNova;0.551;KRW_2016;;0.53
 ;NL11_OvWa_3320-EAG-3_Loenderv;Overige waterflora-kwaliteit;3320-EAG-3;TerraNovalndZ;0.357;handelingsperspectief_score2008-2014;0.065;0.3571
-NL11_5_3;NL11_LoenderveenOost;Fytoplankton-kwaliteit  ;3320-EAG-4;LoendervnschePlas;0.6;KRW_2016;;0.62
-NL11_5_3;NL11_LoenderveenOost;Macrofauna-kwaliteit ;3320-EAG-4;LoendervnschePlas;0.5;KRW_2016;;0.53
-NL11_5_3;NL11_LoenderveenOost;Vis-kwaliteit ;3320-EAG-4;LoendervnschePlas;0.586;KRW_2016;;0.8
-NL11_5_3;NL11_LoenderveenOost;Overige waterflora-kwaliteit;3320-EAG-4;LoendervnschePlas;0.506;KRW_2016;;0.39
 ;NL11_OvWa_3340-EAG-1_Polder_M;Overige waterflora-kwaliteit;3340-EAG-1;PMijndW;0.476;handelingsperspectief_score2008-2014;0.06;0.476333333
 ;NL11_OvWa_3340-EAG-2_Polder_M;Overige waterflora-kwaliteit;3340-EAG-2;PMijndO;0.476;handelingsperspectief_score2008-2014;0.15;0.476333333
 ;NL11_OvWa_3340-EAG-3_Polder_M;Overige waterflora-kwaliteit;3340-EAG-3;PMijnd,SBB;0.476;handelingsperspectief_score2008-2014;0.11;0.476333333
 ;NL11_OvWa_3350-EAG-1_Polder_B;Overige waterflora-kwaliteit;3350-EAG-1;PbrPrdijbmlgbd;0.419;handelingsperspectief_score2008-2014;0.08;0.419111111
 ;NL11_OvWa_3350-EAG-2_Polder_B;Overige waterflora-kwaliteit;3350-EAG-2;PbrPrdijBrngdelnd;0.419;handelingsperspectief_score2008-2014;0.08;0.419111111
 ;NL11_OvWa_3360-EAG-1_Polder_M;Overige waterflora-kwaliteit;3360-EAG-1;PMWBAgrarischMolP;0.6;Default GEP;;0.6
-NL11_6_10;NL11_MaarsseveenseZodde;Fytoplankton-kwaliteit  ;3360-EAG-10;PMWBMrsvnsZodd;0.6;KRW_2016;;0.61
-NL11_6_10;NL11_MaarsseveenseZodde;Macrofauna-kwaliteit ;3360-EAG-10;PMWBMrsvnsZodd;0.6;KRW_2016;;0.65
-NL11_6_10;NL11_MaarsseveenseZodde;Vis-kwaliteit ;3360-EAG-10;PMWBMrsvnsZodd;0.6;KRW_2016;;0.74
-NL11_6_10;NL11_MaarsseveenseZodde;Overige waterflora-kwaliteit;3360-EAG-10;PMWBMrsvnsZodd;0.543;KRW_2016;;0.44
-NL11_3_8;NL11_GroteMaarsseveense;Fytoplankton-kwaliteit  ;3360-EAG-11;GrMrsvnsPlas;0.6;KRW_2016;;0.8
-NL11_3_8;NL11_GroteMaarsseveense;Macrofauna-kwaliteit ;3360-EAG-11;GrMrsvnsPlas;0.532;KRW_2016;;0.49
-NL11_3_8;NL11_GroteMaarsseveense;Vis-kwaliteit ;3360-EAG-11;GrMrsvnsPlas;0.6;KRW_2016;;0.74
-NL11_3_8;NL11_GroteMaarsseveense;Overige waterflora-kwaliteit;3360-EAG-11;GrMrsvnsPlas;0.535;KRW_2016;;0.55
-NL11_6_10;NL11_MaarsseveenseZodde;Fytoplankton-kwaliteit  ;3360-EAG-13;PMWBKleinMolP;0.6;KRW_2016;;0.61
-NL11_6_10;NL11_MaarsseveenseZodde;Macrofauna-kwaliteit ;3360-EAG-13;PMWBKleinMolP;0.6;KRW_2016;;0.65
-NL11_6_10;NL11_MaarsseveenseZodde;Vis-kwaliteit ;3360-EAG-13;PMWBKleinMolP;0.6;KRW_2016;;0.74
-NL11_6_10;NL11_MaarsseveenseZodde;Overige waterflora-kwaliteit;3360-EAG-13;PMWBKleinMolP;0.543;KRW_2016;;0.44
-NL11_6_10;NL11_MaarsseveenseZodde;Fytoplankton-kwaliteit  ;3360-EAG-14;PMWBTrtpntZodd;0.6;KRW_2016;;0.61
-NL11_6_10;NL11_MaarsseveenseZodde;Macrofauna-kwaliteit ;3360-EAG-14;PMWBTrtpntZodd;0.6;KRW_2016;;0.65
-NL11_6_10;NL11_MaarsseveenseZodde;Vis-kwaliteit ;3360-EAG-14;PMWBTrtpntZodd;0.6;KRW_2016;;0.74
-NL11_6_10;NL11_MaarsseveenseZodde;Overige waterflora-kwaliteit;3360-EAG-14;PMWBTrtpntZodd;0.543;KRW_2016;;0.44
-NL11_6_11;NL11_MolenpolderenWest;Fytoplankton-kwaliteit  ;3360-EAG-16;PMWMolPNtr;0.6;KRW_2016;;0.8
-NL11_6_11;NL11_MolenpolderenWest;Macrofauna-kwaliteit ;3360-EAG-16;PMWMolPNtr;0.6;KRW_2016;;0.6
-NL11_6_11;NL11_MolenpolderenWest;Vis-kwaliteit ;3360-EAG-16;PMWMolPNtr;0.6;KRW_2016;;0.8
-NL11_6_11;NL11_MolenpolderenWest;Overige waterflora-kwaliteit;3360-EAG-16;PMWMolPNtr;0.543;KRW_2016;;0.45
-NL11_6_11;NL11_MolenpolderenWest;Fytoplankton-kwaliteit  ;3360-EAG-17;PMWBWbroekseZodd;0.6;KRW_2016;;0.8
-NL11_6_11;NL11_MolenpolderenWest;Macrofauna-kwaliteit ;3360-EAG-17;PMWBWbroekseZodd;0.6;KRW_2016;;0.6
-NL11_6_11;NL11_MolenpolderenWest;Vis-kwaliteit ;3360-EAG-17;PMWBWbroekseZodd;0.6;KRW_2016;;0.8
-NL11_6_11;NL11_MolenpolderenWest;Overige waterflora-kwaliteit;3360-EAG-17;PMWBWbroekseZodd;0.543;KRW_2016;;0.45
 ;NL11_OvWa_3360-EAG-18_Polder_M;Overige waterflora-kwaliteit;3360-EAG-18;PMWBPhetHuisteHart;0.6;Default GEP;;0.6
-NL11_6_9;NL11_OostelijkeBinnenpo;Fytoplankton-kwaliteit  ;3360-EAG-19;;0.6;KRW_2016;;0.8
-NL11_6_9;NL11_OostelijkeBinnenpo;Macrofauna-kwaliteit ;3360-EAG-19;;0.6;KRW_2016;;0.68
-NL11_6_9;NL11_OostelijkeBinnenpo;Vis-kwaliteit ;3360-EAG-19;;0.6;KRW_2016;;0.79
-NL11_6_9;NL11_OostelijkeBinnenpo;Overige waterflora-kwaliteit;3360-EAG-19;;0.543;KRW_2016;;0.58
 ;NL11_OvWa_3360-EAG-2_Polder_M;Overige waterflora-kwaliteit;3360-EAG-2;PMWBPBuitwg;0.6;Default GEP;;0.6
 ;NL11_OvWa_3360-EAG-3_Polder_M;Overige waterflora-kwaliteit;3360-EAG-3;PMWBZogwtrng;0.6;Default GEP;;0.6
 ;NL11_OvWa_3360-EAG-4_Polder_M;Overige waterflora-kwaliteit;3360-EAG-4;PMWBWilgplas;0.6;Default GEP;;0.6
@@ -454,30 +498,6 @@ NL11_6_9;NL11_OostelijkeBinnenpo;Overige waterflora-kwaliteit;3360-EAG-19;;0.543
 ;NL11_OvWa_3370-EAG-3_Polder_A;Overige waterflora-kwaliteit;3370-EAG-3;PAHKerkeindseP;0.574;handelingsperspectief_score2008-2014;0.0775;0.5738
 ;NL11_OvWa_3370-EAG-4_Polder_A;Overige waterflora-kwaliteit;3370-EAG-4;PAHHetAchteraf;0.574;handelingsperspectief_score2008-2014;0.0775;0.5738
 ;NL11_OvWa_3370-EAG-5_Polder_A;Overige waterflora-kwaliteit;3370-EAG-5;PAHKorssesteeg;0.574;Default GEP;;0.5738
-NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2016;;0.49
-NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-1;s-GravelandscheVrt;0.6;KRW_2016;;0.48
-NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-3;Karnemelksloot;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-3;Karnemelksloot;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-3;Karnemelksloot;0.6;KRW_2016;;0.49
-NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-3;Karnemelksloot;0.6;KRW_2016;;0.48
-NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-4;NaardertrekVrt;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-4;NaardertrekVrt;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-4;NaardertrekVrt;0.6;KRW_2016;;0.49
-NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-4;NaardertrekVrt;0.6;KRW_2016;;0.48
-NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-6;VestingNaard;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-6;VestingNaard;0.6;KRW_2016;;0.49
-NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-6;VestingNaard;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-6;VestingNaard;0.6;KRW_2016;;0.48
-NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-7;Naard-Bussum;0.6;KRW_2016;;0.49
-NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-7;Naard-Bussum;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-7;Naard-Bussum;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-7;Naard-Bussum;0.6;KRW_2016;;0.48
-NL11_2_2;NL11_VaartenVechtstreek;Fytoplankton-kwaliteit  ;4000-EAG-8;ZanderijVrt;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Vis-kwaliteit ;4000-EAG-8;ZanderijVrt;0.6;KRW_2016;;0.49
-NL11_2_2;NL11_VaartenVechtstreek;Macrofauna-kwaliteit ;4000-EAG-8;ZanderijVrt;0.6;KRW_2016;;0.55
-NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-8;ZanderijVrt;0.6;KRW_2016;;0.48
 ;NL11_OvWa_4100-EAG-1_Noordpol;Overige waterflora-kwaliteit;4100-EAG-1;NPbeOMuid,bemal;0.519;handelingsperspectief_score2008-2014;0.19;0.519333333
 ;NL11_OvWa_4100-EAG-2_Noordpol;Overige waterflora-kwaliteit;4100-EAG-2;NPbeOMuid,N;0.519;handelingsperspectief_score2008-2014;0.19;0.519333333
 ;NL11_OvWa_4110-EAG-1_B.O.B.M.;Overige waterflora-kwaliteit;4110-EAG-1;BOBMbemal;0.586;handelingsperspectief_score2008-2014;0.15;0.585666667
@@ -493,23 +513,7 @@ NL11_2_2;NL11_VaartenVechtstreek;Overige waterflora-kwaliteit;4000-EAG-8;Zanderi
 ;NL11_OvWa_4200-EAG-1_Heintjes;Overige waterflora-kwaliteit;4200-EAG-1;HBP,faunapas;0.451;handelingsperspectief_score2008-2014;0.11;0.451166667
 ;NL11_OvWa_4200-EAG-2_Heintjes;Overige waterflora-kwaliteit;4200-EAG-2;BroekerP;0.451;handelingsperspectief_score2008-2014;0.11;0.451166667
 ;NL11_OvWa_4200-EAG-3_Heintjes;Overige waterflora-kwaliteit;4200-EAG-3;HeintjesrakP;0.451;handelingsperspectief_score2008-2014;0.11;0.451166667
-NL11_6_2;NL11_HollandsAnkeveense;Fytoplankton-kwaliteit  ;4210-EAG-1;HAPbemal;0.6;KRW_2016;;0.8
-NL11_6_2;NL11_HollandsAnkeveense;Macrofauna-kwaliteit ;4210-EAG-1;HAPbemal;0.6;KRW_2016;;0.57
-NL11_6_2;NL11_HollandsAnkeveense;Vis-kwaliteit ;4210-EAG-1;HAPbemal;0.6;KRW_2016;;0.7
-NL11_6_2;NL11_HollandsAnkeveense;Overige waterflora-kwaliteit;4210-EAG-1;HAPbemal;0.551;KRW_2016;;0.75
-NL11_6_2;NL11_HollandsAnkeveense;Fytoplankton-kwaliteit  ;4210-EAG-2;HAPN;0.6;KRW_2016;;0.8
-NL11_6_2;NL11_HollandsAnkeveense;Macrofauna-kwaliteit ;4210-EAG-2;HAPN;0.6;KRW_2016;;0.57
-NL11_6_2;NL11_HollandsAnkeveense;Vis-kwaliteit ;4210-EAG-2;HAPN;0.6;KRW_2016;;0.7
-NL11_6_2;NL11_HollandsAnkeveense;Overige waterflora-kwaliteit;4210-EAG-2;HAPN;0.551;KRW_2016;;0.75
-NL11_6_2;NL11_HollandsAnkeveense;Fytoplankton-kwaliteit  ;4210-EAG-3;HAPZ;0.6;KRW_2016;;0.8
-NL11_6_2;NL11_HollandsAnkeveense;Macrofauna-kwaliteit ;4210-EAG-3;HAPZ;0.6;KRW_2016;;0.57
-NL11_6_2;NL11_HollandsAnkeveense;Vis-kwaliteit ;4210-EAG-3;HAPZ;0.6;KRW_2016;;0.7
-NL11_6_2;NL11_HollandsAnkeveense;Overige waterflora-kwaliteit;4210-EAG-3;HAPZ;0.551;KRW_2016;;0.75
 ;NL11_OvWa_4210-EAG-4_Hollands;Overige waterflora-kwaliteit;4210-EAG-4;HaPO;0.7;WGP_NVP-noord;0.0525;0.7
-NL11_6_2;NL11_HollandsAnkeveense;Fytoplankton-kwaliteit  ;4210-EAG-5;HAPO;0.6;KRW_2016;;0.8
-NL11_6_2;NL11_HollandsAnkeveense;Macrofauna-kwaliteit ;4210-EAG-5;HAPO;0.6;KRW_2016;;0.57
-NL11_6_2;NL11_HollandsAnkeveense;Vis-kwaliteit ;4210-EAG-5;HAPO;0.6;KRW_2016;;0.7
-NL11_6_2;NL11_HollandsAnkeveense;Overige waterflora-kwaliteit;4210-EAG-5;HAPO;0.551;KRW_2016;;0.75
 ;NL11_OvWa_4230-EAG-1_Hilversu;Overige waterflora-kwaliteit;4230-EAG-1;Hilvsmsmnt;0.575;handelingsperspectief_score2008-2014;0.16;0.575151515
 ;NL11_OvWa_4230-EAG-1_Hilversu;Overige waterflora-kwaliteit;4230-EAG-1;;0.575;Default GEP;;0.575151515
 ;NL11_OvWa_4240-EAG-1_Hilversu;Overige waterflora-kwaliteit;4240-EAG-1;;0.6;Default GEP;;0.6
@@ -519,10 +523,6 @@ NL11_6_2;NL11_HollandsAnkeveense;Overige waterflora-kwaliteit;4210-EAG-5;HAPO;0.
 ;NL11_OvWa_6050-EAG-1_Krasseur;Overige waterflora-kwaliteit;6050-EAG-1;Krasseurstr,Krasseurstr;0.6;Default GEP;;0.6
 ;NL11_OvWa_6060-EAG-1_W.H._Vli;Overige waterflora-kwaliteit;6060-EAG-1;Vliegbos;0.6;Default GEP;;0.6
 ;NL11_OvWa_6080-EAG-1_Polder_B;Overige waterflora-kwaliteit;6080-EAG-1;PBernard;0.6;Default GEP;;0.6
-NL11_7_2;NL11_NoorderIJplas;Fytoplankton-kwaliteit  ;6100-EAG-1;NdrIJplas;0.6;KRW_2016;;0.7
-NL11_7_2;NL11_NoorderIJplas;Macrofauna-kwaliteit ;6100-EAG-1;NdrIJplas;0.5;KRW_2016;;0.59
-NL11_7_2;NL11_NoorderIJplas;Vis-kwaliteit ;6100-EAG-1;NdrIJplas;0.5;KRW_2016;;0.67
-NL11_7_2;NL11_NoorderIJplas;Overige waterflora-kwaliteit;6100-EAG-1;NdrIJplas;0.501;KRW_2016;;0.65
 ;NL11_OvWa_6100-EAG-2_Noorder_;Overige waterflora-kwaliteit;6100-EAG-2;NdrIJplas;0.6;Default GEP;;0.6
 ;NL11_OvWa_6110-EAG-1_Noorder_;Overige waterflora-kwaliteit;6110-EAG-1;NdrIJP;0.6;Default GEP;;0.6
 ;NL11_OvWa_6400-EAG-1_Watergra;Overige waterflora-kwaliteit;6400-EAG-1;Wtgfsmr,Z;0.6;Default GEP;;0.6
@@ -579,10 +579,6 @@ NL11_7_2;NL11_NoorderIJplas;Overige waterflora-kwaliteit;6100-EAG-1;NdrIJplas;0.
 ;NL11_OvWa_8050-EAG-2_Lutkemee;Overige waterflora-kwaliteit;8050-EAG-2;LutkemeerP,P;0.278;handelingsperspectief_score2008-2014;0.12;0.277583333
 ;NL11_OvWa_8050-EAG-3_Lutkemee;Overige waterflora-kwaliteit;8050-EAG-3;LutkemeerP,NtrGeb;0.278;handelingsperspectief_score2015-2017;0.12;0.277583333
 ;NL11_OvWa_8060-EAG-1_Middelve;Overige waterflora-kwaliteit;8060-EAG-1;MAP,P;0.379;handelingsperspectief_score2008-2014;0.05;0.3785
-NL11_3_1;NL11_Sloterplas;Fytoplankton-kwaliteit  ;8070-EAG-1;Sloterplas;0.6;KRW_2016;;0.71
-NL11_3_1;NL11_Sloterplas;Macrofauna-kwaliteit ;8070-EAG-1;Sloterplas;0.5;KRW_2016;;0.54
-NL11_3_1;NL11_Sloterplas;Vis-kwaliteit ;8070-EAG-1;Sloterplas;0.511;KRW_2016;;0.8
-NL11_3_1;NL11_Sloterplas;Overige waterflora-kwaliteit;8070-EAG-1;Sloterplas;0.537;KRW_2016;;0.55
 ;NL11_OvWa_8070-EAG-2_Sloterbi;Overige waterflora-kwaliteit;8070-EAG-2;GecombineerdePs;0.219;handelingsperspectief_score2008-2014;0.03;0.218785714
 ;NL11_OvWa_8070-EAG-3_Sloterbi;Overige waterflora-kwaliteit;8070-EAG-3;;0.219;Default GEP;;0.218785714
 ;NL11_OvWa_8080-EAG-1_Riekerpo;Overige waterflora-kwaliteit;8080-EAG-1;RiekerP,Wielerbaan;0.217;handelingsperspectief_score2008-2014;0.07;0.217
@@ -594,15 +590,14 @@ NL11_3_1;NL11_Sloterplas;Overige waterflora-kwaliteit;8070-EAG-1;Sloterplas;0.53
 ;NL11_OvWa_9020-EAG-1_Florapar;Overige waterflora-kwaliteit;9020-EAG-1;FloraprkN;0.6;Default GEP;;0.6
 ;NL11_OvWa_9030-EAG-1_Florapar;Overige waterflora-kwaliteit;9030-EAG-1;FloraprkZ;0.6;Default GEP;;0.6
 ;NL11_OvWa_9040-EAG-1_Buikslot;Overige waterflora-kwaliteit;9040-EAG-1;Buiksloterwg;0.6;Default GEP;;0.6
-NL11_1_2;NL11_Vecht;Overige waterflora-kwaliteit;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2016;;0.38
-NL11_1_2;NL11_Vecht;Overige waterflora-kwaliteit;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2016;;0.38
-NL11_1_2;NL11_Vecht;Overige waterflora-kwaliteit;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2016;;0.38
-NL11_1_2;NL11_Vecht;Fytoplankton-kwaliteit  ;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2016;;0.76
-NL11_1_2;NL11_Vecht;Fytoplankton-kwaliteit  ;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2016;;0.76
-NL11_1_2;NL11_Vecht;Fytoplankton-kwaliteit  ;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2016;;0.76
-NL11_1_2;NL11_Vecht;Macrofauna-kwaliteit ;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2016;;0.66
-NL11_1_2;NL11_Vecht;Macrofauna-kwaliteit ;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2016;;0.66
-NL11_1_2;NL11_Vecht;Macrofauna-kwaliteit ;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2016;;0.66
-NL11_1_2;NL11_Vecht;Vis-kwaliteit ;3000-EAG-2;Vechtboezem, Vecht van Muiden tot Nigtevecht;0.6;KRW_2016;;0.75
-NL11_1_2;NL11_Vecht;Vis-kwaliteit ;3000-EAG-3;Vechtboezem, Vecht van Nigtevecht tot Maarssen;0.6;KRW_2016;;0.75
-NL11_1_2;NL11_Vecht;Vis-kwaliteit ;3000-EAG-4;Vechtboezem, Vecht van Maarssen tot Utrecht;0.6;KRW_2016;;0.75
+;;Overige waterflora-kwaliteit;2501-EAG-3;;0.6;KRW_2021;;0.516034188
+;;Fytoplankton-kwaliteit  ;2501-EAG-3;;0.6;KRW_2021;;0.516034188
+;;Macrofauna-kwaliteit ;2501-EAG-3;;0.6;KRW_2021;;0.516034188
+;;Vis-kwaliteit ;2501-EAG-3;;0.6;KRW_2021;;0.516034188
+;;Overige waterflora-kwaliteit;2510-EAG-4;;0.6;KRW_2021;;0.516034188
+;;Overige waterflora-kwaliteit;2510-EAG-5;;0.6;KRW_2021;;0.516034188
+;NL11_OvWa_2600-EAG-2_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-2;PZevhov,OdNwvnswg;0.229;KRW_2021;;0.229
+;NL11_OvWa_2600-EAG-3_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-3;PZevhov,NieuwAms;0.229;KRW_2021;;0.229
+;NL11_OvWa_2600-EAG-9_Polder_Z;Overige waterflora-kwaliteit;2600-EAG-9;PZ,GroenJonker;0.229;KRW_2021;;0.229
+;NL11_OvWa_2610-EAG-1_Buitendi;Overige waterflora-kwaliteit;2610-EAG-1;WOB-bmgbd;0.405;KRW_2021;;0.404705882
+;;Overige waterflora-kwaliteit;2620-EAG-1;VoordijkscheP;0.6;KRW_2021;;0.207304764

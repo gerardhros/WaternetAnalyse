@@ -53,7 +53,8 @@ eah_m2 <- if(!out$d3$facet_wrap_code %in% "Macrofauna"){
                   paste0("De slechts scorende indicator van deze deelmaatlat is ", out$d3_deelptn$GHPR[1],".")}} else {NULL}
 eah_m3 <- if(!is.na(out$waterlichamenwl$Toestand)){gsub('µ','micro',out$waterlichamenwl$Toestand,fixed = TRUE)} else {NULL}
 eah_m4 <- if(!is.na(out$waterlichamenwl$Trend)){gsub('µ','micro',out$waterlichamenwl$Trend,fixed = TRUE)} else {NULL}
-eah_message <- paste(eah_m1,eah_m2,eah_m3,eah_m4)
+eah_m5 <- if(!is.na(out$waterlichamenwl$TrendChemie)){gsub('µ','micro',out$waterlichamenwl$TrendChemie,fixed = TRUE)} else {NULL}
+eah_message <- paste(eah_m1,eah_m2,eah_m3,eah_m4,eah_m5)
 
 # prepare ESF tabel 
 pESFtab <- out$ESFtab[,c('OORDEEL','oms_latex','piclatex')]
@@ -171,7 +172,7 @@ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtyp
   }
 
    % add frame for Ecologische Analyse op hoofdlijnen
-  \posterbox[adjusted title=Ecologische Analyse op Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
+  \posterbox[adjusted title=Ecologische analyse op Hoofdlijnen]{name=analyse,column=1,span=8,between=fig1 and esf}{
   
   % reduce size of the font
   \fontsize{9}{10.8}\selectfont
