@@ -464,7 +464,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen2[,ESFoordeel := OORDEEL]
     maatregelen2[,ESFoordeel_latex := piclatex]
     maatregelen2[is.na(ESFoordeel), ESFoordeel := '![esficon](esf/9grijsnummer.jpg ){width=50px}']
-    maatregelen2[is.na(ESFoordeel), ESFoordeel_latex := 'esf/9grijsnummer.jpg']
+    #maatregelen2[is.na(ESFoordeel), ESFoordeel_latex := 'esf/9grijsnummer.jpg']
     maatregelen2 <- maatregelen2[,mget(cols)] 
     
     # sorteer met oplopend jaar en ESF
