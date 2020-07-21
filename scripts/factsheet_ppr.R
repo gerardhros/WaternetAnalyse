@@ -261,7 +261,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     bboxEAG <- st_bbox(gEAG)
     
     # create map
-    mapEAG <- ggplot() +
+    mapEAG <- ggplot2::ggplot() +
       geom_sf(data = waterschappen, color = 'white',fill="white", size = 1) +
       geom_sf(data = gEAG,
               color = 'grey25', fill = "white", size = 0.2) +
@@ -295,7 +295,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     bboxEAG <- st_bbox(gEAG_sel)
     
     # create map
-    mapDEELGEBIED <-ggplot() +
+    mapDEELGEBIED <-ggplot2::ggplot() +
       geom_sf(data = waterschappen, color = 'white',fill="white", size = 1) +
       geom_sf(data = gEAG, color = 'grey25', fill = "white", size = 0.2) +
       geom_sf(data = waterpereag_sel,color = NA, fill = '#3498DB') +
@@ -427,7 +427,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     m_gauges[,label := paste0(round(percentage*100),'%')]
     m_gauges[,group := fifelse(percentage < 0.4,'red',fifelse(percentage < 0.8,'orange','green'))]
     
-    mapGauge <- ggplot(m_gauges, aes(fill = group, ymax = percentage, ymin = 0, xmax = 2, xmin = 1)) +
+    mapGauge <- ggplot2::ggplot(m_gauges, aes(fill = group, ymax = percentage, ymin = 0, xmax = 2, xmin = 1)) +
                   geom_rect(aes(ymax=1, ymin=0, xmax=2, xmin=1), fill ="gray85") +
                   geom_rect() + 
                   coord_polar(theta = "y",start=-pi/2) + xlim(c(0, 2)) + ylim(c(0,2)) +
@@ -452,7 +452,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen1[,Initiatiefnemer := Initiatiefnemer.naam]
     maatregelen1[,BeoogdInitiatiefnemer := Initiatiefnemer.waternet]
     maatregelen1[,esffrst := substr(esf,1,4)]
-    maatregelen1[nchar(esffrst)==0, esffrst := "NVT"]
+    maatregelen1[nchar(esffrst)==0, esffrst := NA]
     
     # join measures with ESF-tabel
     cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer',
@@ -464,7 +464,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     maatregelen2[,ESFoordeel := OORDEEL]
     maatregelen2[,ESFoordeel_latex := piclatex]
     maatregelen2[is.na(ESFoordeel), ESFoordeel := '![esficon](esf/9grijsnummer.jpg ){width=50px}']
-    maatregelen2[,ESFoordeel_latex := 'esf/9grijsnummer.jpg']
+    maatregelen2[is.na(ESFoordeel), ESFoordeel_latex := 'esf/9grijsnummer.jpg']
     maatregelen2 <- maatregelen2[,mget(cols)] 
     
     # sorteer met oplopend jaar en ESF
