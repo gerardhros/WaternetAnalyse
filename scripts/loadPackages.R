@@ -1,7 +1,7 @@
-# Load packages 
+# Load packages
 
 # nodig voor xlsx package
-options(java.parameters = "-Xmx36000m") 
+options(java.parameters = "-Xmx36000m")
 
 # function to check whether package is installed
 packages <- function(x){

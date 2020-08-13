@@ -244,7 +244,7 @@ include_graphics(out$plotWaterbodem)
 ```{r ekrtijd, echo= FALSE, warning = FALSE, message = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
 if(outputF == "html"){  
   plotly::ggplotly(out$plotEKRlijn)%>%
-    plotly::layout(legendgroup='GHPR', showlegend = T, legend = list(font = list(size = 9)))
+    plotly::layout(showlegend = T, legend = list(font = list(size = 9)))
 }
 if(outputF == "word"){
     out$plotEKRlijn
