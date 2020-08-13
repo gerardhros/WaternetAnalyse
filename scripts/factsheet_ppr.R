@@ -458,6 +458,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer',
               'Gebiedspartner','UitvoeringIn',"afweging")
     maatregelen2 <- merge.data.table(ESFtab, maatregelen1[,mget(cols)],by.x = 'esf', by.y = 'esffrst', all.y = T)
+    maatregelen2 <- maatregelen2[!maatregelen2$SGBPPeriode %in% c('Niet uitvoeren','Niet opnemen in SGBP3'),]
 
     # als meerdere esf aan een maatregel gekoppeld zijn dan wordt de eerste geselecteerd
     cols <- c('ESFoordeel','ESFoordeel_latex','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')

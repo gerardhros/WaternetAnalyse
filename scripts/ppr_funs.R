@@ -49,16 +49,16 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
 
 ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
 
-  if(!is.null(ovwatset)){
-  # correctie toetsresultaten van KRW waterlichamen weg uit de set van overig water obv EAG
-  # er zitten foutieve watertypen in de bronbestanden, dit heb ik nog niet opgelost
-  tomatch <- unique(krwset$EAG) ; tomatch <- tomatch[!is.na(tomatch)]
-  pattern <- paste(tomatch, collapse = "|")
-  ovwatset <- ovwatset[!grepl(pattern, ovwatset$HoortBijGeoobject.identificatie),]
-  # correctie meetlocaties eruit die niet meer in een HoortbijGEO EAG liggen omdat EAG herbegrensd zijn of locatie verlegd
-  # extract EAG uit hoortbij, match EAGIDENT en extract, delete nomatch
-  ovwatset <- ovwatset[!mapply(grepl, ovwatset$EAGIDENT,  ovwatset$HoortBijGeoobject.identificatie, fixed = F) == 0,]
-  }
+  # if(!is.null(ovwatset) & !is.null(krwset)){
+  # # correctie toetsresultaten van KRW waterlichamen weg uit de set van overig water obv EAG, nieuwe gegegevens 2020 juli lijkt de overlap vooral fout te zitten in KRW set
+  # # er zitten foutieve watertypen in de bronbestanden, dit heb ik nog niet opgelost
+  # tomatch <- unique(krwset$EAG) ; tomatch <- tomatch[!is.na(tomatch)]
+  # pattern <- paste(tomatch, collapse = "|")
+  # ovwatset <- ovwatset[!grepl(pattern, ovwatset$EAGIDENT, fixed =F),]
+  # # correctie meetlocaties eruit die niet meer in een HoortbijGEO EAG liggen omdat EAG herbegrensd zijn of locatie verlegd
+  # # extract EAG uit hoortbij, match EAGIDENT en extract, delete nomatch
+  # ovwatset <- ovwatset[!mapply(grepl, ovwatset$EAGIDENT,  ovwatset$HoortBijGeoobject.identificatie, fixed = F) == 0,]
+  # }
 
   # combine both EKR from KRW and overig water into one data.table
   db <- data.table::rbindlist(list(krwset,ovwatset), fill=TRUE)
@@ -94,19 +94,19 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   # merge with doelen
   db <- merge(db, doelgeb, by = c('HoortBijGeoobject.identificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
 
-  # add namen per waterlichaam en eag
-  db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2)
+  # add namen per eag
   d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
               by.y = c('GAFIDENT'), all.x = TRUE)
+  # koppel op WL naam
   eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
   eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
   d4 <- merge.data.table(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
               by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
   d3 <- rbind(d3,d4,fill=TRUE)
 
-  # add changes of Laura (check later)
-  d3[,waterlichaam := fifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
-  # delete visdata
+  # add naam van een toetsgebied (WL of EAG naam)
+  d3[,waterlichaam := fifelse(!(is.na(SGBP3_NAAM)|SGBP3_NAAM == ""), SGBP3_NAAM, GAFNAAM)]
+  # delete visdata (waar geen EAG aan locaties is gekoppeld)
   d3 <- d3[!is.na(waterlichaam),]
 
   # namen aanpassen
@@ -116,11 +116,6 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   # noodgreep omdat er fouten zitten in de toetsgegevens
   d3$KRWwatertype.code[d3$Identificatie == 'VaartenRondeHoep'] <- 'M8'
   d3$KRWwatertype.code[d3$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
-  # noodgreep om niet representatieve data te verwijderen
-  # amstelland mafy 2011 eruit (dit is toetsing van 3 polderlocaties met incorrecte coordinaten die onterecht worden toegekend aan het waterlichaam)
-  d3 <- d3[!(d3$HoortBijGeoobject.identificatie %in% c('Amstellandboezem','NL11_Amstellandboezem') & d3$jaar == 2011 & d3$Waardebepalingsmethode.code == 'Maatlatten2018 Ov. waterflora'), ]
-  #mafa 2016 eruit, vis 2016 eruit (toen is alleen het Amsterdamse deel bemonsterd wat niet representatief is)
-  d3 <- d3[!(d3$HoortBijGeoobject.identificatie %in% c('Amstellandboezem','NL11_Amstellandboezem') & d3$jaar == 2016 & d3$Waardebepalingsmethode.code %in% c('Maatlatten2018 Macrofauna','Maatlatten2018 Vis')), ]
 
   # alleen nieuwe maatlatten
   d3 <- d3[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
@@ -285,6 +280,7 @@ ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
   # two checks are done:
   # are all files given in koppeltabel available
   # are files missing given the most recent EAG shape (so those EAGs do not have a balance)
+  # wdir <- dir_bal
 
   # select file names in the directory where waterbalansen are stored
   files <- list.files(wdir)

@@ -19,7 +19,7 @@
   kopTab <- kopTab[selectiefilter==1] # wel voor matrix een selectie maken, niet voor overzicht
 
   # eag weg bij eerdere versies, 2500-eag-5 weg, 1balansen aan meerdere eags koppelen werkt niet in deze functie
-  files <- ppr_wbalfiles(dir_bal,EAG.sf = gEAG,kopTab = kopTab) # wel voor matrix een selectie maken, niet voor overzicht
+  files <- ppr_wbalfiles(dir_bal, EAG.sf = gEAG, kopTab = kopTab) # wel voor matrix een selectie maken, niet voor overzicht
   #files  <- list.files(dir_bal)
   # data van G.Ros obv balansen M. Ouboter 201808
   init <- readRDS("pbelasting/input/init.rds") %>% as.data.table()
@@ -137,7 +137,7 @@ loadBalance2 = function(x,wdir){
 }
 
 # Wrapper function -------------------------------------------------------------
-loadBalances_lm <- function(dir_bal, kopTab, sfile = T){
+loadBalances_lm <- function(dir_bal,kopTab, sfile = T){
 
   # file names
   #files <- ppr_wbalfiles(dir_bal) #waarom nog een keer?

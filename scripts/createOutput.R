@@ -551,7 +551,7 @@ ekrmap2 <- function(EKRset, maatlat = "2V1 Overige waterflora", col=col, labels=
 
 
     gebiedData <- dcast(gebiedData, EAGIDENT+KRWwatertype.code+
-                          Waardebepalingsmethode.code+GHPR_level+jaar+Doel+bronddoel ~ .,
+                          Waardebepalingsmethode.code+GHPR_level+jaar+GEP_2022+bronddoel ~ .,
                         value.var = "Numeriekewaarde", fun.aggregate = mean)
     gebiedData$EKR <- gebiedData$.
     '7' -> gebiedData$klasse[gebiedData$EKR < 0.2]
@@ -570,13 +570,12 @@ ekrmap2 <- function(EKRset, maatlat = "2V1 Overige waterflora", col=col, labels=
     titel1 <- paste0("EKR scores in ",x)
     pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
-    map <- sp::merge(gEAG, gebiedData[, c('.','klasse','jaar','EAGIDENT','Doel','bronddoel', 'KRWwatertype.code',
+    map <- sp::merge(gEAG, gebiedData[, c('.','klasse','jaar','EAGIDENT','GEP_2022','bronddoel', 'KRWwatertype.code',
                                           'GHPR_level')], by.x = 'GAFIDENT', by.y =
                        'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
     map <- map[order(map$jaar),]
 
     leaflet() %>%
-
       addPolygons(data = map, layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
                                                       "EKR score:", map$., "<br>",
                                                       "EKR klasse:", map$klasse, "<br>",
@@ -591,47 +590,7 @@ ekrmap2 <- function(EKRset, maatlat = "2V1 Overige waterflora", col=col, labels=
       addLegend("bottomright", colors=col, labels=labels, title = titel1) %>%
       addTiles()
 }
-# ekr per waterlichaam
-ekrmap3jrWL <- function(tabset, maatlat = "2V21 Soortensamenstelling macrofyten"){
-  #gebiedData <- EKRset[EKRset$jaar > '2013'& EKRset$jaar < '2018',]
-  #maatlat = "4VI1 Vis-kwaliteit"
-  gebiedData <- tabset[!(is.na(tabset$GeoObject.code) & !(tabset$GeoObject.code == 'nietNodig')|!(tabset$GeoObject.code == "" & !(tabset$GeoObject.code == 'nietNodig'))),]
-  gebiedData <- gebiedData[gebiedData$GHPR_level == maatlat,]
-  # koppel identKRW aan gebieddata
-  '7' -> gebiedData$klasse[gebiedData$EKR < 0.2]
-  '6' -> gebiedData$klasse[gebiedData$EKR >= 0.2 & gebiedData$EKR < 0.4]
-  '5' -> gebiedData$klasse[gebiedData$EKR >= 0.4 & gebiedData$EKR < 0.6]
-  '4' -> gebiedData$klasse[gebiedData$EKR >= 0.6 & gebiedData$EKR < 0.8]
-  '3' -> gebiedData$klasse[gebiedData$EKR >= 0.8]
-  gebiedData$klasse <- as.factor(gebiedData$klasse)
-  gebiedData$klasse = factor(gebiedData$klasse, levels = c("3", "4", "5", "6","7"))
-  gebiedData <- gebiedData[!is.na(gebiedData$klasse),]
 
-  pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
-  map <- sp::merge(gKRW, gebiedData, by.x = 'OWMIDENT', by.y =
-                     'GeoObject.code', all.x = TRUE, duplicateGeoms = T)
-
-  map <- map[order(map$jaar),]
-  #map2 <- map[map$OWMIDENT %in% c('NL11_4_1','NL11_1_2','NL11_3_4'),]
-
-  leaflet() %>%
-    addPolygons(data = map,layerId = map$GAFIDENT, popup= paste("Waterlichaam", map$HoortBijGeoobject.identificatie, "<br>",
-                                                     "EKR score:", map$., "<br>",
-                                                     "EKR klasse:", map$klasse, "<br>",
-                                                     "jaar:", map$jaar, "<br>",
-                                                     "Doel:", map$Doel),
-                stroke = T, color= 'green', opacity=0.8, weight = 0.2, smoothFactor = 0.8,
-                fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
-    # addPolygons(data= map2,layerId = map2$GAFIDENT, popup= paste("Waterlichaam", map2$HoortBijGeoobject.identificatie, "<br>",
-    #                                                  "EKR score:", map2$., "<br>",
-    #                                                  "EKR klasse:", map2$klasse, "<br>",
-    #                                                  "jaar:", map2$jaar, "<br>",
-    #                                                  "Doel:", map2$Doel),
-    #             stroke = T, color= 'red', opacity=0.8, weight = 0.5, smoothFactor = 0.8,
-    #             fill=F, fillOpacity = 0.6) %>%
-    # addLegend("bottomright", colors=col, labels=labels, title = "")%>%
-    addTiles()
-}
 # kaart ekr scores per jaar in krw waterlichaam
 ekrmapKRW <- function(gebiedData, maatlat = "4VI1 Vis-kwaliteit"){
   #gebiedData <- EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2020' & EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",]
@@ -853,6 +812,7 @@ trendEAGverschil <- function(z, detail = "deel"){
 
   return(gebiedData)
 }
+
 trend <- function(z, detail = "hoofd"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
   z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
@@ -868,22 +828,29 @@ trend <- function(z, detail = "hoofd"){
   tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
   tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
 
-  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
-    group_by(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level) %>%
-    filter(length(unique(jaar)) > 1) %>%
-    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
+  fitted_models <- tb %>%
+    nest(data = -c(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level)) %>%
+    mutate(
+      fit = map(data, ~ lm(gemEKRscore ~ jaar, data = .x)),
+      tidied = map(fit, tidy),
+      glanced = map(fit, glance),
+      augmented = map(fit, augment)
+    )
 
-  COF <- fitted_models %>% tidy(model)
-  R2 <- fitted_models %>% glance(model)
+  COF <- fitted_models %>% unnest(tidied)
+  R2 <- fitted_models %>% unnest(glanced)
+
   trtabset <- merge(COF[,c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")],
                     tabset2, by = c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
-  gebiedData  <- merge(trtabset, R2, by = c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
-  gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
-  gebiedData$group <- 'grey'# 1 jaar data
+  gebiedData  <- merge(trtabset, R2, by = c('id','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level'), all.y = F) # data trend samenvoegen met resultaten
+  gebiedData<- gebiedData[gebiedData$term == 'jaar',]
+  gebiedData$data <- NULL; gebiedData$fit <- NULL; gebiedData$tidied <- NULL; gebiedData$augmented <- NULL
+
   return(gebiedData)
   write.table(gebiedData, file = paste(getwd(),"/output/Trendekr",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE) # wegschrijven als csv
 
 }
+
 trendfychem <- function(z, param = c("P","N","NH3")){
   z <- wq
   z<- z[z$fewsparameter %in% param ,]
@@ -1021,7 +988,7 @@ plottrendKRW <- function(gebiedData, gKRW){
               '6'=">0.3")
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
-  map <- sp::merge(pl, gebiedData[, c('klasse','estimate','p.value','r.squared','group','KRW_SGBP3', 'KRWwatertype.code',
+  map <- sp::merge(pl, gebiedData[, c('klasse','estimate','p.value','r.squared','KRW_SGBP3', 'KRWwatertype.code',
                                         'GHPR_level','facet_wrap_code')], by.x = 'OWMIDENT', by.y =
                      'KRW_SGBP3', duplicateGeoms = T)
 
