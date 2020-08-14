@@ -1,0 +1,13 @@
+/* Whole document: */
+.book .book-body .page-wrapper .page-inner {
+  max-width: 90%;
+}
+.page-inner {
+  width: 95%;
+}
+/* Table width = 100% max-width */
+.remark-slide table{
+    width: 100%;
+}
+img[alt=esficon] { width: 50px; }
+

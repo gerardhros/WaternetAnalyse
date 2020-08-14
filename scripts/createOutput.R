@@ -1879,7 +1879,7 @@ pbalansjaar <- function(dat){
 }
 
 # esf waterdiepte----------------------------
-diepte <- function (hybi, bandbreedte = 'minimaal'){
+diepte <- function (hybi, gEAG, bandbreedte = 'minimaal'){
   # hybi2 <-hybi1[hybi1$jaar >= '2018' & hybi1$jaar < '2021',]
   if(nrow(hybi)>0){
   b = dcast(hybi,locatie.EAG+jaar ~ fewsparameter,
@@ -1930,7 +1930,7 @@ diepte <- function (hybi, bandbreedte = 'minimaal'){
     addTiles()
 }}
 }
-diepte1<- function (hybi, bandbreedte = 'minimaal'){ # kaart mediane diepte per eag + slibdikte is handelingsperspectief
+diepte1<- function (hybi, gEAG, bandbreedte = 'minimaal'){ # kaart mediane diepte per eag + slibdikte is handelingsperspectief
 
   if(nrow(hybi)>0){
     b = dcast(hybi,locatie.EAG+jaar ~ fewsparameter,
@@ -2064,7 +2064,7 @@ diepteVegetatiemp <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDT
       plot.background = element_blank()
     )+
     guides(col=guide_legend(title='zicht/ diepte'), size = "legend")+
-    ggtitle(paste0("Gemiddeld gemeten waterdiepte versus bedekking onderwaterplanten")) +
+    ggtitle(paste0("Gemeten waterdiepte versus bedekking onderwaterplanten")) +
     labs(x= 'waterdiepte' , y= 'submerse bedekking')
 
 
@@ -2121,7 +2121,7 @@ diepteVegetatiemp2 <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATD
       plot.background = element_blank()
     )+
     guides(col=guide_legend(title='zicht/ diepte'), size = "legend")+
-    ggtitle(paste0("Gemiddeld gemeten waterdiepte versus bedekking onderwaterplanten")) +
+    ggtitle(paste0("Gemeten waterdiepte versus bedekking onderwaterplanten")) +
     labs(x= 'waterdiepte' , y= 'submerse bedekking')
 
 
