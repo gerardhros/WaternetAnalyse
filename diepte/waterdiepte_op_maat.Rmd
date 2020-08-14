@@ -7,36 +7,153 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# Load packages and functions-------------------------------------
+source('../scripts/loadPackages.R')
+source('../scripts/createOutput.R')
+
+# mogelijk kunnen functies vervangen door functies NMI
 ```
 
 ## Waterdiepte op maat
 
-Dit document beschrijft de ontwikkeling van een aantal ruimtelijke kaarten met de huidige en gewenste waterdiepte binnen het beheergebied van waterschap Amstel, Gooi en Vecht. 
+De inrichting van onze waterlichamen is niet overal optimaal voor flora en fauna. In veel sloten in het beheergebied is de waterdiepte gering en is er veel slib en bagger aanwezig op de waterbodem. Waterdiepte en het aanwezige slib heeft via verschillende mechanismen invloed op de ecologische waterkwaliteit.
 
+Vanwege kleine dimensies van smalle sloten (watertype M1 en M8) vertoont de zuurstofconcentratie grote dagelijkse fluctuaties. Overdag komt regelmatig oververzadiging voor als gevolg van groei van algen en planten, terwijl ‘s nachts of onder een kroosdek snel zuurstofloosheid kan optreden. Het relatief grote oppervlak waterbodem met een hoge zuurstofvraag ten opzichte van het relatief kleine watervolume in sloten leidt snel tot een zuurstoftekort. Een schoningsbeurt of een toename van de kroosbedekking kunnen daardoor al snel zorgen voor een daling van de zuurstofconcentraties. Vanwege het zuurstofgebrek vertonen sloten ook sneller fosfaatmobilisatie en methaanproductie vanuit de waterbodem. Door de kleine dimensies zijn smalle sloten minder gevoelig voor windwerking en dus minder gevoelig voor golfslag en de daardoor veroorzaakte resuspensie van het sediment, maar in bredere watergangen (watertype M10) kan resuspensie van het sediment het lichtklimaat wel beinvloeden. De verwachting is dan ook dat aanwezige vis- en kreeften de vestiging van waterplanten vooral beinvloeden in bredere wateren.
+
+Daarom beoogd het programma Waterdiepte op Maat de morfolgie van watergangen zo aan te passen dat er meer ruimte komt voor een gezond ecosysteem.
+
+Dit document beschrijft de huidige en gewenste waterdiepte binnen het beheergebied van waterschap Amstel, Gooi en Vecht. 
 
 ```{r inputdata}
 #
   # locaties van alle metingen (water, biologie, en slootbodem)
-  locaties <- fread('data/Location.csv')
+  locaties <- fread('../data/Location.csv')
     
   # locaties van EAG oppervlaktes
-  eag_wl <- fread('data/EAG_Opp_kenmerken_20200218.csv')
+  eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
   eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
   
   # gegevens hydrobiologie (only data after 2006)
-  hybi <- readRDS('data/alles_reliable.rds')
+  hybi <- readRDS('../data/alles_reliable.rds')
   hybi <- ppr_hybi(db = hybi, syear = 2006, wtype = eag_wl, mlocs = locaties)
  
     
 ```
 
+## Grenswaarden waterdiepte
+
+Om een minimale waterdiepte waarbij nog ondergedoken waterplanten voor kunnen komen te bepalen is gekeken naar de relatie tussen (ondergedoken) plantenbedekking en waterdiepte. Waterdiepte is een cruciaal aspect in lijnvormige ondiepere wateren. Er is daarom gekeken naar de relatie tussen vegetatie en waterdiepte in lijnvormige sloten en vaarten (watertypen M1, M8 en M10). Omdat het lichtklimaat ook invloed heeft op de aanwezige vegetatie is alleen gekeken naar sloten waar het lichtklimaat geen belemmering vormt (doorzicht/ diepte > 0.6). In de monitorig van vegetatie worden draadwieren ook meegenomen in de bedekking van ondergedoken waterplanten. Draadwieren laten echter een andere relatie zien met waterdiepte dan andere ondergedoken planten. Daarom is de bedekking gecorrigeerd door de bedekking van ondergedoken draadwieren van de totale bedekking met ondergedoken planten af te trekken.
+
+In onderstaand figuur is de relatie tussen waterdiepte en de hoeveelheid ondergedoken waterplanten weergegeven per watertype. Er is een figuur waarbij in de legenda een klasseindeling voor het lichtklimaat staat en een figuur zonder deze indeling. Een doorzicht/ diepte van 1 betekent dat er bodemzicht is. Er is duidelijk te zien dat de relatie in brede wateren (M10) anders is dan in smalle veensloten (M8). In minerale sloten (M1) is er een minder duidelijke relatie te zien. In minerale sloten komen zelfs bij waterdiepten van 10 of 20 cm al vrij hoge bedekkingen (respectievelijk 40 en 70%) van ondergedoken waterplanten voor. In veensloten en vaarten is te zien dat een optimale bedekking voorkomt bij waterdiepten > 35cm.
+
+
+```{r diepteveg, fig.cap = 'Relatie waterdiepte en bedekking ondergedoken vegetatie per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+# relatie EKR vs diepte, per watertype
+diepteVegetatiemp(hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE','ZICHT'), watertype = c('M10','M1a','M8'))
+diepteVegetatiemp2(hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE','ZICHT'), watertype = c('M10','M1a','M8'))
+# bij afleiden klassegrenzen wordt geen rekening gehouden met betrouwbaarheid of geextrapoleerde waterdiepte obv breedte diepte verhouding omdat waterdiepte ook in brede watergangen is gemeten in het begroeibaar areaal 
+# maak een tabel met grenswaarde per watertype
+# boven de 6 meter 15 cm speling (obv database GWV van EDWIN)
+```
+
+## Gebieden met geringe waterdiepte
+
+In de onderstaande kaart staat de actuele waterdiepte (vulkleur) en de maximale waterdiepte als de gemeten sliblaag wordt verwijderd (randkleur) weergegeven. Op deze kaart is dus te zien in welke EAG`s de waterdiepte te gering is en of er handelingsperspectief is om de waterdiepte te vergroten.
+
+```{r diepte1, fig.cap = 'Waterdiepte en handelingsperspectief per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#maak combinatie slootdiepte + slibdiepte (to do: fill NA with simple regression model given soil tuxture for example when data are missing) = handelingsperspectief
+
+#krw<-
+combineWidgets(
+    ncol = 2, colsize = c(1,1),
+diepte1(hybi[hybi$jaar > '2013' & hybi$locatie.KRW.watertype %in% c('M1a','M1b','M8','M3','M10'),], bandbreedte = 'minimaal'),
+diepte1(hybi[hybi$jaar > '2013' & hybi$locatie.KRW.watertype %in% c('M1a','M1b','M8','M3','M10'),], bandbreedte = 'maximaal'))
+#saveWidget(krw, "diepte.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "diepte.png")
+
+```
+
+In onderstaande tabel staan de gebieden waar de waterdiepte tijdens de laatste meting te gering is voor de ecologie en waar wel voldoende handelingsperspectief is voor verbetering naar een minimale diepte van 35 cm.
+
+```{r dieptetabel, fig.cap = 'Waterdiepte en handelingsperspectief per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+
+b = dcast(hybi[hybi$locatie.KRW.watertype %in% c('M1a','M1b','M8','M3','M10'),],locatie.EAG+jaar ~ fewsparameter,
+              value.var = "meetwaarde", fun.aggregate = median, na.rm =TRUE, fill = NaN)
+
+b$WATDTE_max[b$WATERBTE_m > 6 & !is.na(b$WATDTE_m)& !is.na(b$WATERBTE_m)] <-  b$WATDTE_m[b$WATERBTE_m > 6 & !is.na(b$WATDTE_m) & !is.na(b$WATERBTE_m)] + 0.15
+b$handelpers <- b$WATDTE_m + b$SLIBDTE_m
+
+b <- b[b$WATDTE_m < 0.35 & b$handelpers > 0.35]
+b <- b[, c('locatie.EAG','jaar','handelpers','WATDTE_m','WATDTE_max','WATERBTE_m', 'SLIBDTE_m')] %>%
+    arrange(locatie.EAG,desc(jaar)) %>%
+    group_by(locatie.EAG) %>%
+    top_n(1, wt = jaar)
+
+b <- merge(b, eag_wl[,c('GAFIDENT','GAFNAAM')], by.x = 'locatie.EAG', by.y = 'GAFIDENT')
+b <- b[,c(8,1,2,3,4,5,6,7)]
+b <- b[order(b$WATDTE_m),]
+row.names(b) <- NULL
+
+knitr::kable(b, format = "html",
+             col.names = c("Naam EAG",'EAG','jaar','handelingsperspectief (m)','waterdiepte (m)','waterdiepte max (m)','waterbreedte (m)','slibdikte (m)'), escape = F) %>% 
+          kable_styling(full_width=FALSE, font_size = 10) %>% 
+          column_spec(1, border_right = F, width = "5cm") %>%
+          column_spec(2, border_right = F, width = "2cm") %>%
+          collapse_rows(columns=1, valign="top")
+
+```
+
+
+### Betrouwbaarheid en correctie data
+
+Bij grote waterbreedtes wordt de kans groter dat de diepte wordt onderschat. Dit geeft aan dat de onzekerheid over de waterdiepte van brede sloten groot is.
+In de dataset waarbij waterdiepten over tansecten over de gehele slootbreedte zijn gemeten blijkt dat er 15cm verschil zit tussen de minimale en maximaal gemeten waterdiepte bij watergangen die breder zijn dan 6 meter. Deze bandbreedte wordt in de kaarten hieronder gepresenteerd.
+
+* plaatje nmi invoegen
+* datasetplaatje data GWV invoegen
+
+
+## Oorzaken geringe waterdiepte en handelingsperspectief
+
+### Slib en bagger
+
+Slib en bagger blijkt in veel veengebieden voornamelijk te ontstaan door erosie (wanneer gekeken wordt naar fosforgehalte en metalen die een fingerprint geven van de herkomst). Oeverafkalving, veenafbraak zijn belangrijke oorzaken.
+
+```{r slibdikte, fig.cap = 'Slibdikte per EAG en per meetlocatie. Links metingen tussen 2010 en 2015, rechts metingen tussen 2015 en 2019.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+# maak kaart met slibdiepte, pak metingen van laatste x jaar
+#krw <-
+if(nrow(hybi[hybi$fewsparameter == 'SLIBDTE_m',])>0){
+combineWidgets(
+    ncol = 2, colsize = c(1,1),
+    #diepte(hybi[hybi$jaar >= '2006' & hybi$jaar < '2009',]),
+    #slibdikte(hybi[hybi$jaar >= '2009' & hybi$jaar < '2012',]),
+    slibdikte(hybi[hybi$jaar >= '2010' & hybi$jaar < '2015',]),
+    slibdikte(hybi[hybi$jaar >= '2015' & hybi$jaar < '2019',])
+)}
+#saveWidget(krw, "dieptemeerderejaren_0608_0911_1214_1518.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "PvskP.png")
+```
+
+```{r dieptetijd, fig.cap = 'Waterdiepte per EAG en per meetlocatie', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#maak kaart met slootdiepte, pak metingen van laatste x jaar
+#maak kaart met onzekerheid (dan wel bandbreedte) in relatie tot diepte
+
+#krw <-
+combineWidgets(
+    ncol = 4, colsize = c(1,1),
+    diepte(hybi[hybi$jaar >= '2006' & hybi$jaar < '2009',], bandbreedte = 'minimaal'),
+    diepte(hybi[hybi$jaar >= '2009' & hybi$jaar < '2012',], bandbreedte = 'minimaal'),
+    diepte(hybi[hybi$jaar >= '2012' & hybi$jaar < '2015',], bandbreedte = 'minimaal'),
+    diepte(hybi[hybi$jaar >= '2015' & hybi$jaar < '2020',], bandbreedte = 'minimaal')
+)
+#saveWidget(krw, "dieptemeerderejaren_0608_0911_1214_1518.html", selfcontained = FALSE)
+#webshot("diepte.html", file = "PvskP.png")
+```
+
+## Peilverlagingen en plaggen
+
 ## Actions to be done
-
-maak kaart met slootdiepte, pak metingen van laatste x jaar
-
-maak kaart met slibdiepte, pak metingen van laatste x jaar
-
-maak combinatie slootdiepte + slibdiepte (fill NA with simple regression model given soil tuxture for example when data are missing)
 
 maak kaart met onzekerheid (dan wel bandbreedte in verwachte bodemdiepte) in relatie tot diepte: 
 a) hoe breder de sloot hoe groter de onzekerheid op de meting van slootdiepte (dit ivm de gebruikte meetmethode). Hierbij een schatting maken van de onzekerheid (kan dat op basis van huidige data, exptrapolatie) mogelijk als lineare correctiefactor van max x% en dat af laten hangen van slootbreedte.
