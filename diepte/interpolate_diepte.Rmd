@@ -11,6 +11,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# Gerard: graag alle data op github nu ontrbreekt peil, kwel en organisch stof
+# ook chlorofyl (uit hybi en wq) toevoegen als co variable
 ```
 
 Dit document beschrijft de ontwikkeling van een aantal ruimtelijke kaarten met de huidige en gewenste waterdiepte binnen het beheergebied van waterschap Amstel, Gooi en Vecht. 

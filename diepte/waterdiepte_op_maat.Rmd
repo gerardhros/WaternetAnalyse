@@ -136,7 +136,7 @@ diepte1(hybi[hybi$jaar > '2013' & hybi$locatie.KRW.watertype %in% c('M1a','M1b',
 
 In onderstaande tabel staan de gebieden waar de waterdiepte tijdens de laatste meting te gering is voor de ecologie en waar wel voldoende handelingsperspectief is voor verbetering naar een minimale diepte van 35 cm.
 
-Een aantal zaken die opvallen (*nog uitwerken*):
+### Discussie (*nog uitwerken*)
 
 - Polders rond het ARK zijn vaak ondiep en kansrijk voor de ecologie. Vanuit dat perspectief zou hier prioriteit kunnen worden gelegd. Anderzijds zijn dit veelal minerale polders waar de waterdiepte de ecologie minder in de weg zit.
 - De polder waar ik aan de slag zou gaan is Molenpolder agrarisch. Hier is nu een studieclub, het is een ecologisch kansrijke polder (hoge scores in recent verleden), hier is sprake van achteruitgang van ecologie en de waterdiepte (lijkt het). 
@@ -144,9 +144,13 @@ Een aantal zaken die opvallen (*nog uitwerken*):
 - Zijn Gagelweg, Demmerik en Oukoop ook gebaggerd? In 2019 is mediane waterdiepte hier nog steeds gering. Mogelijk werkt baggeren niet?
 - In Middelpolder en bovenland BKP lijkt wel handelingsperspectief, maar is het hier technisch haalbaar om slib te verwijderen?
 - Ook NKP lijkt kansrijk. Al wordt de mediane waterdiepte hier sterk beinvloed door ondiepe watergangen in het oosten (de  bufferzone van het Naardermeer) liggen. Mogelijk is dit een goede mitigerende maatregel voor peilopzet.
-- AVW en AVO: is handelingsperspectief echt zo klein? Hoe kan dit? Dit zijn minerale polders waar waterdiepte mogelijk minder in de weg zit. Maar wel polders waar de ecologie achteruitgaat. In AVW is het minimum peil in 2007 en nog eens in 2011 bij 13 cm verlaagd. Dat is veel waterdiepte!
+- AVW en AVO: is handelingsperspectief echt zo klein? Hoe kan dit? Dit zijn minerale polders waar waterdiepte mogelijk minder in de weg zit. Maar wel polders waar de ecologie achteruitgaat. In AVW is het minimum peil in 2007 en nog eens in 2011 bij 13 cm verlaagd. Dat is veel waterdiepte! Bij deze peilwijziging zou misschien wel vast bodem moeten worden verwijderd.
 - HGP, Zevenhoven en Broekzijdse polder: is hier echt zoveel handelingsperspectief? Dan aan de slag ondanks dat dit een minerale polder is. Ook hier gaat de ecologie achteruit!
 
+
+### Aanbevelingen
+
+- maaibeheer in ondiepe sloten met hoge bedekking uitzoekken
 - In het project Waterdiepte op Maat zou eigenlijk ook in gesprek moeten met terreinbeheerders. Juist in polders die zij beheren is de ecologie kansrijk en zien we veel achterstallig onderhoud. Denk aan SAP, Oostelijke Drecht (Ster en zodden) en Mijnden.
 
 ```{r dieptetabel, fig.cap = 'Waterdiepte en handelingsperspectief per EAG', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
