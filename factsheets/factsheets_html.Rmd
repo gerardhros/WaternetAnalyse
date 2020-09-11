@@ -28,7 +28,7 @@ Het waterlichaam bestaat uit de deelgebieden:
 `r out$waterlichamenwl$Karakterschets`
 <br>
 Het waterlichaam ligt in de provincie(s) `r out$waterlichamenwl$prov` en gemeente(n) `r out$waterlichamenwl$gem`. `r if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}`
-Het waterlichaam `r out$waterlichamenwl$OWMNAAM` heeft de status `r out$waterlichamenwl$Status` en is in eigendom van `r out$waterlichamenwl$Eigenaren`. 
+Het waterlichaam `r out$waterlichamenwl$OWMNAAM_SGBP3` heeft de status `r out$waterlichamenwl$Status` en is in eigendom van `r out$waterlichamenwl$Eigenaren`. 
 
 ## Ligging en beeld {data-height=400}
 
