@@ -28,7 +28,7 @@ Het waterlichaam bestaat uit de deelgebieden:
 `r out$waterlichamenwl$Karakterschets`
 <br>
 Het waterlichaam ligt in de provincie(s) `r out$waterlichamenwl$prov` en gemeente(n) `r out$waterlichamenwl$gem`. `r if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}`
-Het waterlichaam `r out$waterlichamenwl$OWMNAAM` heeft de status `r out$waterlichamenwl$Status` en is in eigendom van `r out$waterlichamenwl$Eigenaren`. 
+Het waterlichaam `r out$waterlichamenwl$OWMNAAM_SGBP3` heeft de status `r out$waterlichamenwl$Status` en is in eigendom van `r out$waterlichamenwl$Eigenaren`. 
 
 ## Ligging en beeld {data-height=400}
 
@@ -244,7 +244,7 @@ include_graphics(out$plotWaterbodem)
 ```{r ekrtijd, echo= FALSE, warning = FALSE, message = FALSE, echo = FALSE, message = FALSE, warning = FALSE}
 if(outputF == "html"){  
   plotly::ggplotly(out$plotEKRlijn)%>%
-    plotly::layout(legendgroup='GHPR', showlegend = T, legend = list(font = list(size = 9)))
+    plotly::layout(showlegend = T, legend = list(font = list(size = 9)))
 }
 if(outputF == "word"){
     out$plotEKRlijn

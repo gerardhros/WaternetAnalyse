@@ -2,7 +2,7 @@
 # authors: Laura Moria, Sven Verweij en Gerard Ros
 
 # clear environment
-rm(list=ls())  
+rm(list=ls())
 
 # Load packages and functions -------------------------------------
 require(rmarkdown);require(flexdashboard)
@@ -25,9 +25,11 @@ source('scripts/factsheet_ppr.R')
 source('scripts/ppr_funs.R')
 
 # run for all files
+
 for(eagnr in 2 : nrow(brondata$ESFoordelen)){
-  
+
   # voor debug attach(brondata) detach(brondata)
+  # eagnr <- 10
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)
   
@@ -52,25 +54,27 @@ for(eagnr in 2 : nrow(brondata$ESFoordelen)){
   # 
   # # reset working directory
    setwd('../')
+
+ 
 }
 
 
 # helper functie (not used yet)
 rm_factsheets <- function(x, brondata){
-  
+
   # make local extraction for a polder/ water body
   suppressWarnings(
   out = factsheetExtract(i=x,brondata = brondata, splot = TRUE)
   )
   # render the html flexdashboard
   outputF <- "html"
-  rmarkdown::render(input = "factsheets/factsheets_html.Rmd", 
+  rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
                     output_format = "flexdashboard::flex_dashboard", #pdf_document
                     output_file = paste("FS_", out$my_title2, ".html", sep=''),
                     output_dir = "factsheets/output/", quiet = TRUE)
-  
+
   print(paste0('factsheet for polder ',out$my_title2,' is finished'))
-  
+
 }
 
 
