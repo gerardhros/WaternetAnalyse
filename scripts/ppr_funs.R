@@ -49,15 +49,6 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
 
 ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   
-  #correctie verschillende namen zelfde waterlichaam: let op ekr1 moet krw waterlichamen set zijn!!!!!!
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
-  krwset$waterlichaam <- eag_wl2$waterlichaam[sapply(krwset$HoortBijGeoobject.identificatie, 
-                                                 function(x) {which.min(stringdist::stringdist(x, eag_wl2$waterlichaam))}
-  )]
-  krwset$HoortBijGeoobject.identificatie[is.na(krwset$EAGIDENT)] <- krwset$waterlichaam[is.na(krwset$EAGIDENT)]
-  krwset$HoortBijGeoobject.identificatie[!is.na(krwset$EAGIDENT)] <- paste0("NL11_", krwset$waterlichaam[!is.na(krwset$EAGIDENT)])
-  
   if(!is.null(ovwatset)){
   # correctie toetsresultaten van KRW waterlichamen weg uit de set van overig water obv EAG
   # er zitten foutieve watertypen in de bronbestanden, dit heb ik nog niet opgelost
@@ -107,7 +98,8 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2) 
   d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
               by.y = c('GAFIDENT'), all.x = TRUE)
-
+  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
+  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
   d4 <- merge.data.table(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
               by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
   d3 <- rbind(d3,d4,fill=TRUE)
@@ -379,6 +371,10 @@ ppr_maatregelen <- function(){
   
   # select only the unique rows
   d1 <- unique(d1) 
+  
+  # remove columns with no data or non-relevant information (judgement gerard)
+  cols <- colnames(d1)[unlist(d1[,lapply(.SD,function(x) sum(is.na(x))==nrow(d1))])]
+  d1[,c(cols) := NULL]
   
   # return maatregelen
   return(d1)
@@ -704,8 +700,8 @@ plotEKRlijnfs <- function(z, gebied = NULL){
     ungroup(waterlichaam)
   
   ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col = GHPR, group = GHPR))+
-    stat_summary(fun.y = "mean", geom = "point") + 
-    stat_summary(fun.y = "mean", geom = "line") +
+    stat_summary(fun = "mean", geom = "point") + 
+    stat_summary(fun = "mean", geom = "line") +
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
     scale_x_continuous(limits= c(2006, 2020), breaks=c(2006, 2008, 2010, 2012, 2014,2016,2018))+
     facet_grid(vars(level),vars(wlmt))+

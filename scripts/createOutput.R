@@ -6,94 +6,7 @@ layout_ggplotly <- function(gg, x = -0.08, y = -0.04){
   gg
 }
 lengthUnique <- function(x){return(length(unique(x)))}#by default telt dcast ALLE value.var, dus ook als deze dubbel voorkomt (meerdere waarnemingen op 1 locatie). Daarom deze functie: alleen UNIEKE value.var
-ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
-  
-  #correctie verschillende namen zelfde waterlichaam: let op ekr1 moet krw waterlichamen set zijn!!!!!!
-  eag_wl[,waterlichaam := sapply(strsplit(KRWmonitoringslocatie_SGBP3, '_'), `[`, 2)]
-  eag_wl2 <- unique(eag_wl[,.(KRW_SGBP3,KRWmonitoringslocatie_SGBP3,SGBP3_NAAM,waterlichaam)])
-  krwset$waterlichaam <- eag_wl2$waterlichaam[sapply(krwset$HoortBijGeoobject.identificatie, 
-                                                     function(x) {which.min(stringdist::stringdist(x, eag_wl2$waterlichaam))}
-  )]
-  krwset$HoortBijGeoobject.identificatie[is.na(krwset$EAGIDENT)] <- krwset$waterlichaam[is.na(krwset$EAGIDENT)]
-  krwset$HoortBijGeoobject.identificatie[!is.na(krwset$EAGIDENT)] <- paste0("NL11_", krwset$waterlichaam[!is.na(krwset$EAGIDENT)])
-  
-  if(!is.null(ovwatset)){
-    # correctie toetsresultaten van KRW waterlichamen weg uit de set van overig water obv EAG
-    # er zitten foutieve watertypen in de bronbestanden, dit heb ik nog niet opgelost
-    tomatch <- unique(krwset$EAG) ; tomatch <- tomatch[!is.na(tomatch)]
-    pattern <- paste(tomatch, collapse = "|")
-    ovwatset <- ovwatset[!grepl(pattern, ovwatset$HoortBijGeoobject.identificatie),]
-    # correctie meetlocaties eruit die niet meer in een HoortbijGEO EAG liggen omdat EAG herbegrensd zijn of locatie verlegd
-    # extract EAG uit hoortbij, match EAGIDENT en extract, delete nomatch
-    ovwatset <- ovwatset[!mapply(grepl, ovwatset$EAGIDENT,  ovwatset$HoortBijGeoobject.identificatie, fixed = F) == 0,]
-  }
-  
-  # combine both EKR from KRW and overig water into one data.table
-  db <- data.table::rbindlist(list(krwset,ovwatset), fill=TRUE)
-  
-  # rijen weg zonder informatie
-  db <- db[!is.na(db$Numeriekewaarde),]
-  
-  # remove columns without information
-  cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
-  db[,c(cols):= NULL]
-  
-  # remove some columns based on judgement Gerard
-  cols <- c('MEETNET_HISTORIE','REFERENTIEVLAK','GLOBALID','GN_CREATED_USER','GN_CREATED_DATE',
-            'GN_LAST_EDITED_USER','GN_LAST_EDITED_DATE','MEETNET_ACTUEEL','FEWSFILTER_HISTORIE',
-            'FEWSFILTER_ACTUEEL','PROGRAMMA_HISTORIE','PROGRAMMA_ACTUEEL','.',
-            'LigtInGeoObjectCode','ï..Meetobject.namespace','CAS.nummer',
-            'Begintijd','Eindtijd','Doel','bronddoel',"HandelingsperspectiefWBP",'KRWwatertype.code.y')
-  # ensure that cols are present in colnames db
-  cols <- cols[cols %in% colnames(db)]
-  # remove columns
-  db[,c(cols):=NULL]
-  db[,GHPR := gsub(' $','',GHPR)]
-  
-  # make local copy (only within this function)
-  doelen1 <- copy(doelen)
-  # mean GEP per id (en niet per eag zoals in de doelenset staat)
-  doelgeb <- doelen1[,.(GEP = mean(Doel,na.rm=TRUE), GEP_2022 = mean(Doel_2022,na.rm=TRUE)),by =.(HoortBijGeoobject.identificatie,bronddoel,GHPR)]
-  # make copy, add new id where NL11_ is removed
-  doelgeb2 <- copy(doelgeb)
-  doelgeb2$HoortBijGeoobject.identificatie <- gsub("^NL11_*","",doelgeb2$HoortBijGeoobject.identificatie)
-  doelgeb <- rbind(doelgeb,doelgeb2)
-  
-  # merge with doelen
-  db <- merge(db, doelgeb, by = c('HoortBijGeoobject.identificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
-  
-  # add namen per waterlichaam en eag
-  db$EAGIDENT[is.na(db$EAGIDENT)] <- sapply(strsplit(db$HoortBijGeoobject.identificatie[is.na(db$EAGIDENT)], '_'), `[`, 2) 
-  d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
-                         by.y = c('GAFIDENT'), all.x = TRUE)
-  
-  d4 <- merge.data.table(db[is.na(db$EAGIDENT),], eag_wl2[,c('KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM','waterlichaam')], by.x = c('HoortBijGeoobject.identificatie'),
-                         by.y = c('waterlichaam'), all.x = TRUE, allow.cartesian =TRUE)
-  d3 <- rbind(d3,d4,fill=TRUE)
-  
-  # add changes of Laura (check later) 
-  d3[,waterlichaam := fifelse(!is.na(SGBP3_NAAM), SGBP3_NAAM, GAFNAAM)]
-  # delete visdata
-  d3 <- d3[!is.na(waterlichaam),]
-  
-  # namen aanpassen
-  d3[,facet_wrap_code := as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
-  # return updated database
-  
-  # noodgreep omdat er fouten zitten in de toetsgegevens
-  d3$KRWwatertype.code[d3$Identificatie == 'VaartenRondeHoep'] <- 'M8'
-  d3$KRWwatertype.code[d3$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
-  # noodgreep om niet representatieve data te verwijderen
-  # amstelland mafy 2011 eruit (dit is toetsing van 3 polderlocaties met incorrecte coordinaten die onterecht worden toegekend aan het waterlichaam)
-  d3 <- d3[!(d3$HoortBijGeoobject.identificatie %in% c('Amstellandboezem','NL11_Amstellandboezem') & d3$jaar == 2011 & d3$Waardebepalingsmethode.code == 'Maatlatten2018 Ov. waterflora'), ] 
-  #mafa 2016 eruit, vis 2016 eruit (toen is alleen het Amsterdamse deel bemonsterd wat niet representatief is)
-  d3 <- d3[!(d3$HoortBijGeoobject.identificatie %in% c('Amstellandboezem','NL11_Amstellandboezem') & d3$jaar == 2016 & d3$Waardebepalingsmethode.code %in% c('Maatlatten2018 Macrofauna','Maatlatten2018 Vis')), ] 
-  
-  # alleen nieuwe maatlatten
-  d3 <- d3[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
-  
-  return(d3)
-}
+
 # overzicht
 plotChangeAW <- function(l){
   l <- l[l$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
@@ -207,8 +120,8 @@ plotEKRlijn <- function(z){
   z$jaar <- as.numeric(z$jaar)
   
   plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= HoortBijGeoobject.identificatie, group = HoortBijGeoobject.identificatie))+
-    stat_summary(fun.y = "mean", geom = "point") + 
-    stat_summary(fun.y = "mean", geom = "line") +
+    stat_summary(fun = "mean", geom = "point") + 
+    stat_summary(fun = "mean", geom = "line") +
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
     facet_wrap(.~ GHPR)+
     ylab('')+xlab('')+
@@ -238,8 +151,8 @@ plotEKRlijn2 <- function(z){
   z$jaar <- as.numeric(z$jaar)
   
   plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= GHPR, group = GHPR))+
-    stat_summary(fun.y = "mean", geom = "point") + 
-    stat_summary(fun.y = "mean", geom = "line") +
+    stat_summary(fun = "mean", geom = "point") + 
+    stat_summary(fun = "mean", geom = "line") +
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
     facet_wrap(.~waterlichaam)+
     ylab('gebiedsgemiddelde EKR score')+
@@ -270,7 +183,7 @@ plotEKRlijnToetsgebied <- function(z, detail = "hoofd"){
   z$GHPR <- reorder(z$GHPR, z$GHPR_level)
   #titel2 = paste(unique(z[ ,c('HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code')]),sep="",collapse=" ")
   plot <- ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col= waterlichaam, group = waterlichaam))+
-    stat_summary(fun.y = "mean", geom = "point") + stat_summary(fun.y = "mean", geom = "line") +
+    stat_summary(fun = "mean", geom = "point") + stat_summary(fun = "mean", geom = "line") +
     scale_x_continuous(breaks=c(2005,2006, 2007, 2008, 2009, 2010,2011,2012,2013,2014,2015,2016,2017,2018))+
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
     #facet_wrap(.~facet_wrap_code)+
@@ -381,8 +294,8 @@ plotEKRlijnfs <- function(z, gebied = NULL){
     ungroup(waterlichaam)
   
   ggplot(data= z, aes(x=jaar, y=Numeriekewaarde, col = GHPR, group = GHPR))+
-    stat_summary(fun.y = "mean", geom = "point") + 
-    stat_summary(fun.y = "mean", geom = "line") +
+    stat_summary(fun = "mean", geom = "point") + 
+    stat_summary(fun = "mean", geom = "line") +
     scale_y_continuous(limits= c(0, 1), breaks=c(0, 0.2, 0.4, 0.6, 0.8, 1))+
     scale_x_continuous(limits= c(2006, 2020), breaks=c(2006, 2008, 2010, 2012, 2014,2016,2018))+
     facet_grid(vars(level),vars(wlmt))+
@@ -751,10 +664,9 @@ ekrmapKRW <- function(gebiedData, maatlat = "4VI1 Vis-kwaliteit"){
     addTiles()
 }
 # kaart ekr3jr, oordeel, doel per EAG
-KRWmapEAG <- function(ekr_scores, maatlat = "2V1 Overige waterflora", param = "oordeel" ){
+KRWmapEAG <- function(gEAG, ekr_scores2, maatlat = "2V1 Overige waterflora", param = "oordeel" ){
 
-  gebiedData <- ekr_scores[!is.na(ekr_scores$EAGIDENT),]
-  gebiedData <- gebiedData[!grepl('^NL11_*',gebiedData$id),] # alleen gemiddelde scores per EAG, geen gewogen scores (die kloppen niet in ov wat en zijn er niet per EAG in KRWwl)
+  gebiedData <- ekr_scores2[!is.na(ekr_scores2$EAGIDENT),]
   gebiedData <- gebiedData[gebiedData$GHPR_level %in% maatlat,]
   
   if(param == 'oordeel'){
@@ -832,7 +744,7 @@ KRWmapEAG <- function(ekr_scores, maatlat = "2V1 Overige waterflora", param = "o
                 stroke = T, color= 'grey', opacity=0.8, weight = 0.5, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(param), fillOpacity = 1) %>%
     addLegend("bottomright", colors=col, labels=labels, title = param)%>%
-    addTiles()
+    addProviderTiles("Esri.WorldGrayCanvas")#addTiles()
 }
 
 ## trend ----------------------------------------------------------------------------------------
@@ -1019,6 +931,7 @@ plottrend <- function(gebiedData){
     labs(x = "", y="")
   ggplotly(p=zw) 
 }
+
 plottrend2 <- function(gebiedData){
   gebiedData <- gebiedData[!is.na(gebiedData$GHPR_level),]
   gebiedData <- with(gebiedData, gebiedData[order(GHPR_level), ])
@@ -1089,7 +1002,40 @@ plottrend3 <- function(gebiedData){
                 stroke = T, color= 'black', opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
     addLegend("bottomright", colors = col, labels = labels, title = "Lineaire trend EKR score per planperiode")%>%
-    addTiles()
+    addProviderTiles("Esri.WorldGrayCanvas")
+}
+plottrendKRW <- function(gebiedData, gKRW){
+  # gebiedData <- ekrtrend
+  pl <- gKRW %>% group_by(OWMIDENT, OWMNAAM) %>% summarize()
+  #gebiedData$klasse <- gebiedData[order(gebiedData$klasse),]
+  '1' -> gebiedData$klasse[gebiedData$estimate < -0.3]
+  '2' -> gebiedData$klasse[gebiedData$estimate >= -0.3 & gebiedData$estimate < -0.05]
+  '3' -> gebiedData$klasse[gebiedData$estimate >= -0.05 & gebiedData$estimate < 0.05]
+  '5' -> gebiedData$klasse[gebiedData$estimate >= 0.05 & gebiedData$estimate < 0.3]
+  '6' -> gebiedData$klasse[gebiedData$estimate >= 0.3]
+  
+  gebiedData$klasse <- factor(gebiedData$klasse, levels = c("1", "2", "3", "5","6"))
+  
+  col <- c('1'= 'darkred','2'="red", '3'="#fff7bc",'5'="green",'6'="darkgreen")
+  labels <- c('1'="< -0.3",'2'="-0.3 - -0.05" ,'3'="geen trend",'5'="0.05 - 0.3",
+              '6'=">0.3")
+  pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
+  
+  map <- sp::merge(pl, gebiedData[, c('klasse','estimate','p.value','r.squared','group','KRW_SGBP3', 'KRWwatertype.code',
+                                        'GHPR_level','facet_wrap_code')], by.x = 'OWMIDENT', by.y =
+                     'KRW_SGBP3', duplicateGeoms = T)
+  
+  leaflet(map) %>%
+    addPolygons(layerId = map$GAFIDENT, popup= paste("KRW naam", map$OWMNAAM, "<br>",
+                                                     "EAG code", map$OWMIDENT, "<br>",
+                                                     "EKR trend:", map$estimate, "<br>",
+                                                     "trend significantie:", map$p.value, "<br>",
+                                                     "R2:", map$r.squared, "<br>"
+    ),
+    stroke = T, color= ~pal(klasse), opacity=0.8, weight = 1, smoothFactor = 0.8,
+    fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
+    addLegend("bottomright", colors = col, labels = labels, title = paste0("Lineaire trend EKR score", unique(map$facet_wrap_code)))%>%
+    addProviderTiles("Esri.WorldGrayCanvas")
 }
 
 # biologie ------------------------------------------------------------------------
@@ -3062,25 +3008,41 @@ combineWidgets(
 
 # overzichtskaarten-------------------------------------
 krwmap <- function(gKRW){
-  leaflet(gKRW) %>%
-    addPolygons(layerId = gKRW$OBJECTID, popup= paste("naam", gKRW$OWMNAAM, "<br>",
-                                                      "Ident:", gKRW$OWMIDENT, "<br>",
-                                                      "watertype:", gKRW$OWMTYPE),
-                stroke = T, color= 'green', fillColor = brewer.pal(length(gKRW$OWMIDENT), "Spectral"), opacity=0.8, weight = 1, smoothFactor = 0.8,
+  
+  # Find a center point for each region
+  # centers <- st_centroid(gKRW, byid = TRUE)
+  
+  ### Create n colors for fill
+  n <- length(gKRW$OWMNAAM)
+  qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+  col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+  mypal <- sample(col_vector, n)
+  
+  leaflet() %>%
+    addPolygons(data = gKRW, layerId = gKRW$OWMIDENT,
+                popup = paste("naam", gKRW$OWMNAAM, "<br>", "Ident:", gKRW$OWMIDENT, "<br>", "watertype:", gKRW$watertype),
+                stroke = T, color= mypal, fillColor = mypal, opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillOpacity = 0.6) %>%
-    addTiles()
+    # addLabelOnlyMarkers(data = centers,
+    #                     lng = ~x, lat = ~y, label = ~OWMNAAM,
+    #                     labelOptions = labelOptions(noHide = TRUE, direction = 'top', textOnly = TRUE)) %>%
+    addPolygons(data = gEAG, layerId = gEAG$GAFIDENT,
+                stroke = T, color= 'grey' , fillColor = NA, opacity=0.8, weight = 1, 
+                smoothFactor = 0.8,
+                fill=F, fillOpacity = 0.6)%>%
+    addProviderTiles("Esri.WorldGrayCanvas")%>%
+    addLegend("bottomright", colors=mypal, labels=gKRW$OWMNAAM)
 }
 
-eagoverzicht <- function(gEAG){
-  wtgeb <- dcast(EKRset, EAGIDENT+KRWwatertype.code~ ., value.var = "Doel", fun.aggregate = mean)
-  wtgeb$EAGIDENT <- as.factor(wtgeb$EAGIDENT)
-  tabset <- sp::merge(gEAG, wtgeb, by.x = 'GAFIDENT', by.y = 'EAGIDENT',  all.x = TRUE, duplicateGeoms = T)
+eagoverzicht <- function(gEAG, eag_wl){
   
-  leaflet(tabset) %>%
-    addPolygons(layerId = tabset$GAFIDENT, popup= paste("naam", tabset$GAFNAAM, "<br>",
-                                                      "Ident:", tabset$GAFIDENT,"<br>",
-                                                      "watertype:", tabset$KRWwatertype.code),
-                stroke = T, color= 'green', fillColor = brewer.pal(length(gEAG$GAFNAAM), "Spectral"), opacity=0.8, weight = 1, smoothFactor = 0.8,
+  tabset1 <- merge(gEAG, eag_wl, by = 'GAFIDENT',  all.x = TRUE, duplicateGeoms = T)
+  
+  leaflet(tabset1) %>%
+    addPolygons(layerId = tabset1$GAFIDENT, popup= paste("naam", tabset1$GAFNAAM.x, "<br>",
+                                                      "Ident:", tabset1$GAFIDENT,"<br>",
+                                                      "watertype:", tabset1$watertype.y),
+                stroke = T, color= NA , fillColor = brewer.pal(length(tabset1$GAFNAAM.x), "Spectral"), opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillOpacity = 0.6) %>%
     addTiles()
 }

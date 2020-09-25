@@ -132,7 +132,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
                          col_ekr = "EKR", ekr_fac = FALSE,  
                          ekr_order = c("slecht","ontoereikend","matig","goed"), 
                          ekr_col = c("red", "orange", "yellow", "green"),
-                         ekr_breaks = matrix(rep(c(0, 0.25, 0.5, 0.75, 1), each = 4), ncol = 5),
+                         ekr_breaks = matrix(rep(c(0, 0.2, 0.4, 0.6, 1), each = 4), ncol = 5),
                          col_area_sf = "OWMIDENT", col_area_dt = "KRW_SGBP3", 
                          col_ekrtype = "GHPR_level",
                          label_type = c("Fytoplankton", "Overige waterflora", "Macrofauna", "Vis")){
@@ -154,7 +154,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
   }
   
   ## Dissolve polygons with same area IDs ---------
-  pl <- pl %>% group_by(areaID_pl) %>% summarize()
+  pl <- pl %>% dplyr::group_by(areaID_pl) %>% dplyr::summarize()
   
   
   ## Join Data table to map ----
@@ -167,7 +167,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
   dt_dc <- dcast(dt[, .(areaID_dt, type_krw, ekrval)],
                      areaID_dt ~  type_krw,
                      fun.aggregate = last,
-                     value.var = 'ekrval',fill=TRUE)
+                     value.var = 'ekrval', fill=NA)
   #print(paste0(names(dt_dc)[-1], " are changed to cat", 1:4))
   setnames(dt_dc, old = names(dt_dc),
            new = c( "areaID_dt", "cat1", "cat2", "cat3", "cat4"))
@@ -213,16 +213,20 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
 
   # Araw background polygon
   if(!is.null(bkpl)){
-    gpbk <- ggplot() + geom_sf(data = eag, fill = alpha("white", alpha = 0), col = "gray") 
+    gpbk <- ggplot() + geom_sf(data = bkpl, fill = alpha("white", alpha = 0), col = "gray") 
   } else {
     gpbk <- ggplot() 
   }
   
   # Add polygons of each area with color of minimum EKR value
   gpbs <-  gpbk + 
-    geom_sf(data = pl, aes(fill = as.factor(min_ekr)), 
-            color = "black", show.legend = FALSE) +
+    geom_sf(data = pl, aes(fill = as.factor(min_ekr), color = as.factor(min_ekr)), 
+            show.legend = FALSE) +
     scale_fill_manual(values = c("1" =  ekr_col[1],
+                                 "2" = ekr_col[2],
+                                 "3" = ekr_col[3],
+                                 "4" = ekr_col[4])) +
+    scale_colour_manual(values = c("1" =  ekr_col[1],
                                  "2" = ekr_col[2],
                                  "3" = ekr_col[3],
                                  "4" = ekr_col[4])) +
@@ -239,7 +243,7 @@ make_map_pie <- function(pl, dt, bkpl = NULL,
   ## Add pie chart (same proportions but different colors)
   #for (i in 1:2){
   for (i in 1:nrow(dt_pie)){
-    gp <- gpbs + 
+    gp <- gp + 
       ggnewscale::new_scale_fill() +
       scatterpie::geom_scatterpie(aes(x=X, y=Y, r = r), data = dt_pie[i, ],
                                   show.legend = FALSE,

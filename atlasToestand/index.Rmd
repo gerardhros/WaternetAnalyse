@@ -53,6 +53,7 @@ outputF <- "word" #"html"
 ```{r data, include = FALSE}
 ## data voor kaart ----------
 gEAG<- st_read("../data/EAG20191205.gpkg") %>% st_transform(proj4.google)
+gEAG$watertype <- NULL
 gKRW<- st_read("../data/WBPKRW20200525.gpkg")%>% st_transform(proj4.google)
 
 # locaties van alle metingen (water, biologie, en slootbodem)
@@ -83,6 +84,11 @@ EKRlijst <- smartbind(EKRlijst,EKRlijst2)
 
 # EKR
 tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") # deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
+tabset$GEP_2022[tabset$KRW_SGBP3 == ""] <- tabset$EKRperc90[tabset$KRW_SGBP3 == ""]
+tabset[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
+tabset[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
+tabset[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
+tabset[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
 
 # waterquality measurements
 wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
@@ -113,14 +119,7 @@ De oordelen in periode 2006-2015 en 2015-2021 zijn weergegeve in \@ref(fig:kaart
 
 ```{r kaartKRW4, fig.cap = 'Overzicht van gemiddelde EKR scores per EAG op de maatlat Overige waterflora in de periode 2006 t/m 2015 links en 2015 t/m 2019 rechts.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 
-# tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset)
-# tabset$GEP_2022[tabset$KRW_SGBP3 == ""] <- tabset$EKRperc90[tabset$KRW_SGBP3 == ""]
-# tabset[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
-# tabset[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-# tabset[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-# tabset[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
-
-# krw <- KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = "oordeel")
+# krw <- KRWmapEAG(gEAG, tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = "oordeel")
 
 tabset2 <- tabelEKRPerWLEnEAGPerJaar(EKRset[EKRset$jaar < '2015',])
 tabset2$GEP_2022[tabset2$KRW_SGBP3 == ""] <- tabset2$EKRperc90[tabset2$KRW_SGBP3 == ""]
@@ -138,8 +137,8 @@ tabset3[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
 
 combineWidgets(
     ncol = 2, colsize = c(1, 1),
-    KRWmapEAG(tabset2, maatlat = "2V1 Overige waterflora", param = "oordeel"),
-    KRWmapEAG(tabset3, maatlat = "2V1 Overige waterflora", param = "oordeel")
+    KRWmapEAG(gEAG, tabset2, maatlat = "2V1 Overige waterflora", param = "oordeel"),
+    KRWmapEAG(gEAG, tabset3, maatlat = "2V1 Overige waterflora", param = "oordeel")
 )
 
 #saveWidget(krw, "waterflora.html", selfcontained = FALSE)
@@ -153,7 +152,7 @@ In afbeelding \@ref(fig:kaartKRW3) staat de actuele toestand van vegetatie weerg
 
 ```{r kaartKRW3, fig.cap = 'Overzicht van gemiddelde EKR scores van de laatste 3 meetjaren per EAG op de maatlat Overige waterflora. Deze score wordt in de KRW systematiek gezien als de actuele toestand van vegetatie.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 if(outputF == "html"){
-KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'ekr3jr')
+KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'ekr3jr')
 }
 #ekrmap3jrEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" & tabset$KRW_SGBP3 == "",], maatlat = "2V1 Overige waterflora") #alleenovwater
 # krw <- ekrmap3jrEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V21 Soortensamenstelling macrofyten")
@@ -161,7 +160,7 @@ KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat
 
 if(outputF == "word"){
 krw <-
-KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'ekr3jr')
+KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'ekr3jr')
 saveWidget(krw, "waterflora3jaar.html", selfcontained = FALSE)
 webshot("waterflora3jaar.html", file = "waterflora3jaar.png")
 }
@@ -172,11 +171,11 @@ De KRW doelen en ambitie op basis van 90 percentiel van gemeten EKR scores zijn 
 
 ```{r doelmap, fig.cap = 'Overzicht van doelen voor de maatlat Overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 if(outputF == "html"){
-KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doel')
+KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doel')
 }
 if(outputF == "word"){
 krw <-
-KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doel')
+KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doel')
 saveWidget(krw, "doel.html", selfcontained = FALSE)
 webshot("doel.html", file = "doel.png")
 }
@@ -213,7 +212,7 @@ combineWidgets(
 #webshot("waterflora.html", file = "waterflora.png")
 ```
 
-Per maatlat en ecologisch analysegebied is berekend hoe de ecologische kwaliteit zich ontwikkeld. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen de waterkwaliteit achteruit gaat. In 19% van de gebieden met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan, ondanks onze pogingen om het omgaan met water (gebiedsontwikkelingen, agrarisch gebruik, afvalwaterbeheer (opsporen foutaansluitingen)) te beïnvloeden en onze inzet om sloten, zuiveringsinstallaties en waterpeilen te beheren. Een andere invloed op de ecologische toestand in waterlichamen ligt in een toenemende klimaatdruk. Deze uit zich niet alleen in achteruitgang van ecologische kwaliteit en biodiversiteit, maar ook op meer terreinen. Denk bijvoorbeeld aan verhoogde emissies van broeikasgassen uit ondiep, zuurstofloos oppervlaktewater en de gezondheidsrisicos van blauwalgen, botulisme, poepbacterieen en microverontreinigingen.
+Per maatlat en ecologisch analysegebied is berekend hoe de ecologische kwaliteit zich ontwikkeld. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen de waterkwaliteit achteruit gaat. In `r round((length(trendkrw$estimate[trendkrw$estimate <  0])/length(trendkrw$estimate))*100, 0)`% van de gebieden met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan, ondanks onze pogingen om het omgaan met water (gebiedsontwikkelingen, agrarisch gebruik, afvalwaterbeheer (opsporen foutaansluitingen)) te beïnvloeden en onze inzet om sloten, zuiveringsinstallaties en waterpeilen te beheren. Een andere invloed op de ecologische toestand in waterlichamen ligt in een toenemende klimaatdruk. Deze uit zich niet alleen in achteruitgang van ecologische kwaliteit en biodiversiteit, maar ook op meer terreinen. Denk bijvoorbeeld aan verhoogde emissies van broeikasgassen uit ondiep, zuurstofloos oppervlaktewater en de gezondheidsrisicos van blauwalgen, botulisme, poepbacterieen en microverontreinigingen.
 
 ```{r achteruitgang, fig.cap = 'Overzicht van gebieden waar met een redelijke betrouwbaarheid (p < 0.35) is berekend dat de ecologische kwaliteit de afgelopen 10 jaar een kwaliteitsklasse (EKR 0.2) achteruit is gegaan.', echo = FALSE, message = FALSE, warning = FALSE, out.width="80%", fig.show='hold'}
 #krwset <- EKRset[!is.na(EKRset$GeoObject.code) & !EKRset$Meetobject.omschrijving == 'dummyMeetpuntVoorToetsing',] 
@@ -241,7 +240,7 @@ trendcast %>%
   
 ```
 
-Er zijn ook waterlichamen waar de ecologische kwaliteit verbetert door maatregelen die de afgelopen jaren zijn uitgevoerd. In 16% van de gebieden is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
+Er zijn ook waterlichamen waar de ecologische kwaliteit verbetert door maatregelen die de afgelopen jaren zijn uitgevoerd. In `r round((length(trendkrw$estimate[trendkrw$estimate > 0])/length(trendkrw$estimate))*100, 0)`% van de gebieden is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
 
 ```{r vooruitgang, fig.cap = 'Overzicht van gebieden waar met een redelijke betrouwbaarheid (p < 0.35) is berekend dat de ecologische kwaliteit de afgelopen 10 jaar een kwaliteitsklasse (EKR 0.2) vooruit is gegaan.', echo = FALSE, message = FALSE, warning = FALSE, out.width="80%"}
 #krwset <- EKRset[!is.na(EKRset$GeoObject.code) & !EKRset$Meetobject.omschrijving == 'dummyMeetpuntVoorToetsing',] 
@@ -261,7 +260,7 @@ dcast(trendkrw, GAFNAAM + EAGIDENT ~ GHPR_level, value.var = "estimate", fun.agg
   
 ```
 
-In 65% van de gebieden is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
+In `r round((length(trendkrw$estimate[trendkrw$estimate == 0])/length(trendkrw$estimate))*100, 0)`% van de gebieden is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
 
 ```{r trend vegetatie, echo = FALSE, message = FALSE, warning = FALSE}
 vegtrend <- trendEAG(EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora" & EKRset$jaar > 2005 & EKRset$jaar < 2020 & EKRset$GHPR_level == "2V1 Overige waterflora" ,], detail = "deel")
@@ -275,7 +274,7 @@ plottrend3(vegtrend)
 # webshot("trendwaterflora.html", file = "waterfloratrend.png")
 ```
 
-```{r trend1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat overige waterflora per ecologisch analysegebied tussen 2006 en 2017', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+```{r trend1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat soortensamenstelling waterplanten per ecologisch analysegebied tussen 2006 en 2017', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 krw<-
 plottrend3(vegbiodtrend)
  saveWidget(krw, "trendbiodivwaterflora.html", selfcontained = FALSE)

@@ -5,6 +5,7 @@
 .tex
 .log
 .gz
+.html
 
 /development/*
 /atlasKRW/output/*
@@ -14,6 +15,7 @@
 factsheets/**/*.docx
 factsheets/output/*.html
 factsheets/output/*.png
+factsheets/output/*
 /rsconnect/*
 /toxiciteit/docs/*
 /matrix/_book/*
@@ -21,7 +23,14 @@ factsheets/output/*.png
 /atlasToestand/figurenEnTabellen/*
 /atlasToestand/www/*
 /atlasToestand/_book/*
+/KRW overzicht/*
 /KRW overzicht/output*
+/KRW overzicht/KRW-overzicht.html
+/KRW overzicht/map_oordeel_waterlichaam.jpg
+/KRW overzicht/libs*
+/KRW overzicht/_book*
+/KRW overzicht/rsconnect*
+/KRW overzicht/KRWoverzicht.html*
 /templateSysteemAnalyse/*
 /pbelasting/input/uitvoer PCDitch tbv serious game HDSR.csv
 /pbelasting/output/*

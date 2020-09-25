@@ -33,6 +33,7 @@ source('../scripts/loadPackages.R')
 source('../scripts/createOutput.R')
 source('../scripts/postProces.R')
 source('../scripts/makePmaps.R')
+source('../scripts/ppr_funs.R')
 
 # other settings
 proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
@@ -46,32 +47,20 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 ```
 
 ```{r data, include = FALSE}
-ESFoordelen <- read.csv('../factsheets/esfKRW_20191008.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
-maatregelen <- read.csv('../factsheets/maatregelenKRW_20191022.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
-watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
-eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen
+ESFoordelen <- read.csv('../data/esfKRW_20200602.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
+maatregelen <- read.csv('../data/maatregelenKRW_20200526.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
+watertypen <- read.csv('../development/GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+locaties <- read.csv("../data/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
+eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
 
+# hydrobiologische gegevens
+  hybi <- readRDS('../data/alles_reliable.rds') 
+  hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
 
-hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
-                 stringsAsFactors = F)
-hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
-hybi$jaar <- format(hybi$datum, '%Y')
-hybi$jaar <- as.numeric(hybi$jaar)
-hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
-hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
- hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10
-hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
-hybi$locatie.EAG <- hybi$EAGIDENT
-hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-hybi$locatie.KRW.watertype <- hybi$watertype
-
-EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
-EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
-EKRset <- smartbind(EKRset,EKRset2)
-EKRset$XCOORD <- as.integer(EKRset$XCOORD)
-EKRset$YCOORD <- as.integer(EKRset$YCOORD)
-doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
+ # EKR sets KRW en overig water
+  EKRset1 <- readRDS('../hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
+  EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
+  EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen = doelen)
 
 gEAG<- importOGR("EAG20190523.shp", dirGIS, CRSobj = proj4.google)
 gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
@@ -175,6 +164,7 @@ In [Grenswaarden waterdiepte] staat de relatie tussen ecologische kwalteit en wa
 
 ```{r}
 #maak waarderingskaart op basis van klassegrens (zou je kunnen afleiden) en het handelingsperspectief (waterdiepte + slibdikte > gewenste diepte) voldoende 
+# persepectief bestaan 
 ```
 
 De geringe waterdiepte is de oorzaak van de slechte ecologische toestand in veel lijnvormig water. 
@@ -611,6 +601,7 @@ In de komende paragrafen staan analyses van hoe de acht verschillende ESF`s invl
 # bij afleiden klassegrenzen al rekening houden met betrouwbaarheid of geextrapoleerde waterdiepte obv breedte diepte verhouding 
 # de relatie tussen breedte en diepteverhouding wordt afgeleid door hybi gegevens te vergelijken met ingemeten diepteprofielen (dwarsdoorsnede)
 # maak een tabel met grenswaarde per watertype
+# boven de 6 meter 15 cm speling (obv database GWV van EDWIN)
 ```
 
 ### ESF 1
