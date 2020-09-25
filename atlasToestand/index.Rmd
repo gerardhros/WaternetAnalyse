@@ -117,7 +117,7 @@ Het beheergebied van AGV is zeer divers en daarom opgedeeld in kleinere [Ecologi
 
 De oordelen in periode 2006-2015 en 2015-2021 zijn weergegeve in \@ref(fig:kaartKRW4). 
 
-```{r kaartKRW4, fig.cap = 'Overzicht van gemiddelde EKR scores per EAG op de maatlat Overige waterflora in de periode 2006 t/m 2015 links en 2015 t/m 2019 rechts.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+```{r kaartKRW4, fig.cap = 'Overzicht van oordelen per EAG op de maatlat Overige waterflora in de periode 2006 t/m 2014 links en 2015 t/m 2019 rechts.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 
 # krw <- KRWmapEAG(gEAG, tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = "oordeel")
 
@@ -208,7 +208,7 @@ combineWidgets(
     ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels),
     ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels))
 
-#saveWidget(krw, "waterfloraperjaar.html", selfcontained = FALSE)
+#saveWidget(krw, "waterflorapermpjaar.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
 ```
 

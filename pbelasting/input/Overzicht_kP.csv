@@ -7,7 +7,7 @@ gebied;EAGnaam;Diepte_50P (m);Aandeel moeras (-);Strijklengte (m);Debiet (mm/d);
 2500-EAG-3;Polder Groot Wilnis Vinkeveen, Kleine plas;2.8;;;9.17;33920180;0.5;veen;0.730931115;0.366;vollenweider;plassen;EAG345;
 2500-EAG-4;Polder Groot Wilnis Vinkeveen, Zuidplas;3.02;;;9.17;33920180;0.5;veen;0.730931115;0.366;vollenweider;plassen;EAG345;
 2500-EAG-5;Polder Groot Wilnis Vinkeveen, Noordplas;3.77;;;9.17;33920180;0.5;veen;0.730931115;0.366;vollenweider;plassen;EAG345;
-2550-EAG-1;Noorderpolder of Botshol (zuid en west), Botshol Kleine- en Groote Wije;1.700210543;0.08;300;23;;0.5;veen;5.81;1;"lake; empirisch";plassen;afvoergebied1;
+2550-EAG-1;Noorderpolder of Botshol (zuid en west), Botshol Kleine- en Groote Wije;1.700210543;0.08;300;23;;0.5;veen;1;1;"lake; empirisch";plassen;afvoergebied1;
 3100-EAG-1;Naardermeer, Binnezij/Spookgat;1.17;0.01;807;14.4;;0.5;veen;2.1;1;"lake; empirisch";plas dras;EAG;
 3100-EAG-2;Naardermeer, Groote Meer Noord;1.13;0.01;807;14.4;;0.5;veen;2.1;1;"lake; empirisch";plas dras;EAG;
 3100-EAG-3;Naardermeer, Groote Meer ZO;0.966197655;0.01;807;14.4;;0.5;veen;2.1;1;"lake; empirisch";plas dras;EAG;

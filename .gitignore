@@ -6,6 +6,10 @@
 .log
 .gz
 .html
+.js
+.map
+.css
+.yaml
 
 /development/*
 /atlasKRW/output/*

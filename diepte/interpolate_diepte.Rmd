@@ -11,6 +11,9 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# Gerard: graag alle data op github nu ontrbreekt peil, kwel en organisch stof
+# ook chlorofyl (uit hybi en wq) toevoegen als co variable
 ```
 
 Dit document beschrijft de ontwikkeling van een aantal ruimtelijke kaarten met de huidige en gewenste waterdiepte binnen het beheergebied van waterschap Amstel, Gooi en Vecht. 
@@ -193,7 +196,7 @@ Het kan zijn dat hoe breder de sloot, hoe groter de onzekerheid op de meting van
 ```{r, warning = FALSE}
 
 setDT(loc_sf)
-loc_sf1 <- loc_sf[!is.na(med_wd) & !is.na(med_wb),] 
+loc_sf1 <- loc_sf[!is.na(med_wd) & !is.na(med_wb) & med_wd > -20,] 
 loc_sf <- st_as_sf(loc_sf)
 
 # Water depth vs water width
@@ -206,6 +209,7 @@ gp1_1 <- gp1 +
               method = "lm", se = FALSE, color="black", lty = 2) +
   xlim(c(0,50)) 
 show(gp1_1)
+
 # results of regression model
 lmres <- summary(lm(med_wd ~ log(med_wb), data = loc_sf1))
 
