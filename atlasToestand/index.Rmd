@@ -104,7 +104,6 @@ projectie <- projectie[projectie$Parameter.code == 'O2'& projectie$KRWMeetLocati
 De informatie over de huidige situatie en ontwikkelingen van het aquatisch ecosysteem in de regio Amstel, Gooi en Vechtstreek is in deze rapportage gebundeld in een atlas met thema kaarten. De ecologische doelstellingen van Amstel, Gooi en Vecht en de huidige ecologische kwaliteit zijn verbeeld in de afbeeldingen hieronder. In hoofdstuk 2 staan kaarten van verschillende indicatoren van ecologische kwaliteit voor de Habitatrichtlijn (Natura2000) en de Kaderrichtlijn water. 
 
 De KRW toestandsbepaling dient watersysteemanalyses, die ten behoeve KRW gebiedsprocessen, operationele besturing en de evaluatie van maatregelen worden uitgevoerd. Daarnaast wordt de ecologische toestand gerapporteerd in de KRW factsheets (www.waterkwaliteitsportaal.nl) en het waterbeheerplan van AGV. 
-
 In het rapport 'Ecologische sleutelfactoren in beeld' wordt verbeeld welke processen deze toestand bepalen. In dit documenten staat de toestand alleen verbeeld. Hier worden de gegevens niet in samenhang geïnterpreteerd of maatregelen geformuleerd.
 
 # Ecologische waterkwaliteit in beeld

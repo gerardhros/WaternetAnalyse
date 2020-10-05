@@ -92,7 +92,7 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
   doelgeb <- rbind(doelgeb,doelgeb2)
 
   # merge with doelen
-  db <- merge(db, doelgeb, by = c('HoortBijGeoobject.identificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
+  db <- merge(db, doelgeb, by = c('HoortBijGeoobject.idntificatie','GHPR'), all.x = TRUE, allow.cartesian =T)
 
   # add namen per eag
   d3 <- merge.data.table(db[!is.na(db$EAGIDENT),], eag_wl[,c('GAFIDENT','GAFNAAM','KRW_SGBP3','KRWmonitoringslocatie_SGBP3','SGBP3_NAAM')], by.x = c('EAGIDENT'),
