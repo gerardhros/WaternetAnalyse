@@ -345,25 +345,25 @@ NL11_8_3;NL11_MijdrechtseBovenlanden;Overige waterflora-kwaliteit;2500-EAG-6;GWV
 NL11_8_3;NL11_MijdrechtseBovenlanden;Fytoplankton-kwaliteit  ;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2021;;0.34
 NL11_8_3;NL11_MijdrechtseBovenlanden;Macrofauna-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.6;KRW_2021;;0.21
 NL11_8_3;NL11_MijdrechtseBovenlanden;Vis-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.547;KRW_2021;;0.38
-;NL11_1010-EAG-1;Overige waterflora-kwaliteit;1010-EAG-1;Erasmusprk;0.6;Default GEP;;0.6
+;NL11_1010-EAG-1;Overige waterflora-kwaliteit;1010-EAG-1;Erasmusprk;0.6;10% beste 2006-2019;;0.243
 ;NL11_1020-EAG-1;Overige waterflora-kwaliteit;1020-EAG-1;Wrprk;0.6;Default GEP;;0.6
 ;NL11_1050-EAG-1;Overige waterflora-kwaliteit;1050-EAG-1;SPZ;0.6;Default GEP;;0.6
-;NL11_1060-EAG-1;Overige waterflora-kwaliteit;1060-EAG-1;Vondelprk;0.6;Default GEP;;0.6
-;NL11_2010-EAG-1;Overige waterflora-kwaliteit;2010-EAG-1;DiemerP,Dm-N;0.6;Default GEP;;0.6
-;NL11_2010-EAG-2;Overige waterflora-kwaliteit;2010-EAG-2;DiemerP,Dm;0.6;Default GEP;;0.6
-;NL11_2020-EAG-1;Overige waterflora-kwaliteit;2020-EAG-1;Flevoprk;0.6;Default GEP;;0.6
-;NL11_2030-EAG-1;Overige waterflora-kwaliteit;2030-EAG-1;Sarphatiprk;0.6;Default GEP;;0.6
+;NL11_1060-EAG-1;Overige waterflora-kwaliteit;1060-EAG-1;Vondelprk;0.6;10% beste 2006-2019;;0.3462
+;NL11_2010-EAG-1;Overige waterflora-kwaliteit;2010-EAG-1;DiemerP,Dm-N;0.6;10% beste 2006-2019;;0.434
+;NL11_2010-EAG-2;Overige waterflora-kwaliteit;2010-EAG-2;DiemerP,Dm;0.6;10% beste 2006-2019;;0.4044
+;NL11_2020-EAG-1;Overige waterflora-kwaliteit;2020-EAG-1;Flevoprk;0.6;10% beste 2006-2019;;0.2414
+;NL11_2030-EAG-1;Overige waterflora-kwaliteit;2030-EAG-1;Sarphatiprk;0.6;10% beste 2006-2019;;0.2432
 ;NL11_2040-EAG-1;Overige waterflora-kwaliteit;2040-EAG-1;OOerprk;0.6;Default GEP;;0.6
 ;NL11_2050-EAG-1;Overige waterflora-kwaliteit;2050-EAG-1;AtekP;0.6;Default GEP;;0.6
-;NL11_2100-EAG-1;Overige waterflora-kwaliteit;2100-EAG-1;BinndijkseBuitvelderseP;0.559;handelingsperspectief_score2008-2014;0.11;0.5594
-;NL11_2110-EAG-1;Overige waterflora-kwaliteit;2110-EAG-1;MiPAmsvbmlgbd;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
+;NL11_2100-EAG-1;Overige waterflora-kwaliteit;2100-EAG-1;BinndijkseBuitvelderseP;0.559;10% beste 2006-2019;0.11;0.5245
+;NL11_2110-EAG-1;Overige waterflora-kwaliteit;2110-EAG-1;MiPAmsvbmlgbd;0.393;10% beste 2006-2019;0.21;0.4888
 ;NL11_2110-EAG-2;Overige waterflora-kwaliteit;2110-EAG-2;AmseBos;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
-;NL11_2110-EAG-3;Overige waterflora-kwaliteit;2110-EAG-3;MiPAmsvbvnland;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
-;NL11_2110-EAG-4;Overige waterflora-kwaliteit;2110-EAG-4;MiPAmsvNtrGeb;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
-;NL11_2110-EAG-5;Overige waterflora-kwaliteit;2110-EAG-5;MiPAmsvbebGbd;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
-;NL11_2110-EAG-6;Overige waterflora-kwaliteit;2110-EAG-6;MiPAmsvlndsprtpk;0.393;handelingsperspectief_score2008-2014;0.21;0.393142857
-;NL11_2120-EAG-2;Overige waterflora-kwaliteit;2120-EAG-2;BKP,AmsdijkZ;0.52;WGP_Westeramstel;;0.1125
-;NL11_2120-EAG-3;Overige waterflora-kwaliteit;2120-EAG-3;BKP,Amsvn;0.52;WGP_Westeramstel;;0.1125
+;NL11_2110-EAG-3;Overige waterflora-kwaliteit;2110-EAG-3;MiPAmsvbvnland;0.393;10% beste 2006-2019;0.21;0.4396
+;NL11_2110-EAG-4;Overige waterflora-kwaliteit;2110-EAG-4;MiPAmsvNtrGeb;0.393;10% beste 2006-2019;0.21;0.2379
+;NL11_2110-EAG-5;Overige waterflora-kwaliteit;2110-EAG-5;MiPAmsvbebGbd;0.393;10% beste 2006-2019;0.21;0.3798
+;NL11_2110-EAG-6;Overige waterflora-kwaliteit;2110-EAG-6;MiPAmsvlndsprtpk;0.393;10% beste 2006-2019;0.21;0.5044
+;NL11_2120-EAG-2;Overige waterflora-kwaliteit;2120-EAG-2;BKP,AmsdijkZ;0.52;WGP_Westeramstel;;0.52
+;NL11_2120-EAG-3;Overige waterflora-kwaliteit;2120-EAG-3;BKP,Amsvn;0.52;WGP_Westeramstel;;0.52
 ;NL11_2130-EAG-2;Overige waterflora-kwaliteit;2130-EAG-2;NdrLgmrP,bvnkerk;0.53;WGP_Westeramstel;0.07;0.53
 ;NL11_2130-EAG-3;Overige waterflora-kwaliteit;2130-EAG-3;NdrLgmrP,Uithr;0.53;WGP_Westeramstel;0.07;0.53
 ;NL11_2140-EAG-1;Overige waterflora-kwaliteit;2140-EAG-1;UithrnPmid;0.44;WGP_Westeramstel;;0.44
@@ -375,216 +375,216 @@ NL11_8_3;NL11_MijdrechtseBovenlanden;Vis-kwaliteit ;2500-EAG-6;GWV, Mdrbvnlnd;0.
 ;NL11_2150-EAG-2;Overige waterflora-kwaliteit;2150-EAG-2;ZLP,Kdlstrt;0.46;WGP_Westeramstel;0.05;0.46
 ;NL11_2150-EAG-3;Overige waterflora-kwaliteit;2150-EAG-3;ZLP,lnd;0.46;WGP_Westeramstel;0.05;0.46
 ;NL11_2160-EAG-1;Overige waterflora-kwaliteit;2160-EAG-1;FredRoeskestr;0.6;Default GEP;;0.6
-;NL11_2200-EAG-1;Overige waterflora-kwaliteit;2200-EAG-1;VserPvlktn;0.6;Default GEP;;0.6
-;NL11_2210-EAG-1;Overige waterflora-kwaliteit;2210-EAG-1;Blmr;0.6;Default GEP;;0.6
-;NL11_2220-EAG-2;Overige waterflora-kwaliteit;2220-EAG-2;ZBlmr,Gsprdm;0.74;handelingsperspectief_score2008-2014;0.1;0.7395
-;NL11_2220-EAG-3;Overige waterflora-kwaliteit;2220-EAG-3;ZBlmr,HgeDijk;0.74;handelingsperspectief_score2008-2014;0.1;0.7395
-;NL11_2230-EAG-1;Overige waterflora-kwaliteit;2230-EAG-1;BrkZP,lnd;0.177;handelingsperspectief_score2008-2014;0.08;0.177
-;NL11_2230-EAG-2;Overige waterflora-kwaliteit;2230-EAG-2;BrkZP,Abcoude;0.177;handelingsperspectief_score2015-2017;0.08;0.177
-;NL11_2240-EAG-1;Overige waterflora-kwaliteit;2240-EAG-1;HBPZW;0.381;handelingsperspectief_score2008-2014;0.1;0.381428571
-;NL11_2250-EAG-2;Overige waterflora-kwaliteit;2250-EAG-2;PNBWKrtDwarswg;0.065;handelingsperspectief_score2008-2014;0.065;0.065
-;NL11_2250-EAG-3;Overige waterflora-kwaliteit;2250-EAG-3;PNBWOdrkrkadAms;0.065;handelingsperspectief_score2015-2017;0.065;0.065
-;NL11_2250-EAG-4;Overige waterflora-kwaliteit;2250-EAG-4;PNBWAMC;0.065;handelingsperspectief_score2008-2014;0.065;0.065
+;NL11_2200-EAG-1;Overige waterflora-kwaliteit;2200-EAG-1;VserPvlktn;0.6;10% beste 2006-2019;;0.2135
+;NL11_2210-EAG-1;Overige waterflora-kwaliteit;2210-EAG-1;Blmr;0.6;10% beste 2006-2019;;0.134
+;NL11_2220-EAG-2;Overige waterflora-kwaliteit;2220-EAG-2;ZBlmr,Gsprdm;0.74;10% beste 2006-2019;0.1;0.6786
+;NL11_2220-EAG-3;Overige waterflora-kwaliteit;2220-EAG-3;ZBlmr,HgeDijk;0.74;10% beste 2006-2019;0.1;0.5117
+;NL11_2230-EAG-1;Overige waterflora-kwaliteit;2230-EAG-1;BrkZP,lnd;0.177;10% beste 2006-2019;0.08;0.6142
+;NL11_2230-EAG-2;Overige waterflora-kwaliteit;2230-EAG-2;BrkZP,Abcoude;0.177;10% beste 2006-2019;0.08;0.1406
+;NL11_2240-EAG-1;Overige waterflora-kwaliteit;2240-EAG-1;HBPZW;0.381;10% beste 2006-2019;0.1;0.4524
+;NL11_2250-EAG-2;Overige waterflora-kwaliteit;2250-EAG-2;PNBWKrtDwarswg;0.065;10% beste 2006-2019;0.065;0.4947
+;NL11_2250-EAG-3;Overige waterflora-kwaliteit;2250-EAG-3;PNBWOdrkrkadAms;0.065;10% beste 2006-2019;0.065;0.294
+;NL11_2250-EAG-4;Overige waterflora-kwaliteit;2250-EAG-4;PNBWAMC;0.065;10% beste 2006-2019;0.065;0.1258
 ;NL11_2250-EAG-5;Overige waterflora-kwaliteit;2250-EAG-5;PNBWgolftrrn;0.065;handelingsperspectief_score2008-2014;0.065;0.065
-;NL11_2250-EAG-6;Overige waterflora-kwaliteit;2250-EAG-6;PNBWrcrGbd;0.065;handelingsperspectief_score2008-2014;0.065;0.065
-;NL11_2250-EAG-7;Overige waterflora-kwaliteit;2250-EAG-7;PNBWBllwkPdrN;0.065;handelingsperspectief_score2008-2014;0.065;0.065
-;NL11_2270-EAG-1;Overige waterflora-kwaliteit;2270-EAG-1;DVDPN-mid;0.557;handelingsperspectief_score2008-2014;0.27;0.557
-;NL11_2280-EAG-1;Overige waterflora-kwaliteit;2280-EAG-1;VserP;0.6;Default GEP;;0.6
-;NL11_2290-EAG-1;Overige waterflora-kwaliteit;2290-EAG-1;PDeToekomst;0.435;handelingsperspectief_score2008-2014;0.1;0.435
-;NL11_2300-EAG-1;Overige waterflora-kwaliteit;2300-EAG-1;OverdiemerP;0.475;handelingsperspectief_score2008-2014;0.075;0.475
-;NL11_2310-EAG-1;Overige waterflora-kwaliteit;2310-EAG-1;GMsPW,lnd;0.156;handelingsperspectief_score2008-2014;0.05;0.156
+;NL11_2250-EAG-6;Overige waterflora-kwaliteit;2250-EAG-6;PNBWrcrGbd;0.065;10% beste 2006-2019;0.065;0.3225
+;NL11_2250-EAG-7;Overige waterflora-kwaliteit;2250-EAG-7;PNBWBllwkPdrN;0.065;10% beste 2006-2019;0.065;0.4754
+;NL11_2270-EAG-1;Overige waterflora-kwaliteit;2270-EAG-1;DVDPN-mid;0.557;10% beste 2006-2019;0.27;0.3902
+;NL11_2280-EAG-1;Overige waterflora-kwaliteit;2280-EAG-1;VserP;0.6;10% beste 2006-2019;;0.5904
+;NL11_2290-EAG-1;Overige waterflora-kwaliteit;2290-EAG-1;PDeToekomst;0.435;10% beste 2006-2019;0.1;0.4288
+;NL11_2300-EAG-1;Overige waterflora-kwaliteit;2300-EAG-1;OverdiemerP;0.475;10% beste 2006-2019;0.075;0.514
+;NL11_2310-EAG-1;Overige waterflora-kwaliteit;2310-EAG-1;GMsPW,lnd;0.156;10% beste 2006-2019;0.05;0.5039
 ;NL11_2310-EAG-2;Overige waterflora-kwaliteit;2310-EAG-2;GMsPW,Driemond;0.156;handelingsperspectief_score2015-2017;0.05;0.156
-;NL11_2330-EAG-1;Overige waterflora-kwaliteit;2330-EAG-1;BmbrgOzijdsW;0.478;handelingsperspectief_score2008-2014;0.12;0.478083333
-;NL11_2340-EAG-1;Overige waterflora-kwaliteit;2340-EAG-1;PHSVW,bemal;0.668;handelingsperspectief_score2008-2014;0.14;0.668468085
+;NL11_2330-EAG-1;Overige waterflora-kwaliteit;2330-EAG-1;BmbrgOzijdsW;0.478;10% beste 2006-2019;0.12;0.5582
+;NL11_2340-EAG-1;Overige waterflora-kwaliteit;2340-EAG-1;PHSVW,bemal;0.668;10% beste 2006-2019;0.14;0.658
 ;NL11_2340-EAG-2;Overige waterflora-kwaliteit;2340-EAG-2;PHSVW,Lnrslt;0.668;handelingsperspectief_score2008-2014;0.14;0.668468085
-;NL11_2350-EAG-1;Overige waterflora-kwaliteit;2350-EAG-1;VserPvlktn;0.6;Default GEP;;0.6
+;NL11_2350-EAG-1;Overige waterflora-kwaliteit;2350-EAG-1;VserPvlktn;0.6;10% beste 2006-2019;;0.1528
 ;NL11_2370-EAG-1;Overige waterflora-kwaliteit;2370-EAG-1;GmsPWBetlem;0.6;Default GEP;;0.6
-;NL11_2380-EAG-1;Overige waterflora-kwaliteit;2380-EAG-1;;0.6;Default GEP;;0.6
-;NL11_2380-EAG-1;Overige waterflora-kwaliteit;2380-EAG-1;;0.6;Default GEP;;0.6
+;NL11_2380-EAG-1;Overige waterflora-kwaliteit;2380-EAG-1;;0.6;10% beste 2006-2019;;0.6878
+;NL11_2380-EAG-1;Overige waterflora-kwaliteit;2380-EAG-1;;0.6;10% beste 2006-2019;;0.6878
 ;NL11_2400-EAG-6;Overige waterflora-kwaliteit;2400-EAG-6;PdeRndHp,OukrkAms;0.351;handelingsperspectief_score2008-2014;0.14;0.351
-;NL11_2410-EAG-1;Overige waterflora-kwaliteit;2410-EAG-1;HDRTerP;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
-;NL11_2410-EAG-2;Overige waterflora-kwaliteit;2410-EAG-2;PWrdHDRT,stdlijkNd;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
-;NL11_2410-EAG-3;Overige waterflora-kwaliteit;2410-EAG-3;PWrdHDRT,stdlijkZ;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
-;NL11_2410-EAG-4;Overige waterflora-kwaliteit;2410-EAG-4;PWrdHDRT,SlotP;0.489;handelingsperspectief_score2008-2014;0.1595;0.489384615
-;NL11_2500-EAG-1;Overige waterflora-kwaliteit;2500-EAG-1;GWV,Overig;0.409;handelingsperspectief_score2008-2014;0;0.409026316
+;NL11_2410-EAG-1;Overige waterflora-kwaliteit;2410-EAG-1;HDRTerP;0.489;10% beste 2006-2019;0.1595;0.4684
+;NL11_2410-EAG-2;Overige waterflora-kwaliteit;2410-EAG-2;PWrdHDRT,stdlijkNd;0.489;10% beste 2006-2019;0.1595;0.5314
+;NL11_2410-EAG-3;Overige waterflora-kwaliteit;2410-EAG-3;PWrdHDRT,stdlijkZ;0.489;10% beste 2006-2019;0.1595;0.537
+;NL11_2410-EAG-4;Overige waterflora-kwaliteit;2410-EAG-4;PWrdHDRT,SlotP;0.489;10% beste 2006-2019;0.1595;0.483
+;NL11_2500-EAG-1;Overige waterflora-kwaliteit;2500-EAG-1;GWV,Overig;0.409;10% beste 2006-2019;0;0.555
 ;NL11_2502-EAG-1;Overige waterflora-kwaliteit;2502-EAG-1;GWVmid,O;0.41;WGP_GWV;0.1475;0.41
 ;NL11_2502-EAG-2;Overige waterflora-kwaliteit;2502-EAG-2;GWVmid,W;0.41;WGP_GWV;0.1475;0.41
 ;NL11_2503-EAG-1;Overige waterflora-kwaliteit;2503-EAG-1;PWilnis-Veldzijde;0.36;WGP_GWV;0.1;0.36
-;NL11_2504-EAG-1;Overige waterflora-kwaliteit;2504-EAG-1;P2eBdkng;0.538;handelingsperspectief_score2008-2014;0.145;0.53825
+;NL11_2504-EAG-1;Overige waterflora-kwaliteit;2504-EAG-1;P2eBdkng;0.538;10% beste 2006-2019;0.145;0.5684
 ;NL11_2505-EAG-1;Overige waterflora-kwaliteit;2505-EAG-1;Veldhuiswtrng;0.44;WGP_GWV;0.2;0.44
 ;NL11_2510-EAG-2;Overige waterflora-kwaliteit;2510-EAG-2;GWVZ,Armland;0.6;Default GEP;;0.516034188
-;NL11_2511-EAG-1;Overige waterflora-kwaliteit;2511-EAG-1;HWZAmskadeP1;0.267;handelingsperspectief_score2008-2014;0;0.267
-;NL11_2512-EAG-1;Overige waterflora-kwaliteit;2512-EAG-1;HWZAmskadeP2;0.6;Default GEP;;0.6
-;NL11_2520-EAG-1;Overige waterflora-kwaliteit;2520-EAG-1;PDrdBeding,stdlijklnd;0.257;handelingsperspectief_score2008-2014;0.085;0.257
-;NL11_2520-EAG-2;Overige waterflora-kwaliteit;2520-EAG-2;PDrdBeding,stdlijk;0.257;handelingsperspectief_score2008-2014;0.085;0.257
-;NL11_2520-EAG-4;Overige waterflora-kwaliteit;2520-EAG-4;PDrdBeding,stdlijkkass;0.257;handelingsperspectief_score2008-2014;0.085;0.257
-;NL11_2530-EAG-1;Overige waterflora-kwaliteit;2530-EAG-1;P1eBdkngWW;0.53;handelingsperspectief_score2008-2014;0.095;0.529647619
-;NL11_2530-EAG-2;Overige waterflora-kwaliteit;2530-EAG-2;P1eBdkngWO;0.53;handelingsperspectief_score2008-2014;0.095;0.529647619
-;NL11_2540-EAG-2;Overige waterflora-kwaliteit;2540-EAG-2;PGM1eBdkngO,Ntrreservaat;0.138;handelingsperspectief_score2015-2017;0.05;0.138
-;NL11_2540-EAG-3;Overige waterflora-kwaliteit;2540-EAG-3;PGMij,BotsholW;0.138;handelingsperspectief_score2008-2014;0.05;0.138
-;NL11_2540-EAG-4;Overige waterflora-kwaliteit;2540-EAG-4;PGM1eBdkngO,stdlijk;0.138;handelingsperspectief_score2015-2017;0.05;0.138
-;NL11_2540-EAG-5;Overige waterflora-kwaliteit;2540-EAG-5;PGM1eBdkngO,Veldwg;0.138;handelingsperspectief_score2015-2017;0.05;0.138
-;NL11_2550-EAG-4;Overige waterflora-kwaliteit;2550-EAG-4;Botshol,NdrPW;0.37;handelingsperspectief_score2008-2014;0.1;0.369595238
-;NL11_2550-EAG-5;Overige waterflora-kwaliteit;2550-EAG-5;Botshol,NdrPW;0.37;handelingsperspectief_score2008-2014;0.1;0.369595238
-;NL11_2560-EAG-1;Overige waterflora-kwaliteit;2560-EAG-1;BotsholNellesteinagrarisch;0.471;handelingsperspectief_score2008-2014;0.085;0.47075
-;NL11_2560-EAG-2;Overige waterflora-kwaliteit;2560-EAG-2;BotsholNellesteinNtrGeb;0.471;handelingsperspectief_score2008-2014;0.085;0.47075
-;NL11_2570-EAG-1;Overige waterflora-kwaliteit;2570-EAG-1;BmbrgWzijds,P;0.47;handelingsperspectief_score2008-2014;0.085;0.469509804
-;NL11_2570-EAG-2;Overige waterflora-kwaliteit;2570-EAG-2;BBW,SchrbbrP;0.47;handelingsperspectief_score2008-2014;0.085;0.469509804
+;NL11_2511-EAG-1;Overige waterflora-kwaliteit;2511-EAG-1;HWZAmskadeP1;0.267;10% beste 2006-2019;0;0.4181
+;NL11_2512-EAG-1;Overige waterflora-kwaliteit;2512-EAG-1;HWZAmskadeP2;0.6;10% beste 2006-2019;;0.4038
+;NL11_2520-EAG-1;Overige waterflora-kwaliteit;2520-EAG-1;PDrdBeding,stdlijklnd;0.257;10% beste 2006-2019;0.085;0.6246
+;NL11_2520-EAG-2;Overige waterflora-kwaliteit;2520-EAG-2;PDrdBeding,stdlijk;0.257;10% beste 2006-2019;0.085;0.3909
+;NL11_2520-EAG-4;Overige waterflora-kwaliteit;2520-EAG-4;PDrdBeding,stdlijkkass;0.257;10% beste 2006-2019;0.085;0.4056
+;NL11_2530-EAG-1;Overige waterflora-kwaliteit;2530-EAG-1;P1eBdkngWW;0.53;10% beste 2006-2019;0.095;0.5966
+;NL11_2530-EAG-2;Overige waterflora-kwaliteit;2530-EAG-2;P1eBdkngWO;0.53;10% beste 2006-2019;0.095;0.628
+;NL11_2540-EAG-2;Overige waterflora-kwaliteit;2540-EAG-2;PGM1eBdkngO,Ntrreservaat;0.138;10% beste 2006-2019;0.05;0.1278
+;NL11_2540-EAG-3;Overige waterflora-kwaliteit;2540-EAG-3;PGMij,BotsholW;0.138;10% beste 2006-2019;0.05;0.5404
+;NL11_2540-EAG-4;Overige waterflora-kwaliteit;2540-EAG-4;PGM1eBdkngO,stdlijk;0.138;10% beste 2006-2019;0.05;0.545
+;NL11_2540-EAG-5;Overige waterflora-kwaliteit;2540-EAG-5;PGM1eBdkngO,Veldwg;0.138;10% beste 2006-2019;0.05;0.321
+;NL11_2550-EAG-4;Overige waterflora-kwaliteit;2550-EAG-4;Botshol,NdrPW;0.37;10% beste 2006-2019;0.1;0.4452
+;NL11_2550-EAG-5;Overige waterflora-kwaliteit;2550-EAG-5;Botshol,NdrPW;0.37;10% beste 2006-2019;0.1;0.576
+;NL11_2560-EAG-1;Overige waterflora-kwaliteit;2560-EAG-1;BotsholNellesteinagrarisch;0.471;10% beste 2006-2019;0.085;0.592
+;NL11_2560-EAG-2;Overige waterflora-kwaliteit;2560-EAG-2;BotsholNellesteinNtrGeb;0.471;10% beste 2006-2019;0.085;0.415
+;NL11_2570-EAG-1;Overige waterflora-kwaliteit;2570-EAG-1;BmbrgWzijds,P;0.47;10% beste 2006-2019;0.085;0.5771
+;NL11_2570-EAG-2;Overige waterflora-kwaliteit;2570-EAG-2;BBW,SchrbbrP;0.47;10% beste 2006-2019;0.085;0.6252
 ;NL11_2600-EAG-4;Overige waterflora-kwaliteit;2600-EAG-4;PZevhov,Bloklandsewg;0.229;handelingsperspectief_score2008-2014;0.06;0.229
-;NL11_2610-EAG-1;Overige waterflora-kwaliteit;2610-EAG-1;WOB-bmgbd;0.405;handelingsperspectief_score2008-2014;0.12;0.404705882
-;NL11_2625-EAG-1;Overige waterflora-kwaliteit;2625-EAG-1;;0.6;Default GEP;;0.6
-;NL11_2630-EAG-1;Overige waterflora-kwaliteit;2630-EAG-1;NrBrstWvnNseBrt;0.385;handelingsperspectief_score2008-2014;0.1975;0.384583333
-;NL11_2630-EAG-2;Overige waterflora-kwaliteit;2630-EAG-2;NrBrstWvnNsedorp;0.385;handelingsperspectief_score2008-2014;0.1975;0.384583333
-;NL11_3020-EAG-1;Overige waterflora-kwaliteit;3020-EAG-1;NORlnd;0.6;Default GEP;;0.6
-;NL11_3020-EAG-2;Overige waterflora-kwaliteit;3020-EAG-2;NORKruitfabriekeo;0.6;Default GEP;;0.6
+;NL11_2610-EAG-1;Overige waterflora-kwaliteit;2610-EAG-1;WOB-bmgbd;0.405;10% beste 2006-2019;0.12;0.4258
+;NL11_2625-EAG-1;Overige waterflora-kwaliteit;2625-EAG-1;;0.6;10% beste 2006-2019;;0.488
+;NL11_2630-EAG-1;Overige waterflora-kwaliteit;2630-EAG-1;NrBrstWvnNseBrt;0.385;10% beste 2006-2019;0.1975;0.348
+;NL11_2630-EAG-2;Overige waterflora-kwaliteit;2630-EAG-2;NrBrstWvnNsedorp;0.385;10% beste 2006-2019;0.1975;0.3515
+;NL11_3020-EAG-1;Overige waterflora-kwaliteit;3020-EAG-1;NORlnd;0.6;10% beste 2006-2019;;0.2113
+;NL11_3020-EAG-2;Overige waterflora-kwaliteit;3020-EAG-2;NORKruitfabriekeo;0.6;10% beste 2006-2019;;0.4974
 ;NL11_3040-EAG-1;Overige waterflora-kwaliteit;3040-EAG-1;BlmdPN;0.6;Default GEP;;0.6
-;NL11_3050-EAG-1;Overige waterflora-kwaliteit;3050-EAG-1;GmschpPZO;0.6;Default GEP;;0.6
+;NL11_3050-EAG-1;Overige waterflora-kwaliteit;3050-EAG-1;GmschpPZO;0.6;10% beste 2006-2019;;0.4718
 ;NL11_3050-EAG-2;Overige waterflora-kwaliteit;3050-EAG-2;GMsPZO,BlmdPWsp;0.6;Default GEP;;0.6
-;NL11_3070-EAG-1;Overige waterflora-kwaliteit;3070-EAG-1;HSVO-Vrbg;0.572;handelingsperspectief_score2008-2014;0.1;0.57167619
-;NL11_3070-EAG-2;Overige waterflora-kwaliteit;3070-EAG-2;HSVOEAGz;0.572;handelingsperspectief_score2008-2014;0.1;0.57167619
-;NL11_3100-EAG-10;Overige waterflora-kwaliteit;3100-EAG-10;NdrmrMeerland;0.6;Default GEP;;0.6
-;NL11_3110-EAG-1;Overige waterflora-kwaliteit;3110-EAG-1;Meerland,LndbwZO;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
-;NL11_3110-EAG-2;Overige waterflora-kwaliteit;3110-EAG-2;Meerland,LndbwZO;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
-;NL11_3110-EAG-3;Overige waterflora-kwaliteit;3110-EAG-3;NKPHilBvMnt,EAGz;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
+;NL11_3070-EAG-1;Overige waterflora-kwaliteit;3070-EAG-1;HSVO-Vrbg;0.572;10% beste 2006-2019;0.1;0.7376
+;NL11_3070-EAG-2;Overige waterflora-kwaliteit;3070-EAG-2;HSVOEAGz;0.572;10% beste 2006-2019;0.1;0.683
+;NL11_3100-EAG-10;Overige waterflora-kwaliteit;3100-EAG-10;NdrmrMeerland;0.6;10% beste 2006-2019;;0.3882
+;NL11_3110-EAG-1;Overige waterflora-kwaliteit;3110-EAG-1;Meerland,LndbwZO;0.324;10% beste 2006-2019;0.07;0.7394
+;NL11_3110-EAG-2;Overige waterflora-kwaliteit;3110-EAG-2;Meerland,LndbwZO;0.324;10% beste 2006-2019;0.07;0.774
+;NL11_3110-EAG-3;Overige waterflora-kwaliteit;3110-EAG-3;NKPHilBvMnt,EAGz;0.324;10% beste 2006-2019;0.07;0.7052
 ;NL11_3110-EAG-4;Overige waterflora-kwaliteit;3110-EAG-4;NKPHilBvMnt,Aalschlvr;0.324;handelingsperspectief_score2015-2017;0.07;0.3235
-;NL11_3110-EAG-5;Overige waterflora-kwaliteit;3110-EAG-5;NKPHilBvMnt,EAGz;0.324;handelingsperspectief_score2008-2014;0.07;0.3235
+;NL11_3110-EAG-5;Overige waterflora-kwaliteit;3110-EAG-5;NKPHilBvMnt,EAGz;0.324;10% beste 2006-2019;0.07;0.6704
 ;NL11_3200-EAG-2;Overige waterflora-kwaliteit;3200-EAG-2;SpiegelP,Spiegelwg;0.6;WGP_NVP-noord;;0.6
-;NL11_3201-EAG-3;Overige waterflora-kwaliteit;3201-EAG-3;SaPO;0.482;handelingsperspectief_score2008-2014;0.085;0.482035714
-;NL11_3210-EAG-1;Overige waterflora-kwaliteit;3210-EAG-1;HKPbmlgbd;0.577;handelingsperspectief_score2008-2014;0.15;0.576791667
-;NL11_3210-EAG-2;Overige waterflora-kwaliteit;3210-EAG-2;HKPgstwdGbd;0.577;handelingsperspectief_score2008-2014;0.15;0.576791667
-;NL11_3210-EAG-3;Overige waterflora-kwaliteit;3210-EAG-3;NederhorstBerg;0.577;handelingsperspectief_score2008-2014;0.15;0.576791667
-;NL11_3220-EAG-1;Overige waterflora-kwaliteit;3220-EAG-1;Korremof;0.193;handelingsperspectief_score2008-2014;0.05;0.193
-;NL11_3220-EAG-2;Overige waterflora-kwaliteit;3220-EAG-2;HorstermeerP;0.193;handelingsperspectief_score2008-2014;0.05;0.193
-;NL11_3220-EAG-3;Overige waterflora-kwaliteit;3220-EAG-3;AnkoZ;0.193;handelingsperspectief_score2008-2014;0.05;0.193
-;NL11_3220-EAG-4;Overige waterflora-kwaliteit;3220-EAG-4;MuitdkPZ;0.193;handelingsperspectief_score2008-2014;0.05;0.193
+;NL11_3201-EAG-3;Overige waterflora-kwaliteit;3201-EAG-3;SaPO;0.482;10% beste 2006-2019;0.085;0.5554
+;NL11_3210-EAG-1;Overige waterflora-kwaliteit;3210-EAG-1;HKPbmlgbd;0.577;10% beste 2006-2019;0.15;0.5483
+;NL11_3210-EAG-2;Overige waterflora-kwaliteit;3210-EAG-2;HKPgstwdGbd;0.577;10% beste 2006-2019;0.15;0.6152
+;NL11_3210-EAG-3;Overige waterflora-kwaliteit;3210-EAG-3;NederhorstBerg;0.577;10% beste 2006-2019;0.15;0.7126
+;NL11_3220-EAG-1;Overige waterflora-kwaliteit;3220-EAG-1;Korremof;0.193;10% beste 2006-2019;0.05;0.498
+;NL11_3220-EAG-2;Overige waterflora-kwaliteit;3220-EAG-2;HorstermeerP;0.193;10% beste 2006-2019;0.05;0.602
+;NL11_3220-EAG-3;Overige waterflora-kwaliteit;3220-EAG-3;AnkoZ;0.193;10% beste 2006-2019;0.05;0.5692
+;NL11_3220-EAG-4;Overige waterflora-kwaliteit;3220-EAG-4;MuitdkPZ;0.193;10% beste 2006-2019;0.05;0.6898
 ;NL11_3220-EAG-5;Overige waterflora-kwaliteit;3220-EAG-5;MuitdkPN;0.193;handelingsperspectief_score2015-2017;0.05;0.193
 ;NL11_3220-EAG-6;Overige waterflora-kwaliteit;3220-EAG-6;HorsSpiegelPZ;0.193;handelingsperspectief_score2008-2014;0.05;0.193
-;NL11_3230-EAG-4;Overige waterflora-kwaliteit;3230-EAG-4;PKhf;0.408;handelingsperspectief_score2008-2014;0.06;0.40790625
-;NL11_3240-EAG-1;Overige waterflora-kwaliteit;3240-EAG-1;PDorssewrd;0.594;handelingsperspectief_score2008-2014;0.115;0.594
-;NL11_3250-EAG-1;Overige waterflora-kwaliteit;3250-EAG-1;VreelandO;0.6;Default GEP;;0.6
-;NL11_3260-EAG-1;Overige waterflora-kwaliteit;3260-EAG-1;BlijkP;0.618;handelingsperspectief_score2008-2014;0.075;0.618
+;NL11_3230-EAG-4;Overige waterflora-kwaliteit;3230-EAG-4;PKhf;0.408;10% beste 2006-2019;0.06;0.5575
+;NL11_3240-EAG-1;Overige waterflora-kwaliteit;3240-EAG-1;PDorssewrd;0.594;10% beste 2006-2019;0.115;0.6158
+;NL11_3250-EAG-1;Overige waterflora-kwaliteit;3250-EAG-1;VreelandO;0.6;10% beste 2006-2019;;0.3105
+;NL11_3260-EAG-1;Overige waterflora-kwaliteit;3260-EAG-1;BlijkP;0.618;10% beste 2006-2019;0.075;0.5335
 ;NL11_3300-EAG-12;Overige waterflora-kwaliteit;3300-EAG-12;DeSter;0.52;handelingsperspectief_score2008-2014;0.055;0.519516667
-;NL11_3301-EAG-1;Overige waterflora-kwaliteit;3301-EAG-1;GanshoefO;0.475;handelingsperspectief_score2008-2014;0.08;0.47525
+;NL11_3301-EAG-1;Overige waterflora-kwaliteit;3301-EAG-1;GanshoefO;0.475;10% beste 2006-2019;0.08;0.6347
 ;NL11_3301-EAG-2;Overige waterflora-kwaliteit;3301-EAG-2;GanshoefO,SBB;0.475;handelingsperspectief_score2008-2014;0.0525;0.47525
-;NL11_3303-EAG-1;Overige waterflora-kwaliteit;3303-EAG-1;GanshoefW;0.6;Default GEP;;0.6
+;NL11_3303-EAG-1;Overige waterflora-kwaliteit;3303-EAG-1;GanshoefW;0.6;10% beste 2006-2019;;0.3738
 ;NL11_3310-EAG-1;Overige waterflora-kwaliteit;3310-EAG-1;Waterleidingkanaal;0.6;Default GEP;;0.6
-;NL11_3311-EAG-1;Overige waterflora-kwaliteit;3311-EAG-1;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
+;NL11_3311-EAG-1;Overige waterflora-kwaliteit;3311-EAG-1;BethuneP,;0.453;10% beste 2006-2019;0.215;0.401
 ;NL11_3311-EAG-10;Overige waterflora-kwaliteit;3311-EAG-10;;0.453;Default GEP;0.215;0.453333333
-;NL11_3311-EAG-2;Overige waterflora-kwaliteit;3311-EAG-2;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
-;NL11_3311-EAG-3;Overige waterflora-kwaliteit;3311-EAG-3;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
+;NL11_3311-EAG-2;Overige waterflora-kwaliteit;3311-EAG-2;BethuneP,;0.453;10% beste 2006-2019;0.215;0.5288
+;NL11_3311-EAG-3;Overige waterflora-kwaliteit;3311-EAG-3;BethuneP,;0.453;10% beste 2006-2019;0.215;0.4625
 ;NL11_3311-EAG-5;Overige waterflora-kwaliteit;3311-EAG-5;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
-;NL11_3311-EAG-6;Overige waterflora-kwaliteit;3311-EAG-6;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
-;NL11_3311-EAG-7;Overige waterflora-kwaliteit;3311-EAG-7;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
+;NL11_3311-EAG-6;Overige waterflora-kwaliteit;3311-EAG-6;BethuneP,;0.453;10% beste 2006-2019;0.215;0.1882
+;NL11_3311-EAG-7;Overige waterflora-kwaliteit;3311-EAG-7;BethuneP,;0.453;10% beste 2006-2019;0.215;0.5624
 ;NL11_3311-EAG-8;Overige waterflora-kwaliteit;3311-EAG-8;;0.453;Default GEP;0.215;0.453333333
-;NL11_3311-EAG-9;Overige waterflora-kwaliteit;3311-EAG-9;BethuneP,;0.453;handelingsperspectief_score2008-2014;0.215;0.453333333
-;NL11_3320-EAG-3;Overige waterflora-kwaliteit;3320-EAG-3;TerraNovalndZ;0.357;handelingsperspectief_score2008-2014;0.065;0.3571
-;NL11_3340-EAG-1;Overige waterflora-kwaliteit;3340-EAG-1;PMijndW;0.476;handelingsperspectief_score2008-2014;0.06;0.476333333
-;NL11_3340-EAG-2;Overige waterflora-kwaliteit;3340-EAG-2;PMijndO;0.476;handelingsperspectief_score2008-2014;0.15;0.476333333
-;NL11_3340-EAG-3;Overige waterflora-kwaliteit;3340-EAG-3;PMijnd,SBB;0.476;handelingsperspectief_score2008-2014;0.11;0.476333333
-;NL11_3350-EAG-1;Overige waterflora-kwaliteit;3350-EAG-1;PbrPrdijbmlgbd;0.419;handelingsperspectief_score2008-2014;0.08;0.419111111
-;NL11_3350-EAG-2;Overige waterflora-kwaliteit;3350-EAG-2;PbrPrdijBrngdelnd;0.419;handelingsperspectief_score2008-2014;0.08;0.419111111
-;NL11_3360-EAG-1;Overige waterflora-kwaliteit;3360-EAG-1;PMWBAgrarischMolP;0.6;Default GEP;;0.6
-;NL11_3360-EAG-18;Overige waterflora-kwaliteit;3360-EAG-18;PMWBPhetHuisteHart;0.6;Default GEP;;0.6
-;NL11_3360-EAG-2;Overige waterflora-kwaliteit;3360-EAG-2;PMWBPBuitwg;0.6;Default GEP;;0.6
-;NL11_3360-EAG-3;Overige waterflora-kwaliteit;3360-EAG-3;PMWBZogwtrng;0.6;Default GEP;;0.6
-;NL11_3360-EAG-4;Overige waterflora-kwaliteit;3360-EAG-4;PMWBWilgplas;0.6;Default GEP;;0.6
-;NL11_3360-EAG-5;Overige waterflora-kwaliteit;3360-EAG-5;PMWBrondKlnMVPlas;0.6;Default GEP;;0.6
+;NL11_3311-EAG-9;Overige waterflora-kwaliteit;3311-EAG-9;BethuneP,;0.453;10% beste 2006-2019;0.215;0.6188
+;NL11_3320-EAG-3;Overige waterflora-kwaliteit;3320-EAG-3;TerraNovalndZ;0.357;10% beste 2006-2019;0.065;0.5852
+;NL11_3340-EAG-1;Overige waterflora-kwaliteit;3340-EAG-1;PMijndW;0.476;10% beste 2006-2019;0.06;0.6152
+;NL11_3340-EAG-2;Overige waterflora-kwaliteit;3340-EAG-2;PMijndO;0.476;10% beste 2006-2019;0.15;0.6616
+;NL11_3340-EAG-3;Overige waterflora-kwaliteit;3340-EAG-3;PMijnd,SBB;0.476;10% beste 2006-2019;0.11;0.6435
+;NL11_3350-EAG-1;Overige waterflora-kwaliteit;3350-EAG-1;PbrPrdijbmlgbd;0.419;10% beste 2006-2019;0.08;0.5268
+;NL11_3350-EAG-2;Overige waterflora-kwaliteit;3350-EAG-2;PbrPrdijBrngdelnd;0.419;10% beste 2006-2019;0.08;0.6103
+;NL11_3360-EAG-1;Overige waterflora-kwaliteit;3360-EAG-1;PMWBAgrarischMolP;0.6;10% beste 2006-2019;;0.7664
+;NL11_3360-EAG-18;Overige waterflora-kwaliteit;3360-EAG-18;PMWBPhetHuisteHart;0.6;10% beste 2006-2019;;0.74
+;NL11_3360-EAG-2;Overige waterflora-kwaliteit;3360-EAG-2;PMWBPBuitwg;0.6;10% beste 2006-2019;;0.4403
+;NL11_3360-EAG-3;Overige waterflora-kwaliteit;3360-EAG-3;PMWBZogwtrng;0.6;10% beste 2006-2019;;0.5362
+;NL11_3360-EAG-4;Overige waterflora-kwaliteit;3360-EAG-4;PMWBWilgplas;0.6;10% beste 2006-2019;;0.6416
+;NL11_3360-EAG-5;Overige waterflora-kwaliteit;3360-EAG-5;PMWBrondKlnMVPlas;0.6;10% beste 2006-2019;;0.5376
 ;NL11_3360-EAG-6;Overige waterflora-kwaliteit;3360-EAG-6;PMWBKass;0.6;Default GEP;;0.6
 ;NL11_3360-EAG-7;Overige waterflora-kwaliteit;3360-EAG-7;PMWBVlktn;0.6;Default GEP;;0.6
 ;NL11_3360-EAG-8;Overige waterflora-kwaliteit;3360-EAG-8;PMWBOudTnbwGbd;0.6;Default GEP;;0.6
-;NL11_3360-EAG-9;Overige waterflora-kwaliteit;3360-EAG-9;PMWBKlnMrsvnsPlas;0.6;Default GEP;;0.6
-;NL11_3370-EAG-1;Overige waterflora-kwaliteit;3370-EAG-1;PAHGagelwg;0.574;handelingsperspectief_score2008-2014;0.115;0.5738
-;NL11_3370-EAG-2;Overige waterflora-kwaliteit;3370-EAG-2;PAHGagelbos;0.574;handelingsperspectief_score2008-2014;0.005;0.5738
-;NL11_3370-EAG-3;Overige waterflora-kwaliteit;3370-EAG-3;PAHKerkeindseP;0.574;handelingsperspectief_score2008-2014;0.0775;0.5738
-;NL11_3370-EAG-4;Overige waterflora-kwaliteit;3370-EAG-4;PAHHetAchteraf;0.574;handelingsperspectief_score2008-2014;0.0775;0.5738
-;NL11_3370-EAG-5;Overige waterflora-kwaliteit;3370-EAG-5;PAHKorssesteeg;0.574;Default GEP;;0.5738
-;NL11_4100-EAG-1;Overige waterflora-kwaliteit;4100-EAG-1;NPbeOMuid,bemal;0.519;handelingsperspectief_score2008-2014;0.19;0.519333333
-;NL11_4100-EAG-2;Overige waterflora-kwaliteit;4100-EAG-2;NPbeOMuid,N;0.519;handelingsperspectief_score2008-2014;0.19;0.519333333
-;NL11_4110-EAG-1;Overige waterflora-kwaliteit;4110-EAG-1;BOBMbemal;0.586;handelingsperspectief_score2008-2014;0.15;0.585666667
-;NL11_4110-EAG-2;Overige waterflora-kwaliteit;4110-EAG-2;BOBMO;0.586;handelingsperspectief_score2008-2014;0.15;0.585666667
-;NL11_4120-EAG-1;Overige waterflora-kwaliteit;4120-EAG-1;BtdkNSchapmet;0.182;handelingsperspectief_score2008-2014;0;0.182333333
+;NL11_3360-EAG-9;Overige waterflora-kwaliteit;3360-EAG-9;PMWBKlnMrsvnsPlas;0.6;10% beste 2006-2019;;0.1587
+;NL11_3370-EAG-1;Overige waterflora-kwaliteit;3370-EAG-1;PAHGagelwg;0.574;10% beste 2006-2019;0.115;0.7302
+;NL11_3370-EAG-2;Overige waterflora-kwaliteit;3370-EAG-2;PAHGagelbos;0.574;10% beste 2006-2019;0.005;0.7454
+;NL11_3370-EAG-3;Overige waterflora-kwaliteit;3370-EAG-3;PAHKerkeindseP;0.574;10% beste 2006-2019;0.0775;0.8152
+;NL11_3370-EAG-4;Overige waterflora-kwaliteit;3370-EAG-4;PAHHetAchteraf;0.574;10% beste 2006-2019;0.0775;0.797
+;NL11_3370-EAG-5;Overige waterflora-kwaliteit;3370-EAG-5;PAHKorssesteeg;0.574;10% beste 2006-2019;;0.79
+;NL11_4100-EAG-1;Overige waterflora-kwaliteit;4100-EAG-1;NPbeOMuid,bemal;0.519;10% beste 2006-2019;0.19;0.57
+;NL11_4100-EAG-2;Overige waterflora-kwaliteit;4100-EAG-2;NPbeOMuid,N;0.519;10% beste 2006-2019;0.19;0.4888
+;NL11_4110-EAG-1;Overige waterflora-kwaliteit;4110-EAG-1;BOBMbemal;0.586;10% beste 2006-2019;0.15;0.5942
+;NL11_4110-EAG-2;Overige waterflora-kwaliteit;4110-EAG-2;BOBMO;0.586;10% beste 2006-2019;0.15;0.6645
+;NL11_4120-EAG-1;Overige waterflora-kwaliteit;4120-EAG-1;BtdkNSchapmet;0.182;10% beste 2006-2019;0;0.2295
 ;NL11_4120-EAG-2;Overige waterflora-kwaliteit;4120-EAG-2;BtdkNHaverland;0.182;handelingsperspectief_score2015-2017;0;0.182333333
-;NL11_4130-EAG-1;Overige waterflora-kwaliteit;4130-EAG-1;ZPbeOMuid;0.516;handelingsperspectief_score2008-2014;0.1;0.516029851
-;NL11_4140-EAG-1;Overige waterflora-kwaliteit;4140-EAG-1;KOP;0.432;handelingsperspectief_score2008-2014;0.17;0.4324
+;NL11_4130-EAG-1;Overige waterflora-kwaliteit;4130-EAG-1;ZPbeOMuid;0.516;10% beste 2006-2019;0.1;0.7019
+;NL11_4140-EAG-1;Overige waterflora-kwaliteit;4140-EAG-1;KOP;0.432;10% beste 2006-2019;0.17;0.652
 ;NL11_4140-EAG-2;Overige waterflora-kwaliteit;4140-EAG-2;KOP;0.432;handelingsperspectief_score2008-2014;0.17;0.4324
-;NL11_4140-EAG-3;Overige waterflora-kwaliteit;4140-EAG-3;KOP;0.432;handelingsperspectief_score2008-2014;0.17;0.4324
+;NL11_4140-EAG-3;Overige waterflora-kwaliteit;4140-EAG-3;KOP;0.432;10% beste 2006-2019;0.17;0.7935
 ;NL11_4140-EAG-4;Overige waterflora-kwaliteit;4140-EAG-4;KOP;0.432;handelingsperspectief_score2008-2014;0.17;0.4324
 ;NL11_4140-EAG-5;Overige waterflora-kwaliteit;4140-EAG-5;KOPStadzicht;0.432;handelingsperspectief_score2008-2014;0.17;0.4324
-;NL11_4200-EAG-1;Overige waterflora-kwaliteit;4200-EAG-1;HBP,faunapas;0.451;handelingsperspectief_score2008-2014;0.11;0.451166667
-;NL11_4200-EAG-2;Overige waterflora-kwaliteit;4200-EAG-2;BroekerP;0.451;handelingsperspectief_score2008-2014;0.11;0.451166667
-;NL11_4200-EAG-3;Overige waterflora-kwaliteit;4200-EAG-3;HeintjesrakP;0.451;handelingsperspectief_score2008-2014;0.11;0.451166667
+;NL11_4200-EAG-1;Overige waterflora-kwaliteit;4200-EAG-1;HBP,faunapas;0.451;10% beste 2006-2019;0.11;0.604
+;NL11_4200-EAG-2;Overige waterflora-kwaliteit;4200-EAG-2;BroekerP;0.451;10% beste 2006-2019;0.11;0.779
+;NL11_4200-EAG-3;Overige waterflora-kwaliteit;4200-EAG-3;HeintjesrakP;0.451;10% beste 2006-2019;0.11;0.6337
 ;NL11_4210-EAG-4;Overige waterflora-kwaliteit;4210-EAG-4;HaPO;0.7;WGP_NVP-noord;0.0525;0.7
-;NL11_4230-EAG-1;Overige waterflora-kwaliteit;4230-EAG-1;Hilvsmsmnt;0.575;handelingsperspectief_score2008-2014;0.16;0.575151515
-;NL11_4230-EAG-1;Overige waterflora-kwaliteit;4230-EAG-1;;0.575;Default GEP;;0.575151515
-;NL11_4240-EAG-1;Overige waterflora-kwaliteit;4240-EAG-1;;0.6;Default GEP;;0.6
-;NL11_4240-EAG-1;Overige waterflora-kwaliteit;4240-EAG-1;Hilvsmsmnt;0.6;Default GEP;;0.6
-;NL11_4250-EAG-1;Overige waterflora-kwaliteit;4250-EAG-1;s-GrvlndsP;0.292;handelingsperspectief_score2008-2014;0;0.291766667
+;NL11_4230-EAG-1;Overige waterflora-kwaliteit;4230-EAG-1;Hilvsmsmnt;0.575;10% beste 2006-2019;0.16;0.667
+;NL11_4230-EAG-1;Overige waterflora-kwaliteit;4230-EAG-1;;0.575;10% beste 2006-2019;;0.667
+;NL11_4240-EAG-1;Overige waterflora-kwaliteit;4240-EAG-1;;0.6;10% beste 2006-2019;;0.7029
+;NL11_4240-EAG-1;Overige waterflora-kwaliteit;4240-EAG-1;Hilvsmsmnt;0.6;10% beste 2006-2019;;0.7029
+;NL11_4250-EAG-1;Overige waterflora-kwaliteit;4250-EAG-1;s-GrvlndsP;0.292;10% beste 2006-2019;0;0.4862
 ;NL11_6040-EAG-1;Overige waterflora-kwaliteit;6040-EAG-1;SportprkTDO;0.6;Default GEP;;0.6
 ;NL11_6050-EAG-1;Overige waterflora-kwaliteit;6050-EAG-1;Krasseurstr,Krasseurstr;0.6;Default GEP;;0.6
-;NL11_6060-EAG-1;Overige waterflora-kwaliteit;6060-EAG-1;Vliegbos;0.6;Default GEP;;0.6
+;NL11_6060-EAG-1;Overige waterflora-kwaliteit;6060-EAG-1;Vliegbos;0.6;10% beste 2006-2019;;0.1185
 ;NL11_6080-EAG-1;Overige waterflora-kwaliteit;6080-EAG-1;PBernard;0.6;Default GEP;;0.6
 ;NL11_6100-EAG-2;Overige waterflora-kwaliteit;6100-EAG-2;NdrIJplas;0.6;Default GEP;;0.6
-;NL11_6110-EAG-1;Overige waterflora-kwaliteit;6110-EAG-1;NdrIJP;0.6;Default GEP;;0.6
-;NL11_6400-EAG-1;Overige waterflora-kwaliteit;6400-EAG-1;Wtgfsmr,Z;0.6;Default GEP;;0.6
-;NL11_6400-EAG-2;Overige waterflora-kwaliteit;6400-EAG-2;Wtgfsmr,N;0.6;Default GEP;;0.6
-;NL11_6420-EAG-1;Overige waterflora-kwaliteit;6420-EAG-1;GmsPWVTLinnaeus;0.6;Default GEP;;0.6
-;NL11_6430-EAG-1;Overige waterflora-kwaliteit;6430-EAG-1;BmbrgOzijds;0.422;handelingsperspectief_score2008-2014;0.065;0.421669291
-;NL11_6440-EAG-1;Overige waterflora-kwaliteit;6440-EAG-1;PBRKwrdW,bmlgbd;0.6;Default GEP;;0.6
-;NL11_6440-EAG-2;Overige waterflora-kwaliteit;6440-EAG-2;PBRKwrdW,;0.6;Default GEP;;0.6
+;NL11_6110-EAG-1;Overige waterflora-kwaliteit;6110-EAG-1;NdrIJP;0.6;10% beste 2006-2019;;0.3378
+;NL11_6400-EAG-1;Overige waterflora-kwaliteit;6400-EAG-1;Wtgfsmr,Z;0.6;10% beste 2006-2019;;0.2508
+;NL11_6400-EAG-2;Overige waterflora-kwaliteit;6400-EAG-2;Wtgfsmr,N;0.6;10% beste 2006-2019;;0.2092
+;NL11_6420-EAG-1;Overige waterflora-kwaliteit;6420-EAG-1;GmsPWVTLinnaeus;0.6;10% beste 2006-2019;;0.228
+;NL11_6430-EAG-1;Overige waterflora-kwaliteit;6430-EAG-1;BmbrgOzijds;0.422;10% beste 2006-2019;0.065;0.6276
+;NL11_6440-EAG-1;Overige waterflora-kwaliteit;6440-EAG-1;PBRKwrdW,bmlgbd;0.6;10% beste 2006-2019;;0.535
+;NL11_6440-EAG-2;Overige waterflora-kwaliteit;6440-EAG-2;PBRKwrdW,;0.6;10% beste 2006-2019;;0.5464
 ;NL11_6440-EAG-3;Overige waterflora-kwaliteit;6440-EAG-3;PBRKwrdW,;0.6;Default GEP;;0.6
 ;NL11_6440-EAG-4;Overige waterflora-kwaliteit;6440-EAG-4;PBRKwrdW,;0.6;Default GEP;;0.6
-;NL11_6450-EAG-1;Overige waterflora-kwaliteit;6450-EAG-1;AVPW,bemal;0.533;handelingsperspectief_score2008-2014;0.17;0.533
+;NL11_6450-EAG-1;Overige waterflora-kwaliteit;6450-EAG-1;AVPW,bemal;0.533;10% beste 2006-2019;0.17;0.6136
 ;NL11_6450-EAG-2;Overige waterflora-kwaliteit;6450-EAG-2;AVPW,fort;0.533;handelingsperspectief_score2015-2017;0.17;0.533
-;NL11_6450-EAG-3;Overige waterflora-kwaliteit;6450-EAG-3;AVPW,Z;0.533;handelingsperspectief_score2008-2014;0.17;0.533
-;NL11_6460-EAG-1;Overige waterflora-kwaliteit;6460-EAG-1;BreukelN;0.205;handelingsperspectief_score2008-2014;0;0.20475
-;NL11_6460-EAG-2;Overige waterflora-kwaliteit;6460-EAG-2;BreukelN,lnd;0.205;handelingsperspectief_score2008-2014;0;0.20475
-;NL11_6480-EAG-1;Overige waterflora-kwaliteit;6480-EAG-1;HGPbmlgbd;0.603;handelingsperspectief_score2008-2014;0.2;0.602666667
-;NL11_6480-EAG-2;Overige waterflora-kwaliteit;6480-EAG-2;HGPN;0.603;handelingsperspectief_score2008-2014;0.2;0.602666667
-;NL11_6480-EAG-3;Overige waterflora-kwaliteit;6480-EAG-3;HGPO;0.603;handelingsperspectief_score2008-2014;0.2;0.602666667
+;NL11_6450-EAG-3;Overige waterflora-kwaliteit;6450-EAG-3;AVPW,Z;0.533;10% beste 2006-2019;0.17;0.5385
+;NL11_6460-EAG-1;Overige waterflora-kwaliteit;6460-EAG-1;BreukelN;0.205;10% beste 2006-2019;0;0.547
+;NL11_6460-EAG-2;Overige waterflora-kwaliteit;6460-EAG-2;BreukelN,lnd;0.205;10% beste 2006-2019;0;0.45
+;NL11_6480-EAG-1;Overige waterflora-kwaliteit;6480-EAG-1;HGPbmlgbd;0.603;10% beste 2006-2019;0.2;0.6974
+;NL11_6480-EAG-2;Overige waterflora-kwaliteit;6480-EAG-2;HGPN;0.603;10% beste 2006-2019;0.2;0.432
+;NL11_6480-EAG-3;Overige waterflora-kwaliteit;6480-EAG-3;HGPO;0.603;10% beste 2006-2019;0.2;0.5946
 ;NL11_6490-EAG-1;Overige waterflora-kwaliteit;6490-EAG-1;AVPWDriemond;0.6;Default GEP;;0.6
-;NL11_6530-EAG-1;Overige waterflora-kwaliteit;6530-EAG-1;BlmdPGMsPO,bemal;0.6;Default GEP;;0.6
-;NL11_6530-EAG-2;Overige waterflora-kwaliteit;6530-EAG-2;BGmsO,LgsVecht;0.6;Default GEP;;0.6
-;NL11_6540-EAG-1;Overige waterflora-kwaliteit;6540-EAG-1;AVPO,bemal;0.496;handelingsperspectief_score2008-2014;0.155;0.49625
-;NL11_6540-EAG-2;Overige waterflora-kwaliteit;6540-EAG-2;AVPO,blokbemaling;0.496;handelingsperspectief_score2008-2014;0.155;0.49625
-;NL11_6540-EAG-3;Overige waterflora-kwaliteit;6540-EAG-3;AVPO,stdlijkWsp;0.496;handelingsperspectief_score2008-2014;0.155;0.49625
-;NL11_6550-EAG-1;Overige waterflora-kwaliteit;6550-EAG-1;PNijrode,lndGbd;0.296;handelingsperspectief_score2008-2014;0.04;0.29625
-;NL11_6550-EAG-2;Overige waterflora-kwaliteit;6550-EAG-2;PNijrode,Kstsportveld;0.296;handelingsperspectief_score2008-2014;0.04;0.29625
+;NL11_6530-EAG-1;Overige waterflora-kwaliteit;6530-EAG-1;BlmdPGMsPO,bemal;0.6;10% beste 2006-2019;;0.6576
+;NL11_6530-EAG-2;Overige waterflora-kwaliteit;6530-EAG-2;BGmsO,LgsVecht;0.6;10% beste 2006-2019;;0.4838
+;NL11_6540-EAG-1;Overige waterflora-kwaliteit;6540-EAG-1;AVPO,bemal;0.496;10% beste 2006-2019;0.155;0.746
+;NL11_6540-EAG-2;Overige waterflora-kwaliteit;6540-EAG-2;AVPO,blokbemaling;0.496;10% beste 2006-2019;0.155;0.7398
+;NL11_6540-EAG-3;Overige waterflora-kwaliteit;6540-EAG-3;AVPO,stdlijkWsp;0.496;10% beste 2006-2019;0.155;0.6076
+;NL11_6550-EAG-1;Overige waterflora-kwaliteit;6550-EAG-1;PNijrode,lndGbd;0.296;10% beste 2006-2019;0.04;0.5692
+;NL11_6550-EAG-2;Overige waterflora-kwaliteit;6550-EAG-2;PNijrode,Kstsportveld;0.296;10% beste 2006-2019;0.04;0.568
 ;NL11_6550-EAG-3;Overige waterflora-kwaliteit;6550-EAG-3;PNijrode,Stdlk;0.296;handelingsperspectief_score2008-2014;0.04;0.29625
 ;NL11_6570-EAG-1;Overige waterflora-kwaliteit;6570-EAG-1;PBroeckland;0.6;Default GEP;;0.6
 ;NL11_6590-EAG-1;Overige waterflora-kwaliteit;6590-EAG-1;;0.6;Default GEP;;0.6
-;NL11_7010-EAG-1;Overige waterflora-kwaliteit;7010-EAG-1;GZK;0.421;handelingsperspectief_score2008-2014;0.075;0.421137931
+;NL11_7010-EAG-1;Overige waterflora-kwaliteit;7010-EAG-1;GZK;0.421;10% beste 2006-2019;0.075;0.6161
 ;NL11_7010-EAG-2;Overige waterflora-kwaliteit;7010-EAG-2;BlaricummerMnt;0.421;handelingsperspectief_score2008-2014;0.075;0.421137931
-;NL11_7020-EAG-1;Overige waterflora-kwaliteit;7020-EAG-1;Bijvanck4Kwadrant;0.6;Default GEP;;0.6
+;NL11_7020-EAG-1;Overige waterflora-kwaliteit;7020-EAG-1;Bijvanck4Kwadrant;0.6;10% beste 2006-2019;;0.6624
 ;NL11_7030-EAG-1;Overige waterflora-kwaliteit;7030-EAG-1;;0.6;Default GEP;;0.6
-;NL11_7040-EAG-1;Overige waterflora-kwaliteit;7040-EAG-1;EilandZeeburg;0.6;Default GEP;;0.6
-;NL11_7050-EAG-1;Overige waterflora-kwaliteit;7050-EAG-1;Haveneiland;0.6;Default GEP;;0.6
-;NL11_7060-EAG-1;Overige waterflora-kwaliteit;7060-EAG-1;Steigereiland;0.6;Default GEP;;0.6
+;NL11_7040-EAG-1;Overige waterflora-kwaliteit;7040-EAG-1;EilandZeeburg;0.6;10% beste 2006-2019;;0.3914
+;NL11_7050-EAG-1;Overige waterflora-kwaliteit;7050-EAG-1;Haveneiland;0.6;10% beste 2006-2019;;0.3084
+;NL11_7060-EAG-1;Overige waterflora-kwaliteit;7060-EAG-1;Steigereiland;0.6;10% beste 2006-2019;;0.4602
 ;NL11_7100-EAG-1;Overige waterflora-kwaliteit;7100-EAG-1;;0.6;Default GEP;;0.6
 ;NL11_7100-EAG-1;Overige waterflora-kwaliteit;7100-EAG-1;;0.6;Default GEP;;0.6
 ;NL11_7100-EAG-2;Overige waterflora-kwaliteit;7100-EAG-2;;0.6;Default GEP;;0.6
 ;NL11_7100-EAG-2;Overige waterflora-kwaliteit;7100-EAG-2;;0.6;Default GEP;;0.6
-;NL11_8010-EAG-1;Overige waterflora-kwaliteit;8010-EAG-1;DBrett,NtrGeb;0.172;handelingsperspectief_score2008-2014;0.045;0.17225
-;NL11_8010-EAG-2;Overige waterflora-kwaliteit;8010-EAG-2;DBrett,P;0.172;handelingsperspectief_score2008-2014;0.045;0.17225
-;NL11_8020-EAG-1;Overige waterflora-kwaliteit;8020-EAG-1;OvbrkrBinPVlktn;0.136;handelingsperspectief_score2008-2014;0.05;0.136
+;NL11_8010-EAG-1;Overige waterflora-kwaliteit;8010-EAG-1;DBrett,NtrGeb;0.172;10% beste 2006-2019;0.045;0.2871
+;NL11_8010-EAG-2;Overige waterflora-kwaliteit;8010-EAG-2;DBrett,P;0.172;10% beste 2006-2019;0.045;0.3312
+;NL11_8020-EAG-1;Overige waterflora-kwaliteit;8020-EAG-1;OvbrkrBinPVlktn;0.136;10% beste 2006-2019;0.05;0.1902
 ;NL11_8020-EAG-2;Overige waterflora-kwaliteit;8020-EAG-2;OvbrkrBinPNO;0.136;handelingsperspectief_score2015-2017;0.05;0.136
-;NL11_8030-EAG-1;Overige waterflora-kwaliteit;8030-EAG-1;OSBinPvnweide;0.238;handelingsperspectief_score2008-2014;0.18;0.238
-;NL11_8030-EAG-2;Overige waterflora-kwaliteit;8030-EAG-2;OSBinPGeuzveld;0.238;handelingsperspectief_score2008-2014;0.18;0.238
+;NL11_8030-EAG-1;Overige waterflora-kwaliteit;8030-EAG-1;OSBinPvnweide;0.238;10% beste 2006-2019;0.18;0.2829
+;NL11_8030-EAG-2;Overige waterflora-kwaliteit;8030-EAG-2;OSBinPGeuzveld;0.238;10% beste 2006-2019;0.18;0.3249
 ;NL11_8030-EAG-3;Overige waterflora-kwaliteit;8030-EAG-3;OSBinPDeKluut2;0.238;handelingsperspectief_score2008-2014;0.18;0.238
-;NL11_8030-EAG-4;Overige waterflora-kwaliteit;8030-EAG-4;OSBinPVTPTigeno;0.238;handelingsperspectief_score2008-2014;0.18;0.238
-;NL11_8030-EAG-5;Overige waterflora-kwaliteit;8030-EAG-5;OSBinPP;0.238;handelingsperspectief_score2008-2014;0.18;0.238
+;NL11_8030-EAG-4;Overige waterflora-kwaliteit;8030-EAG-4;OSBinPVTPTigeno;0.238;10% beste 2006-2019;0.18;0.2914
+;NL11_8030-EAG-5;Overige waterflora-kwaliteit;8030-EAG-5;OSBinPP;0.238;10% beste 2006-2019;0.18;0.2672
 ;NL11_8030-EAG-6;Overige waterflora-kwaliteit;8030-EAG-6;OSBinPTSchreurwg;0.238;handelingsperspectief_score2008-2014;0.18;0.238
-;NL11_8040-EAG-1;Overige waterflora-kwaliteit;8040-EAG-1;OsdorperbvnP;0.299;handelingsperspectief_score2008-2014;0;0.298875
+;NL11_8040-EAG-1;Overige waterflora-kwaliteit;8040-EAG-1;OsdorperbvnP;0.299;10% beste 2006-2019;0;0.2998
 ;NL11_8040-EAG-2;Overige waterflora-kwaliteit;8040-EAG-2;OsdorperbvnP,bvnsloot;0.299;handelingsperspectief_score2008-2014;0;0.298875
 ;NL11_8050-EAG-1;Overige waterflora-kwaliteit;8050-EAG-1;Bisschopsmuts;0.278;handelingsperspectief_score2008-2014;0.12;0.277583333
-;NL11_8050-EAG-2;Overige waterflora-kwaliteit;8050-EAG-2;LutkemeerP,P;0.278;handelingsperspectief_score2008-2014;0.12;0.277583333
+;NL11_8050-EAG-2;Overige waterflora-kwaliteit;8050-EAG-2;LutkemeerP,P;0.278;10% beste 2006-2019;0.12;0.5114
 ;NL11_8050-EAG-3;Overige waterflora-kwaliteit;8050-EAG-3;LutkemeerP,NtrGeb;0.278;handelingsperspectief_score2015-2017;0.12;0.277583333
-;NL11_8060-EAG-1;Overige waterflora-kwaliteit;8060-EAG-1;MAP,P;0.379;handelingsperspectief_score2008-2014;0.05;0.3785
-;NL11_8070-EAG-2;Overige waterflora-kwaliteit;8070-EAG-2;GecombineerdePs;0.219;handelingsperspectief_score2008-2014;0.03;0.218785714
-;NL11_8070-EAG-3;Overige waterflora-kwaliteit;8070-EAG-3;;0.219;Default GEP;;0.218785714
+;NL11_8060-EAG-1;Overige waterflora-kwaliteit;8060-EAG-1;MAP,P;0.379;10% beste 2006-2019;0.05;0.4575
+;NL11_8070-EAG-2;Overige waterflora-kwaliteit;8070-EAG-2;GecombineerdePs;0.219;10% beste 2006-2019;0.03;0.4972
+;NL11_8070-EAG-3;Overige waterflora-kwaliteit;8070-EAG-3;;0.219;10% beste 2006-2019;;0.3114
 ;NL11_8080-EAG-1;Overige waterflora-kwaliteit;8080-EAG-1;RiekerP,Wielerbaan;0.217;handelingsperspectief_score2008-2014;0.07;0.217
-;NL11_8080-EAG-2;Overige waterflora-kwaliteit;8080-EAG-2;RiekerP,P;0.217;handelingsperspectief_score2008-2014;0.07;0.217
-;NL11_8090-EAG-1;Overige waterflora-kwaliteit;8090-EAG-1;NWSNieuw-Slot;0.367;handelingsperspectief_score2008-2014;0.05;0.3665
-;NL11_8090-EAG-2;Overige waterflora-kwaliteit;8090-EAG-2;NWSPlesmanstrook;0.367;handelingsperspectief_score2008-2014;0.05;0.3665
+;NL11_8080-EAG-2;Overige waterflora-kwaliteit;8080-EAG-2;RiekerP,P;0.217;10% beste 2006-2019;0.07;0.4114
+;NL11_8090-EAG-1;Overige waterflora-kwaliteit;8090-EAG-1;NWSNieuw-Slot;0.367;10% beste 2006-2019;0.05;0.2904
+;NL11_8090-EAG-2;Overige waterflora-kwaliteit;8090-EAG-2;NWSPlesmanstrook;0.367;10% beste 2006-2019;0.05;0.3502
 ;NL11_8110-EAG-1;Overige waterflora-kwaliteit;8110-EAG-1;BGpltsVredhof;0.6;Default GEP;;0.6
 ;NL11_9010-EAG-1;Overige waterflora-kwaliteit;9010-EAG-1;Buiksloterdijk,Buiksloterdijk;0.6;Default GEP;;0.6
 ;NL11_9020-EAG-1;Overige waterflora-kwaliteit;9020-EAG-1;FloraprkN;0.6;Default GEP;;0.6
