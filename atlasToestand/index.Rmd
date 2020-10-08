@@ -84,11 +84,20 @@ EKRlijst <- smartbind(EKRlijst,EKRlijst2)
 
 # EKR
 tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") # deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
+
+# correctie doelen overig water (al in doelen set)
 tabset$GEP_2022[tabset$KRW_SGBP3 == ""] <- tabset$EKRperc90[tabset$KRW_SGBP3 == ""]
 tabset[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
 tabset[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
 tabset[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
 tabset[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
+
+ekr_scores <- tabset[!is.na(id) & level == 1] # alleen hoofdmaatlatten en geen lege regels
+ekr_scores$EKR <- ekr_scores$EKR3jr
+ekr_scores[,oordeelsort := EKR / GEP_2022]
+ekr_scores1 <- ekr_scores[!grepl("^NL11_*",id), ] # alleen gewogen scores selecteren
+ekr_scores2 <- ekr_scores[!is.na(ekr_scores$EAGIDENT), ] # alleen ongewogen scores selecteren
+ekr_scores2$KRW_SGBP3 <- "" # leegmaken zodat facet goed wordt gemaakt per eag
 
 # waterquality measurements
 wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
@@ -107,6 +116,160 @@ De KRW toestandsbepaling dient watersysteemanalyses, die ten behoeve KRW gebieds
 In het rapport 'Ecologische sleutelfactoren in beeld' wordt verbeeld welke processen deze toestand bepalen. In dit documenten staat de toestand alleen verbeeld. Hier worden de gegevens niet in samenhang geïnterpreteerd of maatregelen geformuleerd.
 
 # Ecologische waterkwaliteit in beeld
+
+## Overzicht oordelen per waterlichaam
+
+```{r mappie, echo=FALSE, fig.cap="Biologische oordelen van de vier biologische kwaliteitselementen", message=FALSE, warning=FALSE, fig.height = 8, fig.width = 12}
+
+# # Threshold values of EKR for 4 levels, separately defined for 4 EKR type.
+# #'Dimension should be 4 rows (= EKR type) x 5 columns (= 5 breaks for 4 levels)
+# ekr_breaks = rbind(c(0, 0.2, 0.4, 0.6, 1), #"Fytoplankton
+#                     c(0, 0.2, 0.4, 0.6, 1), #Overige waterflora
+#                     c(0, 0.2, 0.4, 0.6, 1), #Macrofauna
+#                     c(0, 0.2, 0.4, 0.6, 1)) #Vis
+# 
+# 
+# # Make a map with pie chart (based on the numerical variable "EKR") and save as JPEG
+# gp_c <- draw_map(KRW, ekr_scores1, bkpl = EAG,
+#                  col_ekr = "EKR", ekr_fac = FALSE,
+#                  col_area_sf = "OWMIDENT", col_area_dt = "KRW_SGBP3",
+#                  ekr_breaks = ekr_breaks,
+#                  filename = "map_EKR_waterlichaam.jpg")
+
+# Make a map with pie chart (based on the catagorical variable "oordeel") and save as JPEG
+map <- draw_map(KRW, ekr_scores1, bkpl = EAG,
+                 col_ekr = "oordeel_2022", ekr_fac = TRUE, 
+                 col_area_sf = "OWMIDENT", col_area_dt = "KRW_SGBP3",
+                 filename = "map_oordeel_waterlichaam.jpg")
+
+include_graphics('map_oordeel_waterlichaam.jpg')
+```
+
+## Overzicht toestand en trend
+
+```{r toestandtrend, fig.cap = "Toestand, oordeel en trend", echo = FALSE, message = FALSE, warning= FALSE, out.width='100%'}
+# bereken trend
+trendekr <- trend(EKRset, detail = "deel") 
+#trendekr <- trendekr[!grepl('^NL11*', trendekr$id),] # alleen gewogen scores, dit klopt voor KRW, maar niet voor Ov water
+
+#koppel trend aan ekr per jaar en gemiddeld
+ekrtrend <- merge(trendekr, tabset[,c('waterlichaam','KRW_SGBP3','id','facet_wrap_code',"EKR","oordeelsort","GEP_2022","EKR3jr","EKRperc90","EKRmedian")], by = c('id','facet_wrap_code'), all.y = T)
+ekrtrend$estimate <- ekrtrend$estimate*12 # ekr per 2 planperioden
+ekrtrend$estimate[ekrtrend$estimate < 0.05 & ekrtrend$estimate > -0.05] <- 0 # verwaarloosbaar klein
+ekrtrend$estimate <- round(ekrtrend$estimate, digits = 2)
+ekrtrend$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", ekrtrend$facet_wrap_code)
+
+#voor slechte klasse en element toe
+d3 <- ekrtrend[oordeelsort==min(oordeelsort,na.rm=T), by]
+
+# write.table(ekrtrend, file = paste(getwd(),"/output/trendall",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+
+# hier tekst maken beschrijving trend, deze in ppr ESF oordeel toevoegen (maar dan is ekrtrend wel nodig)
+# ekrtrend$toelichting <-
+#               ifelse(ekrtrend$estimate < 0 & ekrtrend$r.squared < 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een negatieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019)."),
+#               ifelse(ekrtrend$estimate < 0 & ekrtrend$r.squared == 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een negatieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019). Deze trend is gebaseerd op twee meetjaren."),
+#               ifelse(ekrtrend$estimate > 0 & ekrtrend$r.squared < 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een positieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019)."),
+#               ifelse(ekrtrend$estimate < 0 & ekrtrend$r.squared == 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een positieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019). Deze trend is gebaseerd op twee meetjaren."), paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont geen trend.")
+#               ))))
+# # hier dcast om tabel met header kwaliteitslementen te maken
+# ekr_scores_trendbesc <- dcast.data.table(setDT(ekrtrend), id+KRW_SGBP3 ~ facet_wrap_code, value.var = c("toelichting"), drop = T, fill = "")
+# # remove NA
+# ekr_scores_trendbesc[is.na(ekr_scores_trendbesc)] <- ""
+# # merge tekst
+# ekr_scores_trendbesc$mergetekst <- paste0(ekr_scores_trendbesc$Fytoplankton, " ", ekr_scores_trendbesc$Waterflora," ",ekr_scores_trendbesc$Macrofauna," ", ekr_scores_trendbesc$Vis )
+# # trim character columns from starting and ending space
+# cols <- colnames(ekr_scores_trendbesc)[sapply(ekr_scores_trendbesc, is.character)] # which colnames are character
+# ekr_scores_trendbesc[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
+# write.table(ekr_scores_trendbesc, file = paste(getwd(),"/output/trendbesch",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+
+# hier dcast om tabel met header kwaliteitslementen te maken
+ekr_scores_sel2 <- dcast.data.table(setDT(ekrtrend), waterlichaam+KRW_SGBP3 ~ facet_wrap_code, value.var = c("EKR","oordeelsort","estimate","GEP_2022"), fun.aggregate = mean)
+# hier merge met beschrijving van toestand: let op beschrijving van trends moet eigenlijk automatisch gegenereerd nu uitgelezen uit tabel
+ekr_scores_sel2 <- merge(ekr_scores_sel2, ESFoordelen[,c('OWL_SGBP3','Toestand')], by.x = 'KRW_SGBP3', by.y = 'OWL_SGBP3', all.x = T, all.y = F)
+
+typology <- data.frame(
+  col_keys = c( "waterlichaam", 
+                          "EKR_Fytoplankton","GEP_2022_Fytoplankton","estimate_Fytoplankton",
+                          "EKR_Macrofauna","GEP_2022_Macrofauna","estimate_Macrofauna",
+                          "EKR_Waterflora","GEP_2022_Waterflora","estimate_Waterflora",
+                          "EKR_Vis", "GEP_2022_Vis","estimate_Vis",
+                          "Toestand"),
+  what = c("Waterlichaam",
+           "Fytoplankton", "Fytoplankton", "Fytoplankton",
+           "Macrofauna","Macrofauna","Macrofauna",
+           "Waterflora","Waterflora","Waterflora",
+           "Vis","Vis","Vis",
+           "Toestand"),
+  measure = c("Waterlichaam",
+              "EKR", "GEP", "trend",
+              "EKR", "GEP", "trend",
+              "EKR", "GEP", "trend",
+              "EKR", "GEP", "trend",
+              "Toestand"),
+  stringsAsFactors = FALSE )
+
+ekr_scores_sel2 %>%
+    flextable(col_keys = c("waterlichaam",
+                           "EKR_Fytoplankton","GEP_2022_Fytoplankton","estimate_Fytoplankton",
+                           "EKR_Macrofauna","GEP_2022_Macrofauna","estimate_Macrofauna",
+                           "EKR_Waterflora","GEP_2022_Waterflora","estimate_Waterflora",
+                           "EKR_Vis", "GEP_2022_Vis","estimate_Vis",
+                           "Toestand")) %>%
+    set_header_df(mapping = typology, key = "col_keys" )%>%
+    merge_h(part = "header")%>%
+    merge_v(part = "header")%>%
+    theme_booktabs()%>%
+    border_inner(border= fp_border(width = 3, color = "white"), part="all")%>%
+    colformat_num(j = 2:13, digits=2)%>%
+    width(j = 1, width = 1)%>%
+    width(j = 2:13, width = 1)%>%
+    width(j = 14, width = 30)%>%
+    bg(~ oordeelsort_Fytoplankton > 1, bg = "green", ~ EKR_Fytoplankton)%>%
+    bg(~ oordeelsort_Fytoplankton < 1, bg = "yellow", ~ EKR_Fytoplankton)%>%
+    bg(~ oordeelsort_Fytoplankton < 0.67, bg = "orange", ~ EKR_Fytoplankton)%>%
+    bg(~ oordeelsort_Fytoplankton < 0.34, bg = "red", ~ EKR_Fytoplankton)%>%
+    bg(~ oordeelsort_Macrofauna > 1, bg = "green", ~ EKR_Macrofauna)%>%
+    bg(~ oordeelsort_Macrofauna < 1, bg = "yellow", ~ EKR_Macrofauna)%>%
+    bg(~ oordeelsort_Macrofauna < 0.67, bg = "orange", ~ EKR_Macrofauna)%>%
+    bg(~ oordeelsort_Macrofauna < 0.34, bg = "red", ~ EKR_Macrofauna)%>%
+    bg(~ oordeelsort_Waterflora > 1, bg = "green", ~ EKR_Waterflora)%>%
+    bg(~ oordeelsort_Waterflora < 1, bg = "yellow", ~ EKR_Waterflora)%>%
+    bg(~ oordeelsort_Waterflora < 0.67, bg = "orange", ~ EKR_Waterflora)%>%
+    bg(~ oordeelsort_Waterflora < 0.34, bg = "red", ~ EKR_Waterflora)%>%
+    bg(~ oordeelsort_Vis > 1, bg = "green", ~ EKR_Vis)%>%
+    bg(~ oordeelsort_Vis < 1, bg = "yellow", ~ EKR_Vis)%>%
+    bg(~ oordeelsort_Vis < 0.67, bg = "orange", ~ EKR_Vis)%>%
+    bg(~ oordeelsort_Vis < 0.34, bg = "red", ~ EKR_Vis)%>%
+    bg(~ estimate_Fytoplankton > 0, bg = "lightgreen", ~ estimate_Fytoplankton)%>%
+    bg(~ estimate_Fytoplankton == 0, bg = "lightyellow", ~ estimate_Fytoplankton)%>%
+    bg(~ estimate_Fytoplankton < 0, bg = "salmon", ~ estimate_Fytoplankton)%>%
+    bg(~ estimate_Waterflora > 0, bg = "lightgreen", ~ estimate_Waterflora)%>%
+    bg(~ estimate_Waterflora == 0, bg = "lightyellow", ~ estimate_Waterflora)%>%
+    bg(~ estimate_Waterflora < 0, bg = "salmon", ~ estimate_Waterflora)%>%
+    bg(~ estimate_Macrofauna > 0, bg = "lightgreen", ~ estimate_Macrofauna)%>%
+    bg(~ estimate_Macrofauna == 0, bg = "lightyellow", ~ estimate_Macrofauna)%>%
+    bg(~ estimate_Macrofauna < 0, bg = "salmon", ~ estimate_Macrofauna)%>%
+    bg(~ estimate_Vis > 0, bg = "lightgreen", ~ estimate_Vis)%>%
+    bg(~ estimate_Vis == 0, bg = "lightyellow", ~ estimate_Vis)%>%
+    bg(~ estimate_Vis < 0, bg = "salmon", ~ estimate_Vis)
+
+save_as_docx(ft1, path = "ekrtrend.docx")
+    
+```
+
+### Trend per kwaliteitselement
+
+```{r trenddkaart, fig.cap = "Trend", echo = FALSE, message = FALSE, warning= FALSE, out.width='100%'}
+combineWidgets(
+    nrow = 2,
+    plottrendKRW(ekrtrend[ekrtrend$facet_wrap_code == 'Waterflora',], gKRW),
+    plottrendKRW(ekrtrend[ekrtrend$facet_wrap_code == 'Macrofauna',], gKRW),
+    plottrendKRW(ekrtrend[ekrtrend$facet_wrap_code == 'Fytoplankton',], gKRW),
+    plottrendKRW(ekrtrend[ekrtrend$facet_wrap_code == 'Vis',], gKRW)
+)
+
+```
+
 
 ## Kaderrichtlijn water
 Als graadmeter voor de (ecologische) toestand in het gehele beheergebied is de hoeveelheid en soortensamenstelling van de aanwezige vegetatie (waterplanten) gebruikt. Dit vormt namelijk een goede maatstaf voor de ecologische toestand van een oppervlaktewater: waterplanten zijn een essentieel onderdeel van, en randvoorwaarde voor watergebonden leven als kleine waterdiertjes en vissen. De aanwezigheid van waterplanten is getoetst volgens de landelijke maatlatten voor sloten, kanalen en meren. De toetsresultaten zijn daarmee uitgedrukt in een EKR (ecologische kwaliteitsratio) score, conform de KRW-methodiek. Een score van 1 staat voor een maximaal haalbare ecologische kwaliteit en een score van 0 voor een slechte kwaliteit. In gebieden die zijn aangewezen als KRW waterlichaam wordt sinds 2006 ook de toestand van de andere drie biologische kwaliteitselementen (fytoplankton, macrofauna, en vissen) ook gevolgd.
