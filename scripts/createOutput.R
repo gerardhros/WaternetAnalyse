@@ -349,7 +349,7 @@ tabelOordeelPerGebiedPerJaar <- function (b, detail = "hoofd"){
   d1[EKR >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
   d1[EKR >= GEP_2022, oordeel_2022 := 'goed']
 
-  write.table(d1, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  #write.table(d1, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(d1)
 }
 # long format hoofdmtlt, meetlocatie, locatie, oordeel, ekr per jaar
@@ -384,13 +384,13 @@ tabelOordeelPerMeetlocatiePerJaar <- function (EKRset, detail = "hoofd"){
   d1[EKR >= GEP_2022, oordeel_2022 := 'goed']
 
 
-  write.table(d1, file = paste(getwd(),"/output/EKROordeelPerLocatieJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  #write.table(d1, file = paste(getwd(),"/output/EKROordeelPerLocatieJaarLong",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(d1)
 }
 # wide format hoofdmtlt of deelmtlt, eag, waterlichaam, ekr, oordeel, gep per jaar
-tabelEKRPerWLEnEAGPerJaar <- function (EKRset, detail = "hoofd"){
+tabelEKRPerWLEnEAGPerJaar <- function (EKRset, detail = "deel"){
   # make local copy (only within this function)
-  d1 <- copy(EKRset)
+  d1 <- EKRset[EKRset$jaar > 2005, ]
   if(detail == "hoofd"){
   d1 <-  d1[d1$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),]}
 
@@ -436,7 +436,7 @@ tabelEKRPerWLEnEAGPerJaar <- function (EKRset, detail = "hoofd"){
   d3[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
   d3[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
   d3[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
-  write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  #write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(d3)
 }
 
@@ -709,7 +709,7 @@ KRWmapEAG <- function(gEAG, ekr_scores2, maatlat = "2V1 Overige waterflora", par
 ## trend ----------------------------------------------------------------------------------------
 trendEAG <- function(z, detail = "deel"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
-  # z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
+  z <- EKRset[EKRset$jaar > 2005 , ]
   z<- z[is.na(z$Monster.lokaalID)|z$Monster.lokaalID == "",] # alleen scores per meetlocatie per jaar
   setnames(z,c('HoortBijGeoobject.identificatie'),c('id'))
 
@@ -717,26 +717,33 @@ trendEAG <- function(z, detail = "deel"){
     z<- z[z$Grootheid.code %in% c('FYTOPL','OVWFLORA',"MAFAUNA",'VIS'),] #alleen hoofdmaatlatten
   }
 
-  tabset2 <- dcast(z, id+KRWwatertype.code+Waardebepalingsmethode.code+GHPR_level+EAGIDENT ~ jaar,
+  tabset2 <- dcast(z, id+KRWwatertype.code+Waardebepalingsmethode.code+facet_wrap_code+GHPR_level+EAGIDENT ~ jaar,
                    value.var = "Numeriekewaarde", fun.aggregate = mean)
   tb <- melt(tabset2, variable.name = "jaar", na.rm =TRUE, value.name = "gemEKRscore") # omgekeerde draaitabel voor correct format lm
   tb$jaar <- as.numeric(tb$jaar) # met factor doet lm een regressie voor ieder jaar tov min
 
-  fitted_models = tb %>%  # lineaire regressie over jaren per parameter en EAGIDENT
-    group_by(id, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level,EAGIDENT) %>%
-    filter(length(unique(jaar)) > 1) %>%
-    do(model = lm(gemEKRscore ~ jaar, data = ., na.action = NULL)) #lineaire regressie EKRscores over jaren per EAGIDENT
-
-  COF <- fitted_models %>% tidy(model)
-  R2 <- fitted_models %>% glance(model)
-  trtabset <- merge(COF[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")],
-                    tabset2, by =
-                      c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
-  gebiedData  <- merge(trtabset, R2, by = c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
-  gebiedData  <- gebiedData[gebiedData$term == 'jaar',]
-  gebiedData$group <- 'grey'# 1 jaar data
+  fitted_models <- tb %>%
+    nest(data = -c(id, EAGIDENT, Waardebepalingsmethode.code, KRWwatertype.code, GHPR_level)) %>%
+    mutate(
+      fit = map(data, ~ lm(gemEKRscore ~ jaar, data = .x)),
+      tidied = map(fit, tidy),
+      glanced = map(fit, glance),
+      augmented = map(fit, augment)
+    )
+  
+  COF <- fitted_models %>% unnest(tidied)
+  R2 <- fitted_models %>% unnest(glanced)
+  
+  trtabset <- merge(COF[,c('id','EAGIDENT','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level','estimate',"term")],
+                    tabset2, by = c('id',"EAGIDENT",'Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level')) # data trend samenvoegen met resultaten
+  gebiedData  <- merge(trtabset, R2, by = c('id','EAGIDENT','Waardebepalingsmethode.code','KRWwatertype.code','GHPR_level'), all.y = F) # data trend samenvoegen met resultaten
+  gebiedData<- gebiedData[gebiedData$term == 'jaar',]
+  gebiedData$data <- NULL; gebiedData$fit <- NULL; gebiedData$tidied <- NULL; gebiedData$augmented <- NULL
+  
   return(gebiedData)
+  
 }
+
 trendEAGverschil <- function(z, detail = "deel"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
   z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2020, ]
@@ -808,14 +815,14 @@ trendEAGverschil <- function(z, detail = "deel"){
 
   gebiedData <- merge(gebiedData, gebiedData1[,c('id',"EAGIDENT",'Waardebepalingsmethode.code','GHPR_level','estimate','p.value','r.squared')], by =c('id',"EAGIDENT",'Waardebepalingsmethode.code','GHPR_level'))
 
-  write.table(gebiedData, file = paste(getwd(),"/output/EAGTrendVerschil",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  #write.table(gebiedData, file = paste(getwd(),"/output/EAGTrendVerschil",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
 
   return(gebiedData)
 }
 
 trend <- function(z, detail = "hoofd"){
   #EKRset$jaar <- as.numeric(EKRset$jaar)
-  z <- EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019, ]
+  z <- EKRset[EKRset$jaar > 2005, ]
   z<- z[is.na(z$Monster.lokaalID)|z$Monster.lokaalID == "",] # alleen scores per meetlocatie per jaar
   setnames(z,c('HoortBijGeoobject.identificatie'),c('id'))
 
@@ -847,7 +854,7 @@ trend <- function(z, detail = "hoofd"){
   gebiedData$data <- NULL; gebiedData$fit <- NULL; gebiedData$tidied <- NULL; gebiedData$augmented <- NULL
 
   return(gebiedData)
-  write.table(gebiedData, file = paste(getwd(),"/output/Trendekr",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  #write.table(gebiedData, file = paste(getwd(),"/output/Trendekr",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE) # wegschrijven als csv
 
 }
 
@@ -873,7 +880,7 @@ trendfychem <- function(z, param = c("P","N","NH3")){
   gebiedData  <- merge(trtabset, R2, by = c('fewsparametercode','EAGIDENT')) # data trend samenvoegen met resultaten
   gebiedData <- gebiedData[!is.na(gebiedData$EAGIDENT),]
   gebiedData<- gebiedData[gebiedData$term == 'jaar' ,]
-  write.table(gebiedData, file = paste(getwd(),"/output/EAGTrendfychem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
+  #write.table(gebiedData, file = paste(getwd(),"/output/EAGTrendfychem",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
   return(gebiedData)
 }
 
@@ -926,7 +933,8 @@ plottrend2 <- function(gebiedData){
 
   ggplotly(p=zw)
 }
-plottrend3 <- function(gebiedData){
+
+plottrendEAG <- function(gebiedData, gEAG){
   # gebiedData <- vegtrend
   # gebiedData<- mfatrend[!mfatrend$EAGIDENT %in% c('2220-EAG-1','1000-EAG-1','2000-EAG-1'),]
   # Gaasperplas verkeerde trend berekend door fout in monitoringslocatie emerse zone,
@@ -934,11 +942,11 @@ plottrend3 <- function(gebiedData){
   # ams zuid, de schommeling zit in drijfbladplanten en die zijn niet eenduidig bemonsterd, terwijl klassegrenzen smal zijn.
 
   #gebiedData$klasse <- gebiedData[order(gebiedData$klasse),]
-  '1' -> gebiedData$klasse[gebiedData$estimate < -0.03]
-  '2' -> gebiedData$klasse[gebiedData$estimate >= -0.03 & gebiedData$estimate < -0.007]
-  '3' -> gebiedData$klasse[gebiedData$estimate >= -0.007 & gebiedData$estimate < 0.007]
-  '5' -> gebiedData$klasse[gebiedData$estimate >= 0.007 & gebiedData$estimate < 0.03]
-  '6' -> gebiedData$klasse[gebiedData$estimate >= 0.03]
+  '1' -> gebiedData$klasse[gebiedData$estimate < -0.3]
+  '2' -> gebiedData$klasse[gebiedData$estimate >= -0.3 & gebiedData$estimate < -0.05]
+  '3' -> gebiedData$klasse[gebiedData$estimate >= -0.05 & gebiedData$estimate < 0.05]
+  '5' -> gebiedData$klasse[gebiedData$estimate >= 0.05 & gebiedData$estimate < 0.3]
+  '6' -> gebiedData$klasse[gebiedData$estimate >= 0.3]
   #gebiedData$klasse[is.na(gebiedData$p.value)] <- '8'# slechts 1 of 2 jaar data
   #gebiedData$klasse[gebiedData$p.value > 0.4] <- "7" # geen trend
   #gebiedData$klasse[gebiedData$r.squared == 1] <- "8"
@@ -951,13 +959,13 @@ plottrend3 <- function(gebiedData){
   #write.table(gebiedData, file = paste(getwd(),"/output/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
 
   col <- c('1'= 'darkred','2'="red", '3'="#fff7bc",'5'="green",'6'="darkgreen")
-  labels <- c('1'="< -0.2",'2'="-0.2 - -0.1" ,'3'="geen trend",'5'="0.1 - 0.2",
-              '6'=">0.2")
+  labels <- c('1'="< -0.3",'2'="-0.3 - -0.05" ,'3'="geen trend",'5'="0.05 - 0.3",
+              '6'=">0.3")
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
-  map <- sp::merge(gEAG, gebiedData[, c('klasse','estimate','p.value','r.squared','group','EAGIDENT', 'KRWwatertype.code',
-                                        'GHPR_level')], by.x = 'GAFIDENT', by.y =
-                     'EAGIDENT', duplicateGeoms = T)
+  map <- sp::merge(gEAG, gebiedData[, c('klasse','estimate','p.value','r.squared','EAGIDENT', 'KRWwatertype.code', 'GHPR',
+                                                     'GHPR_level','facet_wrap_code')], by.x = 'GAFIDENT', by.y = 'EAGIDENT'
+                                    ,duplicateGeoms = T)
 
   leaflet(map) %>%
     addPolygons(layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
@@ -968,9 +976,10 @@ plottrend3 <- function(gebiedData){
                                                      ),
                 stroke = T, color= 'black', opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
-    addLegend("bottomright", colors = col, labels = labels, title = "Lineaire trend EKR score per planperiode")%>%
+    addLegend("bottomright", colors = col, labels = labels, title = paste0("Trend EKR ", unique(map$GHPR)))%>%
     addProviderTiles("Esri.WorldGrayCanvas")
 }
+
 plottrendKRW <- function(gebiedData, gKRW){
   # gebiedData <- ekrtrend
   pl <- gKRW %>% group_by(OWMIDENT, OWMNAAM) %>% summarize()
@@ -1001,7 +1010,7 @@ plottrendKRW <- function(gebiedData, gKRW){
     ),
     stroke = T, color= ~pal(klasse), opacity=0.8, weight = 1, smoothFactor = 0.8,
     fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
-    addLegend("bottomright", colors = col, labels = labels, title = paste0("Lineaire trend EKR score", unique(map$facet_wrap_code)))%>%
+    addLegend("bottomright", colors = col, labels = labels, title = paste0("Trend EKR ", unique(map$GHPR)))%>%
     addProviderTiles("Esri.WorldGrayCanvas")
 }
 
@@ -1585,10 +1594,9 @@ plotmafa2 <- function(mafa,TWNev){
   mafa <- dcast(mafa, locatie.KRW.watertype+taxongroup+jaar~ ., value.var = "meetwaarde", fun.aggregate = mean, drop = TRUE) # gemiddelde van locaties en jaren
   eptindex <- mafa[mafa$taxongroup %in% c("Insecta - Ephemeroptera","Insecta - Remaining","Insecta - Trichoptera"),]
 
-  mafaplot <- ggplot(mafa)+
+  mafaplot <- ggplot(eptindex)+
     geom_bar(aes(x = jaar, y = ., fill = taxongroup), stat= "identity", position = "stack") +
     guides(fill= guide_legend(title='Groepen macrofauna', label.theme = element_text(size = 7), ncol = 2))+
-    #scale_x_discrete(position = "bottom") +
     # facet_wrap(.~locatie.KRW.watertype, scales = 'fixed')+
     theme_minimal()+
     theme(
@@ -1605,6 +1613,7 @@ plotmafa2 <- function(mafa,TWNev){
     labs(x="jaar",y="n")
   return(mafaplot)
 }
+
 # vis
 plotvisstand <- function(hybi1){
   #hybi11 <- hybi1[grep('NL11', hybi1$locatiecode),]
@@ -3266,7 +3275,7 @@ wqsamKRW <- function(wq, locset = locKRW){
   wqsam <- dcast(setDT(d7),  locatie.KRWmeetpuntlocatie+jaar ~ fewsparameter ,
                  value.var = c("median","mean","min"))
 
-  write.table(wqsam, file = paste(getwd(),"/output/chemKRW",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  #write.table(wqsam, file = paste(getwd(),"/output/chemKRW",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
   return(wqsam)
 }
@@ -3302,7 +3311,7 @@ wqsamEAG <- function(wq, locset = locKRW){
   wqsam <- dcast(setDT(d7),  locatie.EAG+jaar ~ fewsparameter ,
                  value.var = c("median","mean","min"))
 
-  write.table(wqsam, file = paste(getwd(),"/output/chemEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  #write.table(wqsam, file = paste(getwd(),"/output/chemEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(wqsam)
 }
 

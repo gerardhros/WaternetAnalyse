@@ -62,15 +62,15 @@ pESFtab$oms_latex <- as.character(pESFtab$oms_latex)
 pESFtab[,oms_latex := gsub('<','$<$',gsub('µ','micro',gsub('&','en',gsub('°',' graden',oms_latex))))]
 
 # load maatregelentabel, and select the latex columns
-cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
+cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdInitiatiefnemer','UitvoeringIn')
 maatregelen2 <- as.data.table(out$maatregelen2)[,mget(cols)]
 # change text Waterschap Amstel, Gooi en Vecht to AGV
 maatregelen2[,BeoogdInitiatiefnemer := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',BeoogdInitiatiefnemer)]
-maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',BeoogdInitiatiefnemer)]
-maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staats bosbeheer',BeoogdInitiatiefnemer)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',BeoogdInitiatiefnemer)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staatsbosbeheer',BeoogdInitiatiefnemer)]
 maatregelen2[,Gebiedspartner := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',Gebiedspartner)]
-maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',Gebiedspartner)]
-maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staats bosbeheer',Gebiedspartner)]
+maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',Gebiedspartner)]
+maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staatsbosbeheer',Gebiedspartner)]
 maatregelen2[,Toelichting_latex := gsub('m³','m3',Toelichting_latex)]
 
 #replace NA in first row (eagnr 20, to be solved later)

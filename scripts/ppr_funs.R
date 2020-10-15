@@ -106,8 +106,9 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
 
   # add naam van een toetsgebied (WL of EAG naam)
   d3[,waterlichaam := fifelse(!(is.na(SGBP3_NAAM)|SGBP3_NAAM == ""), SGBP3_NAAM, GAFNAAM)]
-  # delete visdata (waar geen EAG aan locaties is gekoppeld)
-  d3 <- d3[!is.na(waterlichaam),]
+  
+  # delete visdata die niet geaggregeerd is (middelen van meetlocaties klopt niet)
+  d3 <- d3[!(!is.na(CODE) & Waardebepalingsmethode.code == "Maatlatten2018 Vis"),]
 
   # namen aanpassen
   d3[,facet_wrap_code := as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]

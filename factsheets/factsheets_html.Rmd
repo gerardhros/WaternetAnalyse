@@ -178,7 +178,7 @@ options(kableExtra.auto_format = FALSE)
 # maatregelen, select only the relevant items for html and word file (ignore the latex columns)
 maatregelen2 <- as.data.table(out$maatregelen2)
 cols <- c('ESFoordeel','SGBPPeriode','Naam','Toelichting','BeoogdInitiatiefnemer',
-          'Gebiedspartner','UitvoeringIn','afweging')
+          'UitvoeringIn')
 maatregelen2<- maatregelen2[,mget(cols)]
 
 if(outputF == "word" & nrow(maatregelen2)>0){
