@@ -18,14 +18,15 @@ document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r out
 
 ## Hoofdlijnen
 
-### Beschrijving van het gebied en watersysteem op hoofdlijnen {data-width=600}
+### Beschrijving van het gebied en watersysteem op hoofdlijnen
+
+`r out$waterlichamenwl$Karakterschets`
+<br>
 `r out$waterlichamenwl$OWMNAAM_SGBP3` (`r out$waterlichamenwl$OWL_SGBP3`) heeft watertype "`r unique(out$waterlichamenwl$typebesch)`" (`r unique(out$eagwl$watertype)`) en het wateroppervlak van het waterlichaam is `r round(sum(out$eagwl$OppWater)/10000, 0)` hectare.
 <br>
 Het waterlichaam bestaat uit de deelgebieden: 
 <br> 
 `r out$deelgebieden$samen`
-<br>
-`r out$waterlichamenwl$Karakterschets`
 <br>
 Het waterlichaam ligt in de provincie(s) `r out$waterlichamenwl$prov` en gemeente(n) `r out$waterlichamenwl$gem`. `r if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}`
 Het waterlichaam `r out$waterlichamenwl$OWMNAAM_SGBP3` heeft de status `r out$waterlichamenwl$Status` en is in eigendom van `r out$waterlichamenwl$Eigenaren`. 
@@ -37,7 +38,6 @@ Het waterlichaam `r out$waterlichamenwl$OWMNAAM_SGBP3` heeft de status `r out$wa
 ```{r chartT, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
 # plot picture of aquatic ecoystem
 if(length(out$ESTnaam)>0){include_graphics(out$ESTnaam)}
-
 ```
 
 ### Ligging waterlichaam {data-width=300}
@@ -122,7 +122,7 @@ knitr::kable(pESFtab, format = "html",col.names = NULL) %>%
 ```
 
 ## Bron {data-height=50}
-Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 en `r out$waterlichamenwl$Literatuurverwijzing`.
+Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 `r if(!is.na(out$waterlichamenwl$Literatuurverwijzing)){paste0(" en ",out$waterlichamenwl$Literatuurverwijzing)}`.
 
 # Maatregelen `r out$waterlichamenwl$Naam` (R)
 
