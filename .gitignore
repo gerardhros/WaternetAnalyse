@@ -12,10 +12,12 @@
 .yaml
 
 /development/*
+/KRWapp/*
 /atlasKRW/output/*
 /atlasKRW/input/*
 /atlasKRW/app/*
 /atlasESF/output/*
+*_book/*
 factsheets/**/*.docx
 factsheets/output/*.html
 factsheets/output/*.png
@@ -45,3 +47,4 @@ factsheets/output/*
 /output/*
 factsheets/*.log
 factsheets/*.tex
+/iregv_app/*

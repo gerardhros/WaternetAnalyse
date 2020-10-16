@@ -1,25 +1,23 @@
 ---
 title: "Waterkwaliteit in beeld"
-subtitle: "Versie 2019-04"
 author: "Laura Moria"
+date: "`r Sys.Date()`"
 always_allow_html: yes
 delete_merged_file: TRUE
-date: "`r Sys.Date()`"
 site: bookdown::bookdown_site
 output:
-  bookdown::html_book:
-    theme: sandstone
+  bookdown::gitbook:
     split_by: none
     download: yes
     link-citations: yes
     config:
       toolbar:
         position: static
-download: ["book.pdf", "book.docx"]
-biblio-style: apalike
 documentclass: book
+css: css/factsheet.css
+biblio-style: apa
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r global, include = FALSE}
@@ -30,7 +28,12 @@ knitr::opts_chunk$set(echo = TRUE)
 dirGIS <-"../development/GIS"
 
 # Load packages and functions-------------------------------------
+library(scatterpie); library(ggnewscale); library(tmap); library(cowplot); library(ggspatial)
 source('../scripts/loadPackages.R')
+assignInNamespace("cedta.pkgEvalsUserCode", c(data.table:::cedta.pkgEvalsUserCode,"rtvs"), "data.table")
+assign("depthtrigger", 4, data.table:::.global)
+
+source("../scripts/fun_map_pie.R")
 source('../scripts/createOutput.R')
 source('../scripts/ppr_funs.R')
 source('../scripts/postProces.R')
@@ -50,17 +53,20 @@ outputF <- "word" #"html"
 # bookdown::publish_book()
 ```
 
+
 ```{r data, include = FALSE}
 ## data voor kaart ----------
 gEAG<- st_read("../data/EAG20191205.gpkg") %>% st_transform(proj4.google)
 gEAG$watertype <- NULL
+EAG <- st_read("../data/EAG20191205.gpkg") %>% st_transform(28992)
 gKRW<- st_read("../data/WBPKRW20200525.gpkg")%>% st_transform(proj4.google)
+KRW<- st_read("../data/WBPKRW20200525.gpkg")%>% st_transform(28992)
 
 # locaties van alle metingen (water, biologie, en slootbodem)
 locaties <- fread('../data/Location.csv')
 ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
 ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
+eag_wl <- fread('../data/EAG_Opp_kenmerken_20201005.csv')
 TWNev <- read_excel('../hydrobiologie/TwnList_2019-07-19.xlsx')
 
 # KRW doelen 
@@ -77,18 +83,32 @@ EKRset1 <- readRDS('../hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
 EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
 # EKR measurements
 EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2, doelen=doelen, eag_wl = eag_wl)
-
+# EKRset  <- EKRset[,maxscore := Numeriekewaarde==max(Numeriekewaarde,na.rm=T), by = c('HoortBijGeoobject.identificatie','EAGIDENT','Waardebepalingsmethode.code','level','GHPR')]
+# ptnset <- EKRset[EKRset$Waardebepalingsmethode.code == 'Maatlatten2018 Ov. waterflora',]
+# write.table(ptnset, file = paste(getwd(),"/output/ptnsetmaxpereagmaatlat",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+# hybisel <- hybi[paste0(hybi$locatiecode,hybi$jaar) %in% paste0(ptnset$CODE[ptnset$maxscore == TRUE],ptnset$jaar[ptnset$maxscore == TRUE]),] #mooiste sloot
+# write.table(hybisel, file = paste(getwd(),"/output/mooistesloothybi",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+ 
 EKRlijst <- readRDS('../hydrobiologie/EKRlijstKRW.rds')
-EKRlijst2 <- readRDS('../hydrobiologie/EKRlijstOvWater.rds')
-EKRlijst <- smartbind(EKRlijst,EKRlijst2)
+#EKRlijst2 <- readRDS('../hydrobiologie/EKRlijstOvWater.rds')
+#EKRlijst <- smartbind(EKRlijst,EKRlijst2)
 
 # EKR
-tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") # deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
-tabset$GEP_2022[tabset$KRW_SGBP3 == ""] <- tabset$EKRperc90[tabset$KRW_SGBP3 == ""]
-tabset[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
-tabset[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-tabset[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-tabset[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
+tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") %>% as.data.table()# deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
+tabset[,oordeelsort := EKR3jr / GEP_2022]
+tabset <- tabset[GHPR == 'Waterdiepte', GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten", GHPR))]
+
+# zoek laagste oordeel per hoofdmaatlat 
+tabset <- tabset[!is.na(id) & level == 1, minscore := oordeelsort==min(oordeelsort,na.rm=T), by = c('id','EAGIDENT')]
+# zoek laagste score per (deel)maatlat
+tabset <- tabset[!level == 1 ,minscore := EKR3jr==min(EKR3jr,na.rm=T), by = c('id','EAGIDENT','facet_wrap_code','level')]
+# subset 3 correctie laagte score deelmaatlat soorten abundantie waarbij oever en drijfblad niet meedoet
+tabset<- tabset[wbmethode =="Maatlatten2018 Ov. waterflora" &
+                              level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),minscore := EKR3jr==min(EKR3jr,na.rm=T), by = c('id','EAGIDENT','facet_wrap_code','level')]
+
+# subsets maken 
+ekr_scores1 <- tabset[!grepl("^NL11_*",id) & level == 1, ] # alleen gewogen van KRW waterlichamen en overig water
+ekr_scores2 <- tabset[!is.na(tabset$EAGIDENT), ] # alleen gemiddelde scores per EAG selecteren
 
 # waterquality measurements
 wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
@@ -104,102 +124,242 @@ projectie <- projectie[projectie$Parameter.code == 'O2'& projectie$KRWMeetLocati
 De informatie over de huidige situatie en ontwikkelingen van het aquatisch ecosysteem in de regio Amstel, Gooi en Vechtstreek is in deze rapportage gebundeld in een atlas met thema kaarten. De ecologische doelstellingen van Amstel, Gooi en Vecht en de huidige ecologische kwaliteit zijn verbeeld in de afbeeldingen hieronder. In hoofdstuk 2 staan kaarten van verschillende indicatoren van ecologische kwaliteit voor de Habitatrichtlijn (Natura2000) en de Kaderrichtlijn water. 
 
 De KRW toestandsbepaling dient watersysteemanalyses, die ten behoeve KRW gebiedsprocessen, operationele besturing en de evaluatie van maatregelen worden uitgevoerd. Daarnaast wordt de ecologische toestand gerapporteerd in de KRW factsheets (www.waterkwaliteitsportaal.nl) en het waterbeheerplan van AGV. 
-
 In het rapport 'Ecologische sleutelfactoren in beeld' wordt verbeeld welke processen deze toestand bepalen. In dit documenten staat de toestand alleen verbeeld. Hier worden de gegevens niet in samenhang geïnterpreteerd of maatregelen geformuleerd.
 
 # Ecologische waterkwaliteit in beeld
 
-## Kaderrichtlijn water
-Als graadmeter voor de (ecologische) toestand in het gehele beheergebied is de hoeveelheid en soortensamenstelling van de aanwezige vegetatie (waterplanten) gebruikt. Dit vormt namelijk een goede maatstaf voor de ecologische toestand van een oppervlaktewater: waterplanten zijn een essentieel onderdeel van, en randvoorwaarde voor watergebonden leven als kleine waterdiertjes en vissen. De aanwezigheid van waterplanten is getoetst volgens de landelijke maatlatten voor sloten, kanalen en meren. De toetsresultaten zijn daarmee uitgedrukt in een EKR (ecologische kwaliteitsratio) score, conform de KRW-methodiek. Een score van 1 staat voor een maximaal haalbare ecologische kwaliteit en een score van 0 voor een slechte kwaliteit. In gebieden die zijn aangewezen als KRW waterlichaam wordt sinds 2006 ook de toestand van de andere drie biologische kwaliteitselementen (fytoplankton, macrofauna, en vissen) ook gevolgd.
+Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke
+beoordelingsmethodiek voor sloten, kanalen (Omschrijving MEP en maatlatten voor sloten en kanalen, STOWA rapport 2012-34) en meren (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31). Het resultaat hiervan is een getal uitgedrukt met behulp van het begrip Ecologische Kwaliteitsratio (EKR score). Deze EKR scores worden de ecologische toestand genoemd. De EKR is de eenheid waarin de feitelijke en de gewenste ecologische toestand van een waterlichaam kan worden uitgedrukt. Een EKR kan worden bepaald voor elk de vier biologische kwaliteitselementen: fytoplankton (algen), waterplanten (overige waterflora), macrofauna (met het blote oog zichtbare ongewervelde dieren, zoals slakken en libellen) en vissen. De EKR heeft daarbij altijd een waarde tussen 0 en 1, waarbij de waarde 1 overeen komt met de natuurlijke referentie. Een score van 1 staat dus voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden.
 
-### Overige waterflora
-Het beheergebied van AGV is zeer divers en daarom opgedeeld in kleinere [Ecologische analysegebieden](EAG), elk met een eigen bodemtype en waterhuishouding. In elk gebied is de hoeveelheid en soortensamenstelling van waterplanten op meerdere plaatsen gemeten en getoetst. De vegetatie wordt gemiddeld eens in de 3 jaar gemeten in ieder EAG. In onderstaande afbeeldingen worden de berekende oordelen, doelen en EKR scores per Ecologisch analysegebied op vegetatiemaatlat weergegeven. Als je op een deelgebied klikt, dan verschijnt er een pop-up waar je kan zien wat de EKR score is. 
+Bij het bepalen van de doelen rekening worden gehouden met (natuurlijke) fysieke randvoorwaarden, zoals de achtergrondbelasting van nutriënten (wanneer aanwezig). Het gaat hierbij bijvoorbeeld om fosfaatrijke kwel in het westen van het land. Dit betekent dat in gebieden met een bepaalde achtergrondbelasting voor stikstof en/of fosfaat een minder zware norm zou kunnen geldt dan in gebieden zonder die belasting.
 
-De oordelen in periode 2006-2015 en 2015-2021 zijn weergegeve in \@ref(fig:kaartKRW4). 
+De toestand van het water wordt jaarlijks beoordeelt op basis van de van toepassing zijn de kwaliteitselementen. Het oordeel wordt uitgedrukt op basis van een door de KRW voorgeschreven onderverdeling in ecologische toestandsklassen. De ecologische toestand bestaat weer uit verschillende deelbeoordelingen. Deze deelbeoordeling gebeurt op basis van maatlatten. Een maatlat beschrijft de toestand van een waterlichaam per kwaliteitselement in een getal uitgedrukt met behulp van het begrip Ecologische Kwaliteitsratio (EKR score). Voor elk biologisch kwaliteitselement zijn één of meerdere deelmaatlattenonderscheiden op basis van de soortsamenstelling en de (relatieve) aanwezigheid van soorten, en voor vis de leeftijdsopbouw. 
 
-```{r kaartKRW4, fig.cap = 'Overzicht van oordelen per EAG op de maatlat Overige waterflora in de periode 2006 t/m 2014 links en 2015 t/m 2019 rechts.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+Onderdeel van het beoordelen is het toetsen. Hierbij wordt bepaald hoe een toetswaarde zich verhoudt tot een norm of KRW-doel. Dat resulteert in een oordeel. In onderstaande figuren staan de berkende EKR scores, doelen en de oordelen die daaruit volgen per biologisch kwaliteitselement weergegeven zodat zichtbaar wordt hoe het oordeel is opgebouwd. In KRW waterlichamen wordt een oordeel bepaald voor elk van de 4 biologische kwaliteitselementen en voor de ondersteunende parameters. In het overig water wordt standaard alleen een oordeel bepaald voor het kwaliteitselement waterplanten (overige waterflora). 
 
-# krw <- KRWmapEAG(gEAG, tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = "oordeel")
+## Overzicht oordelen per KRW waterlichaam
 
-tabset2 <- tabelEKRPerWLEnEAGPerJaar(EKRset[EKRset$jaar < '2015',])
-tabset2$GEP_2022[tabset2$KRW_SGBP3 == ""] <- tabset2$EKRperc90[tabset2$KRW_SGBP3 == ""]
-tabset2[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
-tabset2[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-tabset2[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-tabset2[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
+```{r mappie, echo=FALSE, fig.cap="Biologische oordelen van de vier biologische kwaliteitselementen in KRW waterlichamen", message=FALSE, warning=FALSE, fig.height = 8, fig.width = 12}
 
-tabset3 <- tabelEKRPerWLEnEAGPerJaar(EKRset[EKRset$jaar > '2014',])
-tabset3$GEP_2022[tabset3$KRW_SGBP3 == ""] <- tabset3$EKRperc90[tabset3$KRW_SGBP3 == ""]
-tabset3[EKR3jr < GEP_2022/3,oordeel_2022 := 'slecht']
-tabset3[EKR3jr >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_2022 := 'ontoereikend']
-tabset3[EKR3jr >= 2 * GEP_2022 / 3,oordeel_2022 := 'matig']
-tabset3[EKR3jr >= GEP_2022, oordeel_2022 := 'goed']
+# # Threshold values of EKR for 4 levels, separately defined for 4 EKR type.
+# #'Dimension should be 4 rows (= EKR type) x 5 columns (= 5 breaks for 4 levels)
+# ekr_breaks = rbind(c(0, 0.2, 0.4, 0.6, 1), #"Fytoplankton
+#                     c(0, 0.2, 0.4, 0.6, 1), #Overige waterflora
+#                     c(0, 0.2, 0.4, 0.6, 1), #Macrofauna
+#                     c(0, 0.2, 0.4, 0.6, 1)) #Vis
+# 
+# 
+# # Make a map with pie chart (based on the numerical variable "EKR") and save as JPEG
+# gp_c <- draw_map(KRW, ekr_scores1, bkpl = EAG,
+#                  col_ekr = "EKR", ekr_fac = FALSE,
+#                  col_area_sf = "OWMIDENT", col_area_dt = "KRW_SGBP3",
+#                  ekr_breaks = ekr_breaks,
+#                  filename = "map_EKR_waterlichaam.jpg")
 
-combineWidgets(
-    ncol = 2, colsize = c(1, 1),
-    KRWmapEAG(gEAG, tabset2, maatlat = "2V1 Overige waterflora", param = "oordeel"),
-    KRWmapEAG(gEAG, tabset3, maatlat = "2V1 Overige waterflora", param = "oordeel")
-)
+# Make a map with pie chart (based on the catagorical variable "oordeel") and save as JPEG
+map <- draw_map(pl = KRW, dt =ekr_scores1, bkpl = EAG,
+                 col_ekr = "oordeel_2022", ekr_fac = TRUE, 
+                 col_area_sf = "OWMIDENT", col_area_dt = "KRW_SGBP3",
+                 filename = "map_oordeel_waterlichaam.jpg")
 
-#saveWidget(krw, "waterflora.html", selfcontained = FALSE)
+include_graphics('map_oordeel_waterlichaam.jpg')
+```
+
+## Overzicht oordelen per Ecologisch analysegebied
+
+```{r kaartenekroordeeldoelmcft1, fig.cap = 'Overzicht van oordelen, EKR scores en doelen op de maatlat overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+
+#krw <-
+  KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
+              maatlat = "2V1 Overige waterflora", param = "oordeel")
+
+# saveWidget(krw, "waterflora.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
 
 ```
 
-In veel waterlichamen worden doelen nog niet gehaald. Niet in alle gebieden is het onze ambitie om hoger te scoren dan een EKR van 0.6 (groen). Er is voor ieder water gekeken naar een haal- en betaalbaar handelingsperspectief. Op basis daarvan worden uiteindelijke doelen of ambities geformuleerd.
+In het overig water wordt standaard alleen een oordeel bepaald voor het kwaliteitselement waterplanten (overige waterflora). 
 
-In afbeelding \@ref(fig:kaartKRW3) staat de actuele toestand van vegetatie weergegeven. Deze is gebaseerd op metingen in meerdere jaren. De gemeten vegetatie laat van nature fluctuaties zien in de tijd en een gemiddelde van verschillende jaren geeft een betrouwbaarder beeld van de ecologische toestand. In de systematiek van de KRW wordt een oordeel gegeven door dit ‘slepend gemiddelde’ van EKR scores per gebied te vergelijken met een doel. 
+## Overzicht toestand en trend
 
-```{r kaartKRW3, fig.cap = 'Overzicht van gemiddelde EKR scores van de laatste 3 meetjaren per EAG op de maatlat Overige waterflora. Deze score wordt in de KRW systematiek gezien als de actuele toestand van vegetatie.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
-if(outputF == "html"){
-KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'ekr3jr')
-}
-#ekrmap3jrEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" & tabset$KRW_SGBP3 == "",], maatlat = "2V1 Overige waterflora") #alleenovwater
-# krw <- ekrmap3jrEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V21 Soortensamenstelling macrofyten")
-# krw <- ekrmap3jrEAGOvWa(tabset[tabset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V21 Soortensamenstelling Macrofyten Waterplanten")
+```{r, echo = FALSE, message = FALSE, warning = FALSE, include=FALSE}
+# bereken trend per toetsgebied
+trendekr <- trend(EKRset, detail = "deel") 
+#koppel trend aan ekr per jaar en gemiddeld
+trendekr <- merge(trendekr[,c('id','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code','estimate','r.squared','p.value')], tabset, by.x = c('id','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code'), by.y = c('id','facet_wrap_code', 'GHPR_level','wbmethode','watertype'), all.y = T)
+trendekr$estimate <- trendekr$estimate*12 # ekr per 2 planperioden
+trendekr$estimate[trendekr$estimate < 0.05 & trendekr$estimate > -0.05] <- 0 # verwaarloosbaar klein
+trendekr$estimate <- round(trendekr$estimate, digits = 2)
+trendekr$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", trendekr$facet_wrap_code)
+ekrtrend <- trendekr[!(grepl('^NL11*', trendekr$id) & !trendekr$KRW_SGBP3 == "") & trendekr$level == 1,] # alleen gewogen scores
 
-if(outputF == "word"){
-krw <-
-KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'ekr3jr')
-saveWidget(krw, "waterflora3jaar.html", selfcontained = FALSE)
-webshot("waterflora3jaar.html", file = "waterflora3jaar.png")
-}
+# bereken trend per eag (ook voor krw wl)
+trendekreag <- trendEAG(EKRset, detail = "deel") 
+#koppel trend aan ekr per jaar en gemiddeld
+trendekreag <- merge(trendekreag[,c('id','EAGIDENT','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code','estimate','r.squared','p.value')], tabset, by.x = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code'), by.y = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','wbmethode','watertype'), all.y = T)
+trendekreag$estimate <- trendekreag$estimate*12 # ekr per 2 planperioden
+trendekreag$estimate[trendekreag$estimate < 0.05 & trendekreag$estimate > -0.05] <- 0 # verwaarloosbaar klein
+trendekreag$estimate <- round(trendekreag$estimate, digits = 2)
+trendekreag$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", trendekreag$facet_wrap_code)
+ekrtrendeag <- trendekreag[!is.na(trendekreag$EAGIDENT) & trendekreag$level == 1,] # alleen scores per eag op hoofdmaatlatten
+
+# write.table(trendekreag, file = paste(getwd(),"/output/OordeelTrendPerGebiedScorePerJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+```
+
+Per maatlat en ecologisch analysegebied is berekend hoe de ecologische kwaliteit zich ontwikkeld. Uit deze trends in de toestand van ecologische waterkwaliteit blijkt dat op veel plaatsen de waterkwaliteit achteruit gaat. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$estimate < 0 &!is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan, ondanks onze pogingen om het omgaan met water (gebiedsontwikkelingen, agrarisch gebruik, afvalwaterbeheer (opsporen foutaansluitingen)) te beïnvloeden en onze inzet om sloten, zuiveringsinstallaties en waterpeilen te beheren. Een andere invloed op de ecologische toestand in waterlichamen ligt in een toenemende klimaatdruk. Deze uit zich niet alleen in achteruitgang van ecologische kwaliteit en biodiversiteit, maar ook op meer terreinen. Denk bijvoorbeeld aan verhoogde emissies van broeikasgassen uit ondiep, zuurstofloos oppervlaktewater en de gezondheidsrisicos van blauwalgen, botulisme, poepbacterieen en microverontreinigingen.
+
+Er zijn ook ecologisch analysegebied waar de ecologische kwaliteit verbetert door maatregelen die de afgelopen jaren zijn uitgevoerd. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$estimate > 0 &!is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
+
+In `r round((length(ekrtrendeag$estimate[ekrtrendeag$estimate == 0|is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate))*100, 0)`% van de gebieden en maatlatten is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
+
+```{r toestandtrend, fig.cap = "Toestand, oordeel en trend", echo = FALSE, message = FALSE, warning= FALSE, out.width='100%'}
+
+# hier tekst maken beschrijving trend, deze in ppr ESF oordeel toevoegen (maar dan is ekrtrend wel nodig)-------
+# ekrtrend$toelichting <-
+#               ifelse(ekrtrend$estimate < 0 & ekrtrend$r.squared < 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een negatieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019)."),
+#               ifelse(ekrtrend$estimate < 0 & ekrtrend$r.squared == 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een negatieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019). Deze trend is gebaseerd op twee meetjaren."),
+#               ifelse(ekrtrend$estimate > 0 & ekrtrend$r.squared < 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een positieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019)."),
+#               ifelse(ekrtrend$estimate < 0 & ekrtrend$r.squared == 1, paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont een positieve trend (", ekrtrend$estimate, " ekr per planperiode tussen 2006 en 2019). Deze trend is gebaseerd op twee meetjaren."), paste0("De score op de maatlat ", ekrtrend$facet_wrap_code, " vertoont geen trend.")
+#               ))))
+# # hier dcast om tabel met header kwaliteitslementen te maken
+# ekr_scores_trendbesc <- dcast.data.table(setDT(ekrtrend), id+KRW_SGBP3 ~ facet_wrap_code, value.var = c("toelichting"), drop = T, fill = "")
+# # remove NA
+# ekr_scores_trendbesc[is.na(ekr_scores_trendbesc)] <- ""
+# # merge tekst
+# ekr_scores_trendbesc$mergetekst <- paste0(ekr_scores_trendbesc$Fytoplankton, " ", ekr_scores_trendbesc$Waterflora," ",ekr_scores_trendbesc$Macrofauna," ", ekr_scores_trendbesc$Vis )
+# # trim character columns from starting and ending space
+# cols <- colnames(ekr_scores_trendbesc)[sapply(ekr_scores_trendbesc, is.character)] # which colnames are character
+# ekr_scores_trendbesc[,(cols) := lapply(.SD, function(x) gsub("^\\s+|\\s+$", "", x)),.SDcols = cols]
+# write.table(ekr_scores_trendbesc, file = paste(getwd(),"/output/trendbesch",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+
+
+# hier dcast om tabel met header kwaliteitslementen te maken ------
+ekr_scores_sel2 <- dcast.data.table(setDT(ekrtrend), waterlichaam+KRW_SGBP3 ~ facet_wrap_code, value.var = c("EKR3jr","oordeelsort","estimate","GEP_2022"), fun.aggregate = mean)
+
+typology <- data.frame(
+  col_keys = c( "waterlichaam", 
+                          "EKR3jr_Fytoplankton","GEP_2022_Fytoplankton","estimate_Fytoplankton",
+                          "EKR3jr_Macrofauna","GEP_2022_Macrofauna","estimate_Macrofauna",
+                          "EKR3jr_Waterflora","GEP_2022_Waterflora","estimate_Waterflora",
+                          "EKR3jr_Vis", "GEP_2022_Vis","estimate_Vis"),
+  what = c("Waterlichaam",
+           "Fytoplankton", "Fytoplankton", "Fytoplankton",
+           "Macrofauna","Macrofauna","Macrofauna",
+           "Waterflora","Waterflora","Waterflora",
+           "Vis","Vis","Vis"),
+  measure = c("Waterlichaam",
+              "EKR3jr", "GEP", "trend",
+              "EKR3jr", "GEP", "trend",
+              "EKR3jr", "GEP", "trend",
+              "EKR3jr", "GEP", "trend"),
+  stringsAsFactors = FALSE )
+
+#ft<- 
+  ekr_scores_sel2 %>%
+    flextable(col_keys = c("waterlichaam",
+                           "EKR3jr_Fytoplankton","GEP_2022_Fytoplankton","estimate_Fytoplankton",
+                           "EKR3jr_Macrofauna","GEP_2022_Macrofauna","estimate_Macrofauna",
+                           "EKR3jr_Waterflora","GEP_2022_Waterflora","estimate_Waterflora",
+                           "EKR3jr_Vis", "GEP_2022_Vis","estimate_Vis")) %>%
+    set_header_df(mapping = typology, key = "col_keys" )%>%
+    merge_h(part = "header")%>%
+    merge_v(part = "header")%>%
+    theme_booktabs()%>%
+    border_inner(border= fp_border(width = 3, color = "white"), part="all")%>%
+    colformat_num(j = 2:13, digits=2)%>%
+    width(j = 1, width = 5)%>%
+    width(j = 2:13, width = 1)%>%
+    bg(~ oordeelsort_Fytoplankton > 1, bg = "green", ~ EKR3jr_Fytoplankton)%>%
+    bg(~ oordeelsort_Fytoplankton < 1, bg = "yellow", ~ EKR3jr_Fytoplankton)%>%
+    bg(~ oordeelsort_Fytoplankton < 0.67, bg = "orange", ~ EKR3jr_Fytoplankton)%>%
+    bg(~ oordeelsort_Fytoplankton < 0.34, bg = "red", ~ EKR3jr_Fytoplankton)%>%
+    bg(~ oordeelsort_Macrofauna > 1, bg = "green", ~ EKR3jr_Macrofauna)%>%
+    bg(~ oordeelsort_Macrofauna < 1, bg = "yellow", ~ EKR3jr_Macrofauna)%>%
+    bg(~ oordeelsort_Macrofauna < 0.67, bg = "orange", ~ EKR3jr_Macrofauna)%>%
+    bg(~ oordeelsort_Macrofauna < 0.34, bg = "red", ~ EKR3jr_Macrofauna)%>%
+    bg(~ oordeelsort_Waterflora > 1, bg = "green", ~ EKR3jr_Waterflora)%>%
+    bg(~ oordeelsort_Waterflora < 1, bg = "yellow", ~ EKR3jr_Waterflora)%>%
+    bg(~ oordeelsort_Waterflora < 0.67, bg = "orange", ~ EKR3jr_Waterflora)%>%
+    bg(~ oordeelsort_Waterflora < 0.34, bg = "red", ~ EKR3jr_Waterflora)%>%
+    bg(~ oordeelsort_Vis > 1, bg = "green", ~ EKR3jr_Vis)%>%
+    bg(~ oordeelsort_Vis < 1, bg = "yellow", ~ EKR3jr_Vis)%>%
+    bg(~ oordeelsort_Vis < 0.67, bg = "orange", ~ EKR3jr_Vis)%>%
+    bg(~ oordeelsort_Vis < 0.34, bg = "red", ~ EKR3jr_Vis)%>%
+    bg(~ estimate_Fytoplankton > 0, bg = "lightgreen", ~ estimate_Fytoplankton)%>%
+    bg(~ estimate_Fytoplankton == 0, bg = "lightyellow", ~ estimate_Fytoplankton)%>%
+    bg(~ estimate_Fytoplankton < 0, bg = "salmon", ~ estimate_Fytoplankton)%>%
+    bg(~ estimate_Waterflora > 0, bg = "lightgreen", ~ estimate_Waterflora)%>%
+    bg(~ estimate_Waterflora == 0, bg = "lightyellow", ~ estimate_Waterflora)%>%
+    bg(~ estimate_Waterflora < 0, bg = "salmon", ~ estimate_Waterflora)%>%
+    bg(~ estimate_Macrofauna > 0, bg = "lightgreen", ~ estimate_Macrofauna)%>%
+    bg(~ estimate_Macrofauna == 0, bg = "lightyellow", ~ estimate_Macrofauna)%>%
+    bg(~ estimate_Macrofauna < 0, bg = "salmon", ~ estimate_Macrofauna)%>%
+    bg(~ estimate_Vis > 0, bg = "lightgreen", ~ estimate_Vis)%>%
+    bg(~ estimate_Vis == 0, bg = "lightyellow", ~ estimate_Vis)%>%
+    bg(~ estimate_Vis < 0, bg = "salmon", ~ estimate_Vis)
+
+# save_as_docx(ft, path = "ekrtrendkrwovwat.docx")
+    
+```
+
+## Trend per maatlat
+
+```{r trenddkaart, fig.cap = "Trend", echo = FALSE, message = FALSE, warning= FALSE, out.width='100%'}
+krw<- 
+combineWidgets(
+    nrow = 2,
+    plottrendEAG(ekrtrendeag[ekrtrendeag$facet_wrap_code == 'Waterflora',], gEAG),
+    plottrendEAG(ekrtrendeag[ekrtrendeag$facet_wrap_code == 'Macrofauna',], gEAG),
+    plottrendEAG(ekrtrendeag[ekrtrendeag$facet_wrap_code == 'Fytoplankton',], gEAG),
+    plottrendKRW(ekrtrend[ekrtrend$facet_wrap_code == 'Vis',], gKRW)
+)
+# saveWidget(krw, "trendallemaatlatten.html", selfcontained = FALSE)
+```
+
+## Toestand per biologisch kwaliteitselement
+
+Als graadmeter voor de (ecologische) toestand in het gehele beheergebied is de hoeveelheid en soortensamenstelling van de aanwezige vegetatie (waterplanten) gebruikt. Dit vormt namelijk een goede maatstaf voor de ecologische toestand van een oppervlaktewater: waterplanten zijn een essentieel onderdeel van, en randvoorwaarde voor watergebonden leven als kleine waterdiertjes en vissen. De aanwezigheid van waterplanten is getoetst volgens de landelijke maatlatten voor sloten, kanalen en meren. In gebieden die zijn aangewezen als KRW waterlichaam wordt sinds 2006 ook de toestand van de andere drie biologische kwaliteitselementen (fytoplankton, macrofauna, en vissen) ook gevolgd.
+
+### Overige waterflora
+
+Het beheergebied van AGV is zeer divers en daarom opgedeeld in kleinere [Ecologische analysegebieden](EAG), elk met een eigen bodemtype en waterhuishouding. In elk gebied is de hoeveelheid en soortensamenstelling van waterplanten op meerdere plaatsen gemeten en getoetst. De vegetatie wordt gemiddeld eens in de 3 jaar gemeten in ieder EAG. In onderstaande afbeeldingen worden de berekende oordelen, doelen en EKR scores per Ecologisch analysegebied op vegetatiemaatlat weergegeven. Als je op een deelgebied klikt, dan verschijnt er een pop-up waar je kan zien wat de EKR score is. 
+
+In afbeelding \@ref(fig:kaartenekroordeeldoelmcft) staan de berkende EKR scores, doelen en de oordelen die daaruit volgen weergegeven zodat zichtbaar wordt hoe het oordeel is opgebouwd. De actuele toestand van vegetatie is gebaseerd op metingen in meerdere jaren. De gemeten vegetatie laat van nature fluctuaties zien in de tijd en een gemiddelde van verschillende jaren geeft een betrouwbaarder beeld van de ecologische toestand. In de systematiek van de KRW wordt een oordeel gegeven door dit ‘slepend gemiddelde’ van EKR scores per gebied te vergelijken met een doel.
+
+```{r kaartenekroordeeldoelmcft, fig.cap = 'Overzicht van oordelen, EKR scores en doelen op de maatlat overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+#krw <-
+combineWidgets(
+    ncol = 3,
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
+              maatlat = "2V1 Overige waterflora", param = "oordeel"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
+              maatlat = "2V1 Overige waterflora", param = "ekr3jr"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
+              maatlat = "2V1 Overige waterflora", param = "doel")
+)
+
+#saveWidget(krw, "waterfloradeelmtlt.html", selfcontained = FALSE)
+#webshot("waterflora.html", file = "waterflora.png")
 
 ```
 
-De KRW doelen en ambitie op basis van 90 percentiel van gemeten EKR scores zijn hieronder weergegeven.
+In veel waterlichamen worden doelen nog niet gehaald. Niet in alle gebieden is het onze ambitie om hoger te scoren dan een EKR van 0.6 (groen). Er is voor ieder water gekeken naar een haal- en betaalbaar handelingsperspectief. Op basis daarvan worden uiteindelijke doelen of ambities geformuleerd. In onderstaande kaart staat weergegeven hoe groot de opgave is om de doelen te bereiken.
 
-```{r doelmap, fig.cap = 'Overzicht van doelen voor de maatlat Overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
-if(outputF == "html"){
-KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doel')
-}
-if(outputF == "word"){
-krw <-
-KRWmapEAG(gEAG,tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doel')
-saveWidget(krw, "doel.html", selfcontained = FALSE)
-webshot("doel.html", file = "doel.png")
-}
-#doelmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" & !tabset$KRW_SGBP3 == "",], maatlat = "2V1 Overige waterflora") #alleenovwater
-```
+Voor overig water worden op dit moment haalbare maatregelenpakketten bedacht om het handelingsperspectief en doelen te bepalen. Een eerste aanzet voor doelen overig water is nu gemaakt op basis van het 90 percentiel van gemeten EKR scores in een gebied. Deze 10% beste meetlocaties geven namelijk een eerste beeld van een realistisch ecologische toestand die voor kan komen in een EAG.
 
 ```{r doelgatmap, fig.cap = 'Overzicht van het doelgat (de afstand van de huidige toestand tot het doel) voor de maatlat Overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
-if(outputF == "html"){
-KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doelgat')
-}
-if(outputF == "word"){
-krw <-
-KRWmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" ,], maatlat = "2V1 Overige waterflora", param = 'doelgat')
-saveWidget(krw, "doel.html", selfcontained = FALSE)
-webshot("doel.html", file = "doel.png")
-}
+
+KRWmapEAG(gEAG, ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
+              maatlat = "2V1 Overige waterflora", param = 'doelgat')
+                  
 #doelmapEAG(tabset[tabset$wbmethode == "Maatlatten2018 Ov. waterflora" & !tabset$KRW_SGBP3 == "",], maatlat = "2V1 Overige waterflora") #alleenovwater
 ```
 
 #### Trend Overige waterflora
 
-In afbeelding \@ref(fig:kaartKRW2) is te zien hoe de vegetatie scoort (EKR score op de maatlat 'Overige waterflora') in verschillende meetjaren. Er worden 3 meetjaren op één kaart weergegeven zodat er een zo goed mogelijk gebiedsbreed beeld wordt gegeven. In ieder vlak (EAG) wordt namelijk maar één keer per 3 jaar vegetatie gemeten. Om te kunnen zien waar de gemiddelde EKR score uit is opgebouwd, kunnen EKR scores ook per meetpunt worden weergegeven. In de afbeelding hieronder staat zowel de score per EAG als de ruimtelijke spreiding van de ecologische kwaliteit op basis van de berekende EKR score per meetlocatie. 
+In afbeelding \@ref(fig:kaartvegjaren) is te zien hoe de vegetatie scoort (EKR score op de maatlat 'Overige waterflora') in verschillende meetjaren. Er worden 3 meetjaren op één kaart weergegeven zodat er een zo goed mogelijk gebiedsbreed beeld wordt gegeven. In ieder vlak (EAG) wordt namelijk maar één keer per 3 jaar vegetatie gemeten. Om te kunnen zien waar de gemiddelde EKR score uit is opgebouwd, kunnen EKR scores ook per meetpunt worden weergegeven. In de afbeelding hieronder staat zowel de score per EAG als de ruimtelijke spreiding van de ecologische kwaliteit op basis van de berekende EKR score per meetlocatie. 
 
-```{r kaartKRW2, fig.cap = 'Overzicht van EKR scores per EAG per jaar op de maatlat Overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+```{r kaartvegjaren, fig.cap = 'Overzicht van EKR scores per EAG per jaar op de maatlat Overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 #krw <-
 combineWidgets(
     ncol = 4, colsize = c(1,1),
@@ -208,76 +368,33 @@ combineWidgets(
     ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels),
     ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels))
 
-#saveWidget(krw, "waterflorapermpjaar.html", selfcontained = FALSE)
+# saveWidget(krw, "waterflorapermpjaar.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
 ```
 
-Per maatlat en ecologisch analysegebied is berekend hoe de ecologische kwaliteit zich ontwikkeld. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen de waterkwaliteit achteruit gaat. In `r round((length(trendkrw$estimate[trendkrw$estimate <  0])/length(trendkrw$estimate))*100, 0)`% van de gebieden met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan, ondanks onze pogingen om het omgaan met water (gebiedsontwikkelingen, agrarisch gebruik, afvalwaterbeheer (opsporen foutaansluitingen)) te beïnvloeden en onze inzet om sloten, zuiveringsinstallaties en waterpeilen te beheren. Een andere invloed op de ecologische toestand in waterlichamen ligt in een toenemende klimaatdruk. Deze uit zich niet alleen in achteruitgang van ecologische kwaliteit en biodiversiteit, maar ook op meer terreinen. Denk bijvoorbeeld aan verhoogde emissies van broeikasgassen uit ondiep, zuurstofloos oppervlaktewater en de gezondheidsrisicos van blauwalgen, botulisme, poepbacterieen en microverontreinigingen.
+De ontwikkeling van de ecologische kwaliteit is met een lineaire trend. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen de vegetatie (overige waterflora) achteruit gaat. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige waterflora' & ekrtrendeag$estimate < 0 & !is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige waterflora']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan.
 
-```{r achteruitgang, fig.cap = 'Overzicht van gebieden waar met een redelijke betrouwbaarheid (p < 0.35) is berekend dat de ecologische kwaliteit de afgelopen 10 jaar een kwaliteitsklasse (EKR 0.2) achteruit is gegaan.', echo = FALSE, message = FALSE, warning = FALSE, out.width="80%", fig.show='hold'}
-#krwset <- EKRset[!is.na(EKRset$GeoObject.code) & !EKRset$Meetobject.omschrijving == 'dummyMeetpuntVoorToetsing',] 
-#trendkrw <- trendkrw(krwset[krwset$jaar > 2005 & krwset$jaar < 2018,], detail = "hoofd") # juist trend per waterlichaam berekenen
+Er zijn ook ecologisch analysegebied waar de ecologische kwaliteit verbetert. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige waterflora' & ekrtrendeag$estimate > 0 & !is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige waterflora']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
 
-# deze functie werkt alleen als alle 4 de maatlatten significante trend wordt berekend
-trendkrw <- trendEAG(EKRset[EKRset$jaar > 2005 & !EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "hoofd") # juist trend per waterlichaam berekenen
-# write.table(trendkrw, file = paste(getwd(),"/EAGTrend",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE,               na = "", sep =';', row.names = FALSE) # wegschrijven als csv
- 
-trendkrw$estimate <- trendkrw$estimate*12 # ekr per 2 planperioden
-trendkrw$estimate[trendkrw$estimate < 0.05 & trendkrw$estimate > -0.05] <- 0 # verwaarloosbaar klein
-trendkrw <- merge(trendkrw, gEAG, by.x = 'EAGIDENT', by.y = 'GAFIDENT')
+In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige waterflora' & (ekrtrendeag$estimate == 0| is.na(ekrtrendeag$estimate))])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige waterflora']))*100, 0)`% van de gebieden en maatlatten is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
 
-options(knitr.kable.NA = '')
+```{r trendveg1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat overige waterflora per ecologisch analysegebied tussen 2006 en 2019', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 
-trendcast <- dcast(trendkrw, GAFNAAM + EAGIDENT ~ GHPR_level, value.var = "estimate", fun.aggregate = mean, drop = TRUE) 
-
-
-trendcast %>%
-  kable(escape = F, format = "html", align = 'l', digits = c(0, 0, 2, 2, 2, 2)) %>%
-  column_spec(1, border_right = F) %>%
-  column_spec(2, width = "10em") %>%
-  #add_header_above(c("Gebieden" = 2, "Maatlatten" = 3:6)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), position = "float_left", font_size = 10)
-  
-```
-
-Er zijn ook waterlichamen waar de ecologische kwaliteit verbetert door maatregelen die de afgelopen jaren zijn uitgevoerd. In `r round((length(trendkrw$estimate[trendkrw$estimate > 0])/length(trendkrw$estimate))*100, 0)`% van de gebieden is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
-
-```{r vooruitgang, fig.cap = 'Overzicht van gebieden waar met een redelijke betrouwbaarheid (p < 0.35) is berekend dat de ecologische kwaliteit de afgelopen 10 jaar een kwaliteitsklasse (EKR 0.2) vooruit is gegaan.', echo = FALSE, message = FALSE, warning = FALSE, out.width="80%"}
-#krwset <- EKRset[!is.na(EKRset$GeoObject.code) & !EKRset$Meetobject.omschrijving == 'dummyMeetpuntVoorToetsing',] 
-#trendkrw <- trendkrw(krwset[krwset$jaar > 2005 & krwset$jaar < 2018,], detail = "hoofd") # juist trend per waterlichaam berekenen
-trendkrw <- trendEAG(EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2019 &!EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2012 Vis", "Maatlatten2012 Ov. waterflora"),], detail = "hoofd") # juist trend per waterlichaam berekenen
-trendkrw <- trendkrw[!(trendkrw$r.squared >= 1) & !is.na(trendkrw$p.value.x) & trendkrw$estimate > 0.02 & trendkrw$p.value.x < 0.35,] 
-trendkrw <- merge(trendkrw, gEAG, by.x = 'EAGIDENT', by.y = 'GAFIDENT')
-
-options(knitr.kable.NA = '')
-
-dcast(trendkrw, GAFNAAM + EAGIDENT ~ GHPR_level, value.var = "estimate", fun.aggregate = mean, drop = TRUE) %>%
-  kable(escape = F, align = 'l', digits = c(0, 1, 2, 2, 2, 2)) %>%
-  column_spec(1, width = "40em") %>%
-  column_spec(2, width = "10em") %>%
-  #add_header_above(c("Gebieden" = 2, "Maatlatten" = 4)) %>%
-  kable_styling(bootstrap_options = c("striped", "hover"), position = "float_left", font_size = 10)
-  
-```
-
-In `r round((length(trendkrw$estimate[trendkrw$estimate == 0])/length(trendkrw$estimate))*100, 0)`% van de gebieden is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
-
-```{r trend vegetatie, echo = FALSE, message = FALSE, warning = FALSE}
-vegtrend <- trendEAG(EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora" & EKRset$jaar > 2005 & EKRset$jaar < 2020 & EKRset$GHPR_level == "2V1 Overige waterflora" ,], detail = "deel")
-vegbiodtrend <- trendEAG(EKRset[EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora" & EKRset$jaar > 2005 & EKRset$jaar < 2020 & EKRset$GHPR_level == 	"2V21 Soortensamenstelling macrofyten" ,], detail = "deel")
-```
-
-```{r trend1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat overige waterflora per ecologisch analysegebied tussen 2006 en 2019', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-krw<-
-plottrend3(vegtrend)
-# saveWidget(krw, "trendwaterflora.html", selfcontained = FALSE)
-# webshot("trendwaterflora.html", file = "waterfloratrend.png")
-```
-
-```{r trend1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat soortensamenstelling waterplanten per ecologisch analysegebied tussen 2006 en 2017', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-krw<-
-plottrend3(vegbiodtrend)
- saveWidget(krw, "trendbiodivwaterflora.html", selfcontained = FALSE)
+#krw<-
+combineWidgets(
+    nrow = 4,
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V1 Overige waterflora',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V21 Soortensamenstelling macrofyten',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR == 'Soortensamenstelling macrofyten Oeverplanten',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR == 'Soortensamenstelling macrofyten Waterplanten',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level %in% c('2V3 Bedekking som submerse planten en draadalgen', 
+                                                           '2V3 Vestigingsdiepte waterplanten'),], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V3 Bedekking Emerse planten',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V3 Bedekking Flab (Floating Algae Beds)',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V3 Bedekking Kroos',], gEAG)
+    
+)
+# saveWidget(krw, "trenddeelmtltwaterflora.html", selfcontained = FALSE)
 # webshot("trendbiodivwaterflora.html", file = "trendbiodivwaterflora.png")
 ```
 
@@ -285,14 +402,31 @@ plottrend3(vegbiodtrend)
 
 In gebieden die zijn aangewezen als KRW waterlichaam wordt sinds 2006 de toestand van fytoplankton, macrofauna, en vissen gevolgd. Deze zogenaamde kwaliteitselementen worden eens in de 3 of 6 jaar gemeten. In onderstaande afbeeldingen worden de berekende EKR scores per [KRW waterlichamen] en kwaliteitselement weergegeven.
 
-```{r kaartKRW6, fig.cap = 'Overzicht van EKR scores per EAG van de laatste 3 meetjaren op de maatlat Fytoplankton.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+```{r kaartKRWfyto, fig.cap = 'Overzicht van oordelen, EKR scores en doelen op de maatlat op de maatlat Fytoplankton.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 #krw <- 
-ekrmap3jrEAG(tabset, maatlat = "1F1 Fytoplankton-kwaliteit")
-#saveWidget(krw, "fytoplankton.html", selfcontained = FALSE)
+combineWidgets(
+    ncol = 3,
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Fytoplankton" ,], 
+              maatlat = "1F1 Fytoplankton-kwaliteit", param = "oordeel"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Fytoplankton" ,], 
+              maatlat = "1F1 Fytoplankton-kwaliteit", param = "ekr3jr"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Fytoplankton" ,], 
+              maatlat = "1F1 Fytoplankton-kwaliteit", param = "doel")
+)
+
+# saveWidget(krw, "fytoplankton.html", selfcontained = FALSE)
 #webshot("fytoplankton.html", file = "fytoplankton.png")
 ```
 
-Fytoplankton reageert vaak sneller op ontwikkelingen dan vegetatie. Vooral in grotere wateren is dit ook een goede indicator voor schoon water en zwemwaterkwaliteit. Fytoplankton laat globaal eenzelfde beeld zien als vegetatie, als is er op deze maatlat minder sprake van achteruitgang. Naast de scores op de hoofdmaatlat 'Fytoplankton-kwaliteit' kan ook worden gekeken naar scores op de indicator 'abundantie fytoplankton', die is berekend op basis van het zomerhalfjaar gemiddelde Chlorofyl-A gehalte.
+In veel waterlichamen worden doelen nog niet gehaald. Niet in alle gebieden is het onze ambitie om hoger te scoren dan een EKR van 0.6 (groen). Er is voor ieder water gekeken naar een haal- en betaalbaar handelingsperspectief. Op basis daarvan worden uiteindelijke doelen of ambities geformuleerd. In onderstaande kaart staat weergegeven hoe groot de opgave is om de doelen te bereiken.
+
+```{r doelgatmapfyto, fig.cap = 'Overzicht van het doelgat (de afstand van de huidige toestand tot het doel) voor de maatlat Fytoplankton.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+
+KRWmapEAG(gEAG, ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Fytoplankton" ,], 
+              maatlat = "1F1 Fytoplankton-kwaliteit", param = 'doelgat')
+```
+
+Fytoplankton reageert vaak sneller op ontwikkelingen dan vegetatie. Vooral in grotere wateren is dit ook een goede indicator voor schoon water en zwemwaterkwaliteit. Fytoplankton laat globaal eenzelfde beeld zien als vegetatie, al is er op deze maatlat minder sprake van achteruitgang. Naast de scores op de hoofdmaatlat 'Fytoplankton-kwaliteit' kan ook worden gekeken naar scores op de indicator 'abundantie fytoplankton', die is berekend op basis van het zomerhalfjaar gemiddelde Chlorofyl-A gehalte.
 
 ```{r kaartchlorofyl, fig.cap = 'Overzicht van gemiddeld chlorofyl-A gehalte in 2006 t/m 2012 links en 2013 t/m 2017 rechts.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 wq1 <- wq[grep('VAST', wq$locatie.meetnethistorie),]
@@ -309,46 +443,266 @@ combineWidgets(
 
 #### Trend Fytoplankton
 
-```{r trendFYT, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat fytoplankton per ecologisch analysegebied tussen 2006 en 2017 links en 2006 en 2018 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%",  fig.show= 'hold'}
-fpatrend <- trend(EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2018 & EKRset$GHPR_level == "1F1 Fytoplankton-kwaliteit",], detail = "deel")
-#trend<- 
-    plottrend3(fpatrend)
+In afbeelding \@ref(fig:kaartfytojaren) is te zien hoe fytoplankton scoort in verschillende meetjaren. Er worden 3 meetjaren op één kaart weergegeven zodat er een zo goed mogelijk gebiedsbreed beeld wordt gegeven. In ieder vlak (EAG) wordt namelijk maar één keer per 3 of 6 jaar de samenstelling van fytoplankton gemeten. Om te kunnen zien waar de gemiddelde EKR score uit is opgebouwd, kunnen EKR scores ook per meetpunt worden weergegeven. In de afbeelding hieronder staat zowel de score per EAG als de ruimtelijke spreiding van de ecologische kwaliteit op basis van de berekende EKR score per meetlocatie. 
 
-#saveWidget(trend, "fytotrend.html", selfcontained = FALSE)
-#webshot("fytotrend.html", file = "fytotrend.png")
+```{r kaartfytojaren, fig.cap = 'Overzicht van EKR scores per EAG per jaar op de maatlat Fytoplankton.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+#krw <-
+combineWidgets(
+    ncol = 4, colsize = c(1,1),
+    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels))
+
+# saveWidget(krw, "fytopermpjaar.html", selfcontained = FALSE)
+#webshot("waterflora.html", file = "waterflora.png")
+```
+
+De ontwikkeling van de ecologische kwaliteit is met een lineaire trend. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen de vegetatie (overige waterflora) achteruit gaat. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplankton-kwaliteit' & ekrtrendeag$estimate < 0 & !is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplankton-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan.
+
+Er zijn ook ecologisch analysegebied waar de ecologische kwaliteit verbetert. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplankton-kwaliteit' & ekrtrendeag$estimate > 0 & !is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplankton-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
+
+In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplankton-kwaliteit' & (ekrtrendeag$estimate == 0| is.na(ekrtrendeag$estimate))])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplankton-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
+
+```{r trendfyt1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat overige waterflora per ecologisch analysegebied tussen 2006 en 2019', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+
+#krw<-
+combineWidgets(
+    nrow = 3,
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '1F1 Fytoplankton-kwaliteit',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '1F2 Abundantie fytoplankton',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR_level == '1F2 Soortensamenstelling fytoplankton',], gEAG)
+)
+# saveWidget(krw, "trenddeelmtltfyto.html", selfcontained = FALSE)
+# webshot("trendbiodivwaterflora.html", file = "trendbiodivwaterflora.png")
 ```
 
 ### Macrofauna
 
 Macrofauna zijn kleine, maar met het blote oog zichtbare, ongewervelde dieren (insecten, slakken, etc) die in het oppervlaktewater leven. Van elk meetpunt van is de aanwezige macrofauna vergeleken met een voor ieder watertype maximaal haalbare kwaliteit. Aquatische macrofauna heeft vegetatie nodig als schuilplaats, voedsel of voor hun voortplanting. Daarom is een gezonde macrofaunagemeenschap afhankelijk van de hoeveelheid en kwaliteit van emerse en submerse vegetatie.
 
-De natuurkwaliteit van macrofauna is laag voor alle typen oppervlaktewater. Slechts op enkele plaatsen wordt een goede kwaliteit aangetroffen. In het achterland van Loosdrecht, de Tiehovense plassen, de Hollands Ankeveense plassen, de Westbroekse zodden, Molenpolder Natuur en het Hol valt op dat de score op de macrofauna maatlat voldoet, terwijl scores op de maatlat 'Overige waterflora' onvoldoende zijn. Macrofauna wordt minder frequent bemonsterd en daarom zijn deze resultaten meestal op oudere meetdata gebaseerd. Ook in eerdere meetjaren valt op dat macrofauna in bovengenoemde gebieden voldoet, terwijl de scores op de maatlat 'Overige waterflora' (vegetatie) niet voldoet. In het achterland van Loosdrecht gaat zowel de kwaliteit van macrofauna als waterflora achteruit.
+In afbeelding \@ref(fig:kaartenekroordeeldoelmafa) staan de berkende EKR scores, doelen en de oordelen die daaruit volgen weergegeven zodat zichtbaar wordt hoe het oordeel is opgebouwd. De actuele toestand van macrofauna is gebaseerd op metingen in meerdere jaren. De gemeten vegetatie laat van nature fluctuaties zien in de tijd en een gemiddelde van verschillende jaren geeft een betrouwbaarder beeld van de ecologische toestand. In de systematiek van de KRW wordt een oordeel gegeven door dit ‘slepend gemiddelde’ van EKR scores per gebied te vergelijken met een doel.
 
-```{r kaartKRW7, fig.cap = 'Overzicht van EKR scores gemiddelde EKR scores per EAG van de laatste 3 meetjaren op de maatlat macrofauna.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-#krw<-
-ekrmap3jrEAG(tabset, maatlat = "3M1 Macrofauna-kwaliteit")
-#saveWidget(krw, "macrofauna.html", selfcontained = FALSE)
-#webshot("macrofauna.html", file = "macrofauna.png")
+```{r kaartenekroordeeldoelmafa, fig.cap = 'Overzicht van oordelen, EKR scores en doelen op de maatlat macrofauna.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+#krw<- 
+combineWidgets(
+    ncol = 3,
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Macrofauna" ,], 
+              maatlat = "3M1 Macrofauna-kwaliteit", param = "oordeel"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Macrofauna" ,], 
+              maatlat = "3M1 Macrofauna-kwaliteit", param = "ekr3jr"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Macrofauna" ,], 
+              maatlat = "3M1 Macrofauna-kwaliteit", param = "doel")
+)
+
+# saveWidget(krw, "macrofauna.html", selfcontained = FALSE)
+#webshot("waterflora.html", file = "waterflora.png")
+
 ```
 
-```{r figmafa, fig.cap = 'Macrofauna', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-if(nrow(hybi1[hybi1$analysecode == 'MEA',])>0){
-plotmafa(hybi1[!is.na(hybi1$TWN.taxongroup),],TWNev)}
+In veel waterlichamen worden doelen nog niet gehaald. Niet in alle gebieden is het onze ambitie om hoger te scoren dan een EKR van 0.6 (groen). Er is voor ieder water gekeken naar een haal- en betaalbaar handelingsperspectief. Op basis daarvan worden uiteindelijke doelen of ambities geformuleerd. In onderstaande kaart staat weergegeven hoe groot de opgave is om de doelen te bereiken.
+
+```{r doelgatmapmafa, fig.cap = 'Overzicht van het doelgat (de afstand van de huidige toestand tot het doel) voor de maatlat Macrofauna.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+
+KRWmapEAG(gEAG, ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Macrofauna" ,], 
+              maatlat = "3M1 Macrofauna-kwaliteit", param = 'doelgat')
 ```
 
-#### Trends Macrofauna
+De natuurkwaliteit van macrofauna is laag voor alle typen oppervlaktewater. Slechts op enkele plaatsen wordt een goede kwaliteit aangetroffen. In het achterland van Loosdrecht, de Tiehovense plassen, de Hollands Ankeveense plassen, de Westbroekse zodden, Molenpolder Natuur en het Hol valt op dat de score op de macrofauna maatlat voldoet, terwijl scores op de maatlat 'Overige waterflora' onvoldoende zijn. Macrofauna wordt minder frequent bemonsterd en daarom zijn deze resultaten meestal op oudere meetdata gebaseerd. Ook in eerdere meetjaren valt op dat macrofauna in bovengenoemde gebieden voldoet, terwijl de scores op de maatlat 'Overige waterflora' (vegetatie) niet voldoen. In het achterland van Loosdrecht gaat zowel de kwaliteit van macrofauna als waterflora achteruit.
 
-```{r trendMFA, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat macrofauna per ecologisch analysegebied tussen 2006 en 2017', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%",  fig.show= 'hold'}
-mfatrend <- trendEAG(EKRset[EKRset$jaar > 2005 & EKRset$jaar < 2018 & EKRset$GHPR_level == "3M1 Macrofauna-kwaliteit" ,], detail = "deel")
-plottrend3(mfatrend)
-saveWidget(trend, "macrofaunatrend.html", selfcontained = FALSE)
-webshot("macrofaunatrend.html", file = "macrofaunatrend.png",remove_url = TRUE, remove_controls = c("zoomControl", "layersControl", "homeButton"))
+```{r figmafa, fig.cap = 'Aantal individuen van gevoelige macrofauna uit de EPT groep (haften, steenvliegen, kokerjuffers) per monster', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+if(nrow(hybi[hybi$analysecode == 'MEA',])>0){
+plotmafa2(hybi[!is.na(hybi$TWN.taxongroup),],TWNev)}
+```
+
+#### Trend Macrofauna
+
+In afbeelding \@ref(fig:kaartmafajaren) is te zien hoe macrofauna scoort in verschillende meetjaren. Er worden 3 meetjaren op één kaart weergegeven zodat er een zo goed mogelijk gebiedsbreed beeld wordt gegeven. In ieder vlak (EAG) wordt namelijk maar één keer per 3 jaar vegetatie gemeten. Om te kunnen zien waar de gemiddelde EKR score uit is opgebouwd, kunnen EKR scores ook per meetpunt worden weergegeven. In de afbeelding hieronder staat zowel de score per EAG als de ruimtelijke spreiding van de ecologische kwaliteit op basis van de berekende EKR score per meetlocatie. 
+
+```{r kaartmafajaren, fig.cap = 'Overzicht van EKR scores per EAG per jaar op de maatlat Macrofauna.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+#krw <-
+combineWidgets(
+    ncol = 4, colsize = c(1,1),
+    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2018 Macrofauna"),], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels))
+
+#saveWidget(krw, "macrofaunapermpjaar.html", selfcontained = FALSE)
+#webshot("waterflora.html", file = "waterflora.png")
+```
+
+De ontwikkeling van de ecologische kwaliteit is met een lineaire trend. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen de vegetatie (overige waterflora) achteruit gaat. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '3M1 Macrofauna-kwaliteit' & ekrtrendeag$estimate < 0 & !is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '3M1 Macrofauna-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan.
+
+Er zijn ook ecologisch analysegebied waar de ecologische kwaliteit verbetert. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '3M1 Macrofauna-kwaliteit' & ekrtrendeag$estimate > 0 & !is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '3M1 Macrofauna-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
+
+In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '3M1 Macrofauna-kwaliteit' & (ekrtrendeag$estimate == 0| is.na(ekrtrendeag$estimate))])/length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '3M1 Macrofauna-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
+
+```{r trendmafa1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat macrofauna per ecologisch analysegebied tussen 2006 en 2019', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+plottrendEAG(trendekreag[trendekreag$GHPR_level == '3M1 Macrofauna-kwaliteit',], gEAG)
+# saveWidget(krw, "trendbiodivwaterflora.html", selfcontained = FALSE)
+# webshot("trendbiodivwaterflora.html", file = "trendbiodivwaterflora.png")
 ```
 
 ### Vis
 
-```{r kaartKRW8, fig.cap = 'Overzicht van gemiddelde EKR scores per EAG van de laatste 3 meetjaren op de maatlat vis', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-krw <-
+In afbeelding \@ref(fig:kaartenekroordeeldoelvis) staan de berkende EKR scores, doelen en de oordelen die daaruit volgen weergegeven zodat zichtbaar wordt hoe het oordeel is opgebouwd. De actuele toestand van vis is gebaseerd op metingen in meerdere jaren. Visbemonsteringen laat van nature fluctuaties zien in de tijd en een gemiddelde van verschillende jaren geeft een betrouwbaarder beeld van de ecologische toestand. In de systematiek van de KRW wordt een oordeel gegeven door dit ‘slepend gemiddelde’ van EKR scores per gebied te vergelijken met een doel.
+
+```{r kaartenekroordeeldoelvis, fig.cap = 'Overzicht van oordelen, EKR scores en doelen op de maatlat macrofauna.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
+# vis is niet beschikbaar per eag --> daarom projectie KRW wl op alle eags van dat waterlichaam
+ekr_scores_vis <- merge(tabset[tabset$wbmethode == "Maatlatten2018 Vis" ,], eag_wl[!eag_wl$KRW_SGBP3 == "", c('GAFIDENT','KRW_SGBP3')], by = 'KRW_SGBP3', all.y = T, allow.cartesian = T)
+ekr_scores_vis$EAGIDENT <- ekr_scores_vis$GAFIDENT
+
+krw <- combineWidgets(
+    ncol = 3,
+    KRWmapEAG(gEAG,ekr_scores_vis, 
+              maatlat = "4VI1 Vis-kwaliteit" , param = "oordeel"),
+    KRWmapEAG(gEAG,ekr_scores_vis, 
+              maatlat = "4VI1 Vis-kwaliteit" , param = "ekr3jr"),
+    KRWmapEAG(gEAG,ekr_scores_vis, 
+              maatlat = "4VI1 Vis-kwaliteit" , param = "doel")
+)
+krw
+# saveWidget(krw, "vistoestand.html", selfcontained = FALSE)
+
+```
+
+```{r vispivot, fig.cap = 'Visbiomassa per soort', eval = FALSE, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+
+selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","HoortBijGeoobject.identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code")
+sel <- !grepl('^NL11*', EKRlijst$HoortBijGeoobject.identificatie)
+sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl) & !EKRlijst$Biotaxon.naam.nl == "" &!(EKRlijst$Biotaxon.naam.nl %in% "Vissen")  #als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
+sel <- sel & EKRlijst$Eenheid.code %in% "kg/ha"
+EKRlijst1 <- EKRlijst[sel,]
+EKRlijst1 <- EKRlijst1[,ltstmj := jaar==max(jaar,na.rm=T), by = c('HoortBijGeoobject.identificatie','EAGIDENT')]
+EKRlijst1 <- EKRlijst1[ltstmj == TRUE,]
+
+xagg <- aggregate(Numeriekewaarde ~ Biotaxon.naam.nl+jaar+HoortBijGeoobject.identificatie,EKRlijst1,FUN=sum)
+xagg$jaar <- as.character(xagg$jaar)
+colgroup <-c('Biotaxon.naam.nl','jaar','HoortBijGeoobject.identificatie','Numeriekewaarde')
+
+# rename columns and order data.table
+setnames(xagg,colgroup,c('vissoort','jaar','waterlichaam','biomassa'))
+xagg <- as.data.frame(xagg)
+
+# calculate mean per groep
+krw <- rpivotTable(
+    xagg,
+    rows=c("waterlichaam","jaar"),
+    cols= "vissoort",
+    aggregatorName = "Sum",
+    # sorter = '',
+    # inclusions = list(HoortBijGeoobject.identificatie = list("NL11_Botshol")),
+    exclusions= list(jaar = list('2006','2007','2008','2009','2010','2011','2012')),
+    vals = "biomassa",
+    rendererName = "Horizontal Stacked Bar Chart",
+    width="100%"
+  )
+krw
+# saveWidget(krw, "vispivot.html", selfcontained = FALSE)
+```
+
+```{r visbiomvsp, fig.cap = 'Visbiomassa versus fosforbelasting', eval = FALSE, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+
+selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","HoortBijGeoobject.identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code","GeoObject.code")
+sel <- !grepl('^NL11*', EKRlijst$HoortBijGeoobject.identificatie)
+sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl) & !EKRlijst$Biotaxon.naam.nl == "" &!(EKRlijst$Biotaxon.naam.nl %in% "Vissen")  #als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
+sel <- sel & EKRlijst$Eenheid.code %in% "kg/ha"
+EKRlijst1 <- EKRlijst[sel,]
+
+xagg <- aggregate(Numeriekewaarde ~ Biotaxon.naam.nl+jaar+HoortBijGeoobject.identificatie+GeoObject.code,EKRlijst1,FUN=sum)
+xagg$jaar <- as.character(xagg$jaar)
+xagg <- aggregate(Numeriekewaarde ~ jaar+HoortBijGeoobject.identificatie+GeoObject.code,xagg,FUN=sum)
+
+
+colgroup <-c('jaar','HoortBijGeoobject.identificatie','Numeriekewaarde','GeoObject.code')
+# rename columns and order data.table
+setnames(xagg,colgroup,c('jaar','waterlichaam','biomassa','ident'))
+
+# laden: Rdata file die meegestuurd is
+dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
+dat[,date := as.POSIXct(paste0(jaar,"-",maand,"-01"), format = '%Y-%m-%d')]
+
+# nonogram
+nomogram <- data.table::fread('../data/nomogram.csv')
+# datafile with P-load PC Ditch
+Overzicht_kP <- data.table::fread('../data/Overzicht_kP.csv')
+Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
+pvskp <- ppr_pmaps(dat, Overzicht_kp, hybi, nomogram) 
+
+#merge vis en pbel
+
+visbelas <- merge(xagg, pvskp, by.x = 'ident', by.y = 'KRW')
+
+p<- ggplot(visbelas, aes(x= wp_min_sum, y= biomassa, col = watertype, label = paste0(waterlichaam, jaar.x)))+
+    geom_jitter() +
+    #facet_grid(~jaar, scales = 'free')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 5, angle=90,hjust=1),
+      axis.text.y = element_text(size= 5, hjust=2),
+      axis.ticks =  element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.background = element_blank()
+    )+
+    ggtitle("Totale visbiomassa tov fosforbelasting") +
+    labs(x= 'P-bel', y= 'biomassa')
+# krw <-
+  ggplotly(p=p)
+# saveWidget(krw, "visversuskP.html", selfcontained = FALSE)
+```
+
+```{r brasembiomvsp, fig.cap = 'Visbiomassa versus fosforbelasting', eval = FALSE, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+
+selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","HoortBijGeoobject.identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code","GeoObject.code")
+sel <- !grepl('^NL11*', EKRlijst$HoortBijGeoobject.identificatie)
+sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl) & EKRlijst$Biotaxon.naam.nl %in% c('Brasem','Karper') &!(EKRlijst$Biotaxon.naam.nl %in% "Vissen")  #als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
+sel <- sel & EKRlijst$Eenheid.code %in% "kg/ha"
+EKRlijst1 <- EKRlijst[sel,]
+
+xagg <- aggregate(Numeriekewaarde ~ Biotaxon.naam.nl+jaar+HoortBijGeoobject.identificatie+GeoObject.code,EKRlijst1,FUN=sum)
+xagg$jaar <- as.character(xagg$jaar)
+xagg <- aggregate(Numeriekewaarde ~ jaar+HoortBijGeoobject.identificatie+GeoObject.code,xagg,FUN=sum)
+
+
+colgroup <-c('jaar','HoortBijGeoobject.identificatie','Numeriekewaarde','GeoObject.code')
+# rename columns and order data.table
+setnames(xagg,colgroup,c('jaar','waterlichaam','biomassa','ident'))
+
+#merge vis en pbel
+
+visbelasbrkp <- merge(xagg, pvskp, by.x = 'ident', by.y = 'KRW')
+
+p<- ggplot(visbelasbrkp, aes(x= wp_min_sum, y= biomassa, col = watertype, label = paste0(waterlichaam, jaar.x)))+
+    geom_jitter() +
+    #facet_grid(~jaar, scales = 'free')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 5), #EKR
+      axis.text.x = element_text(size= 5, angle=90,hjust=1),
+      axis.text.y = element_text(size= 5, hjust=2),
+      axis.ticks =  element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.background = element_blank()
+    )+
+    ggtitle("Biomassa braem en karper tov fosforbelasting") +
+    labs(x= 'P-bel', y= 'biomassa')
+# krw <-
+  ggplotly(p=p)
+# saveWidget(krw, "brasemkarperversuskP.html", selfcontained = FALSE)
+```
+
+#### Trend Vis
+
+In afbeelding \@ref(fig:kaartvisjaren) is te zien hoe vis scoort in verschillende meetjaren. Er worden 3 meetjaren op één kaart weergegeven zodat er een zo goed mogelijk gebiedsbreed beeld wordt gegeven. In ieder vlak (EAG) wordt namelijk maar één keer per 3 jaar vegetatie gemeten. Om te kunnen zien waar de gemiddelde EKR score uit is opgebouwd, kunnen EKR scores ook per meetpunt worden weergegeven. In de afbeelding hieronder staat zowel de score per EAG als de ruimtelijke spreiding van de ecologische kwaliteit op basis van de berekende EKR score per meetlocatie. 
+
+```{r kaartvisjaren, fig.cap = 'Overzicht van gemiddelde EKR scores per EAG van de laatste 3 meetjaren op de maatlat vis', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw <-
 combineWidgets(
     ncol = 4, colsize = c(1,1),
     ekrmapKRW(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2010' & EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
@@ -359,11 +713,30 @@ combineWidgets(
                  maatlat = "4VI1 Vis-kwaliteit" ),
     ekrmapKRW(EKRset[EKRset$jaar >= '2016' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
                  maatlat = "4VI1 Vis-kwaliteit" ))
-saveWidget(krw, "vis.html", selfcontained = FALSE)
-webshot("vis.html", file = "vis.png")
+# saveWidget(krw, "vismpjaren.html", selfcontained = FALSE)
+# webshot("vismpjaren.html", file = "vis.png")
 ```
 
-## Natura2000
+De ontwikkeling van de ecologische kwaliteit is met een lineaire trend. Uit deze trends in de toestand van waterkwaliteit blijkt dat op veel plaatsen vis achteruit gaat. In `r round((length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit' & ekrtrend$estimate < 0 & !is.na(ekrtrend$estimate)])/length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan.
+
+Er zijn ook ecologisch analysegebied waar de ecologische kwaliteit verbetert. In `r round((length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit' & ekrtrend$estimate > 0 & !is.na(ekrtrend$estimate)])/length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat de vegetatie vooruit is gegaan. De succesfactoren voor het herstel van deze waterlichamen worden per factor toegelicht in het rapport Ecologische sleutelfactoren in beeld.
+
+In `r round((length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit' & (ekrtrend$estimate == 0| is.na(ekrtrend$estimate))])/length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit']))*100, 0)`% van de gebieden en maatlatten is de ontwikkeling in ecologische waterkwaliteit min of meer stabiel of zijn er onvoldoende gegevens beschikbaar om de ontwikkeling goed in beeld te brengen. 
+
+```{r trendvis1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat vis per ecologisch analysegebied tussen 2006 en 2019', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+#krw<-
+combineWidgets(
+    nrow = 3,
+    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI1 Vis-kwaliteit',], gKRW),
+    plottrendKRW(trendekr[trendekr$GHPR_level %in% c('4VI2 Massafractie Visgilde - plantminnende soort (Pm)','4VI2 Soortenrijkdom Visgilde - plantminnende en migrerende soort (PmM)'),], gKRW),
+    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgilde - zuurstoftolerante soort (O2)',], gKRW),
+    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgroep - brasem en karper (BK)',], gKRW),
+    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgroep - baars en blankvoorn (BB)',], gKRW)
+)
+#saveWidget(krw, "visdeelmtlt.html", selfcontained = FALSE)
+```
+
+## Aanwezigheid Natura2000 indicatorsoorten
 
 In de kaarten hieronder is de som van bedekkingen van verschillende taxa kranswieren en fonteinkruiden per meetlocatie weergegeven. De totale bedekking met Krabbenscheer en Groot blaasjeskruid staan ook op onderstaande kaarten weergegeven. 
 
@@ -433,7 +806,7 @@ kaartstrat(hybi[hybi$jaar > '2013',])
 kaartutr(hybi[hybi$jaar > '2006',])
 ```
 
-## Overzicht exoten
+### Overzicht exoten
 ### Kreeft
 Inheemse rivierkreeft ondervindt het laatste decennium hevige concurrentie van meerdere invasieve exoten (zoals de rode Amerikaanse rivierkreeft) die in hoog tempo de Nederlandse wateren domineren. In grote aantallen grazen deze exoten op oever- en submerse vegetatie. Het vermoeden is dat een deel van de planten daadwerkelijk gegeten wordt, maar er wordt vooral gejaagd op de macrofauna die zich op en tussen de vegetatie bevindt. Tijdens hun jacht op macrofauna woelen rivierkreeften de bodem. Daarnaast graven ze holen in de oevers wat ook leidt tot omwoeling. Hoge dichtheden aan kreeften kan dus leiden tot verhoogde concentraties aan zwevend stof in het oppervlaktewater. Daarmee hebben kreeften een vergelijkbare rol als bodemwoelende vissen (brasem en karper).
 
@@ -456,43 +829,52 @@ kaartcam(hybi)
 kaartved(hybi)
 ```
 
+
 # Gebruikte methoden
-### KRW toetsing
-Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke beoordelingsmethodiek voor sloten, kanalen [@KRWslotenkanalen] en meren [@KRWmeren]. Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
+## KRW toetsing
+Alle beschikbare meetgegevens van hydrobiologische kwaliteitselementen zijn getoetst aan landelijke
+beoordelingsmethodiek voor sloten, kanalen (Omschrijving MEP en maatlatten voor sloten en kanalen, STOWA rapport 2012-34) en meren (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31). Het resultaat hiervan is een duiding van ecologische kwaliteit (EKR score). 
 
 Een score van 1 staat voor een maximaal haalbare ecologische kwaliteit in water dat niet door menselijk toedoen wordt verstoord. Een score van 0.6 staat voor een haalbare ecologische kwaliteit in water dat door de mens is gemaakt bij het winnen van turf en zand. Of water dat wordt gebruikt om in te varen of als afvoer om het land en de straat droog te houden. In onderstaande afbeeldingen staat een goede kwaliteit verbeeld. 
 
 Er kan slechts aan één watertype getoetst worden, omdat één waterlichaam volgens de Europese richtlijn, slechts uit één watertype kan bestaan. Er wordt getoetst aan de watertypen zoals vastgesteld in het WBP 2016-2021. Er zijn toestgegevens beschikbaar van gehele KRW waterlichamen en EAG`s. Het watertype waaraan getoetst wordt als pop-up weergegeven in de kaarten in paragrafen [KRW waterlichamen] en [Ecologische analysegebieden].
 
-#### KRW waterlichamen
+### KRW waterlichamen
 
 Voor de KRW is een groot deel van het oppervlaktewater aangewezen als waterlichaam. Een waterlichaam is een "onderscheiden oppervlaktewater van aanzienlijke omvang, zoals een meer, een rivier of een kanaal". Voor deze wateren moet de toestand van het aquatisch ecosysteem beschreven worden. Onder oppervlaktewater van "aanzienlijke omvang" vallen waterlichamen met een minimale oppervlakte van 0,5 km2 of een stroomgebied tussen de 10 en 100 km2. In onderstaande afbeelding staan de KRW waterlichamen in het beheergebied van AGV.
 
 In de Kaderrichtlijn Water (KRW) is een indeling gemaakt in verschillende typen oppervlaktewater. Deze zijn ingedeeld naar hydromorfologische eigenschappen, type bodem en naar zoet, brak of zout water. De hydromorfologische eigenschappen zijn de stroming, de grootte of breedte en de diepte. Een belangrijk onderscheid is in stilstaand of stromend water. De bodem is belangrijk voor het onderscheid naar een veenbodem (met veel organisch materiaal), kiezels, klei, zand of kalk. Deze indeling is belangrijk voor de doelen die in de KRW gesteld worden, omdat voor elk watertype kwaliteitseisen opgesteld zijn. De watertypen worden zichtbaar wanneer er op een waterlichaam wordt geklikt.
 
-
 ```{r wl, fig.cap = 'Overzicht van KRW waterlichamen in het beheergebied van AGV', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+## Dissolve polygons with same area IDs ---------
+gKRW <- gKRW %>% group_by(OWMIDENT,OWMNAAM) %>% summarize()
+eag_wl1 <- eag_wl %>% group_by(KRW_SGBP3,watertype) %>% summarize()
+gKRW <- merge(gKRW,eag_wl1[,c('KRW_SGBP3','watertype')], by.x = "OWMIDENT", by.y = "KRW_SGBP3", all.x = TRUE, all.y = F)%>% st_transform(proj4.google)
+# krw <-
 krwmap(gKRW)
+# saveWidget(krw, "waterlichamen.html", selfcontained = FALSE)
+#webshot("waterlichamen.html", file = "waterlichamen.png")
 ```
 
-#### Ecologische analysegebieden
+### Ecologische analysegebieden
 
 De Ecologische analysegebieden zijn een gebiedsindeling om het ecologisch functioneren van het watersysteem te beoordelen en het effect van maatregelen op de waterkwaliteit te volgen, waarbij gebruik wordt gemaakt van analysemodellen zoals de water- en stoffenbalans, opdat het waterbeheer doelmatig en efficiënt kan plaatsvinden en KRW-doelstellingen worden behaald.
 
 Ecologische analysegebieden (EAG’s) zijn nieuwe opdelingen van de bestaande af- en aanvoergebieden, meestal (delen van) polders. De opdeling in EAG’s is gemaakt op basis van een aantal kenmerken zoals vorm, verblijftijd, waterdiepte, strijklengte, de aanwezigheid van kwel of wegzijging en de afvoerrichting van het water. Een EAG valt altijd volledig binnen een afvoergebied. Af-en aanvoergebieden, maar ook KRW-waterlichamen, zijn dus opgebouwd uit één of meer EAG’s.
 
-Ook EAG`s in het 'overig water' dat iet is aangewezen als KRW waterlichaam heeft een KRW watertype toegekend gekregen. De watertypen worden zichtbaar wanneer er op een EAG wordt geklikt.
+Ook EAG`s in het 'overig water' die niet zijn aangewezen als KRW waterlichaam hebben een KRW watertype toegekend gekregen.
 
 ```{r eag1, fig.cap = 'Overzicht van KRW waterlichamen in het beheergebied van AGV', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-eagoverzicht(gEAG)
+eagoverzicht(gEAG, eag_wl)
 ```
-#### Selectie monsters
 
-Macrofauna dat is bemonsterd onder de spronglaag in diepe plassen wordt niet meegenomen in de toetsing.
+### Selectie monsters
 
 Alleen meetjaren waarin een geheel waterlichaam of EAG is bemonsterd zijn meegenomen in de toetsing om een representatief beeld te krijgen van de ecologische toestand. In de waterlichamen Tussenboezem Vinkeveen B en Molenpolder en Tienhoven zijn in verschillende deelgebieden niet bemonsterd in het verleden, om toch een beeld te krijgen van de ontwikkeling in ecologische toestand in deze gebieden is de beperkte dataset van deze deelgebieden wél meegenomen. Dit kan een vertekend beeld geven, omdat de deelgebieden die meewegen in de eindscore van het gehele waterlichaam variëren per meetjaar.
 
-#### Weging meetlocaties en trajecten
+Macrofauna dat is bemonsterd onder de spronglaag in diepe plassen wordt niet meegenomen in de toetsing.
+
+### Weging meetlocaties en trajecten
 
 Bij biologische kwaliteitselementen is er een weging aan meetpunten toegekend. Er is rekening gehouden met het relatieve aandeel dat een deelgebied heeft in een geheel KRW waterlichaam en de bemonsteringsinspanning binnen een deelgebied. De wijze waarop de weegfactoren zijn uitgerekend, verschilt per watertype en kwaliteitselement.
 	
@@ -513,13 +895,13 @@ $$
 \begin{aligned}
 Gewicht per traject = 
 (\frac{wateroppervlak van het deelgebied waar het traject in valt}{wateroppervlak van het beviste waterlichaam waar het traject in valt}) \times
-(\frac{Bevist oppervlak van traject}{Totaal bevist oppervlak van alle trajecten in het deelgebied})
+(\frac{bevist oppervlak van traject}{totaal bevist oppervlak van alle trajecten in het deelgebied})
 \end{aligned}
 $$
 
-In lijnvormige wateren (M1, M8, M10) wordt gevist met een elektrisch schepnet of met een elektrisch schepnet in combinatie met een zegen en keernetten. In het laatste geval vallen er twee monsters onder één traject en wordt deze samengevoegd. Het bevist oppervlak is dan per traject gesommeerd. In meervormige wateren en de boezem (M14, M27, M20, M7, M6) worden naast EAG`s ook aparte deelgebieden onderscheidden per dieptezone (0-1 meter, 1-8 meter, >8 meter). Het oppervlak van de emerse zone (0-1 meter) is over het algemeen klein in vergelijking tot het totaal oppervlak van waterlichamen van deze watertypen. Daarom weegt de emerse zone, waar de meeste vis zit, minder zwaar mee dan de overige dieptezones. Soms zitten er lijnvormige wateren vast aan een plas. Deze worden bevist met electrisch schepnet (en zegen) met keernetten. Deze worden als apart deelgebied ook meegewogen.
+In lijnvormige wateren (M1, M8, M10) wordt gevist met een elektrisch schepnet of met een elektrisch schepnet in combinatie met een zegen en keernetten. In het laatste geval vallen er twee monsters onder één traject en wordt deze samengevoegd. Het bevist oppervlak is dan per traject gesommeerd. In meervormige wateren en de boezem (M14, M27, M20, M7, M6) worden naast EAG's ook aparte deelgebieden onderscheidden per dieptezone (0-1 meter, 1-8 meter, >8 meter). Het oppervlak van de emerse zone (0-1 meter) is over het algemeen klein in vergelijking tot het totaal oppervlak van waterlichamen van deze watertypen. Daarom weegt de emerse zone, waar de meeste vis zit, minder zwaar mee dan de overige dieptezones. Soms zitten er lijnvormige wateren vast aan een plas. Deze worden bevist met electrisch schepnet (en zegen) met keernetten. Deze worden als apart deelgebied ook meegewogen.
 
-#### Conversie & aanvulling data
+### Conversie & aanvulling data
 
 Fytoplankton is bij monsters die voor 2014 zijn genomen, alleen als waarnemingen per milliliter gerapporteerd. Voor de toetsing is de eenheid cellen/ml nodig. Meetwaarden van 2014 en eerder zijn vertaald naar cellen/ml met behulp van de vertaaltabel in (Referenties en maatlatten voor natuurlijke watertypen voor de Kaderrichtlijn Water, STOWA rapport 2012-31).
 
@@ -527,8 +909,10 @@ De vestigingsdiepte van vegetatie is pas vanaf 2013 bepaald. Vestigingsdiepte in
     1. Wanneer de gemeten submerse bedekking 0 is, is de vestigingsdiepte ook op 0 gezet. 
     2. Wanneer de berekende vestigingsdiepte kleiner is dan de maximale diepte waarop submerse bedekking is gevonden, dan is de diepte waarop submerse bedekking is gevonden voor de toetsing gebruikt.
     
-Groeivormen worden aangevuld wanneer ze ontbreken. Het sluitingspercentage en breedte van de oeverzone wordt alleen in het Naardermeer bepaald. Deze staat standaard op 0. 
-Grote drijfbladplanten in meren en plassen wordt berekend door de som van drijvende taxa wanneer deze ontbreekt. Emerse planten, FLAB en KROOS staan op 0 waar ze missen, omdat deze niet uit de data kunnen worden afgeleid. 
+Groeivormen worden aangevuld wanneer ze ontbreken in de data:
+* Het sluitingspercentage en breedte van de oeverzone wordt alleen in het Naardermeer bepaald. Deze staat standaard op 0. 
+* Grote drijfbladplanten in meren en plassen wordt berekend door de som van drijvende taxa wanneer deze ontbreekt. 
+* Emerse planten, FLAB en KROOS staan op 0 waar ze missen, omdat deze niet uit de data kunnen worden afgeleid. 
 
 De abundantie van vegetatie wordt vertaald naar een driedelige-KRW-opnameschaal. Gehanteerde grenswaarde tussen 'weinig', 'matig' en 'veel' bij verschillende vegetatieopnameschalen zijn:
 
@@ -536,7 +920,10 @@ De abundantie van vegetatie wordt vertaald naar een driedelige-KRW-opnameschaal.
 *	Nat schaal: 2, 6
 *	Bedekkingspercentages: 5, 50
 
-### Natura2000
+## Trendanalyse
+Per maatlat en ecologisch analysegebied is een lineaire trend in EKR-scores van de afgelopen 12 jaar bepaald. In de figuren met trends in EKR scores worden alleen trends getoond van gebieden waar voor minimaal 2 meetjaren gegevens beschikbaar zijn en waarvan de relevantie voldoende is (meer dan 0.05 ekr per 12 jaar).
+
+## Natura2000
 In de kaarten is de som van bedekkingen van verschillende taxa kranswieren en fonteinkruiden per meetlocatie weergegeven. Niet in ieder meetjaar is met dezelfde opnamemethode gewerkt. De som van bedekkingen wordt dus in verschillende eenheden uitgedrukt. In het verleden werd met een Tansley bedekkingschaal gewerkt in lijnvormige wateren en met een 'Emile Nat abundantieschaal' in plassen. Hierin worden de volgende abundantieklassen onderscheiden: 
 
 1: aangetroffen met weinig materiaal in één van de windrichtingen
@@ -556,63 +943,8 @@ Gebieden waar een significante trend is berekend (P waarde < 0.05) zijn rood gem
 
 Scores in de Gaasperplas en Amsterdam zijn ('2220-EAG-1', '1000-EAG-1', '2000-EAG-1') niet meegenomen, omdat de toetsresultaten hier geen representatief beeld geven van het gehele systeem en de bemonsterde locaties teveel verschillen tussen meetjaren.
 
-# Bijlagen
-
-## Waterplantensoorten per gebied
-In onderstaande tabel kan zowel de gemeten soortensamenstelling (grootheid is BEDKG) als de kenmerkende soorten die de score op de deelmaatlat 'Soortensamenstelling macrofyten' bepalen (grootheid is AANWZHD) worden bekeken. De meetwaarde (numeriekewaarde) die wordt weergegeven in de grafiek geeft het waardeoordeel dat aan het voorkomen van iedere soort is gekoppeld. Dit waardeoordeel is gebaseerd op de indicatieve waarde van een soort in een bepaald watertype en de mate van voorkomen opeen 3-delige schaal. Hoe hoger de waarde, hoe hoger de score op de maatlat. De deelmaatlat soortensamenstelling waterplanten wordt berekend op basis van de som de scores van alle soorten en het aantal aangetroffen soorten uit de lijst met kenmerkende soorten (soortenrijkdom). 
-
-```{r draaitaxa, fig.cap = 'Waardeoordeel en soortenrijkdom vegetatie: gemiddelde aantal KRW soorten en scores per soort. Een hogere score staat voor een hogere ecologische kwaliteit.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%"}
-
-selectedData3 <- EKRlijst[EKRlijst$Analysecompartiment.code %in% 'OW',
-                          c('CODE','HoortBijGeoobject.identificatie','EAGIDENT','Biotaxon.naam',
-                            'Biotaxon.naam.nl', 'KRWwatertype.code.y','Grootheid.code','jaar',
-                            'Numeriekewaarde', 'Waardebepalingsmethode.code')]
-
-selectedData2 <- selectedData3[selectedData3$Grootheid.code %in% c('AANWZHD','BEDKG','SOORTRDM') & !is.na(selectedData3$Biotaxon.naam),]
-
-'1_somScorePlanten' -> selectedData2$Biotaxon.naam[selectedData2$Biotaxon.naam == 'Macrofyten' & selectedData2$Grootheid.code == 'AANWZHD']
-'2_gemiddeldeSoortenrijkdomPlanten' -> selectedData2$Biotaxon.naam[selectedData2$Biotaxon.naam == 'Macrofyten' & selectedData2$Grootheid.code == 'SOORTRDM']
-
-rpivotTable(
- selectedData2,
- rows = c("Grootheid.code","Biotaxon.naam", "Waardebepalingsmethode.code"),
- cols = c("jaar"),
- aggregatorName = "Average",
- inclusions = list(HoortBijGeoobject.identificatie = list("NL11_Botshol")),
- exclusions= list( Grootheid.code = list( "BEDKG")),
- vals = "Numeriekewaarde",
- rendererName = "Heatmap"
- )
-
-```
 
 
-```{r vispivot, fig.cap = 'Visbiomassa per soort', eval = FALSE, echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-selKol <- c("Numeriekewaarde","Biotaxon.naam.nl","Identificatie","Begindatum","Resultaatdatum","HoortBijGeoObjectCode","Eenheid.code")
-
-sel <- is.na(EKRlijst$HoortBijGeoObjectCode)
-sel <- sel & !is.na(EKRlijst$Biotaxon.naam.nl)#als geen nederlandse naam dan gaat aggregate fout. En ook niet relevant.
-sel <- sel & EKRlijst$Eenheid.code %in% "kg/ha"
-EKRlijst1 <- EKRlijst[sel,]
-EKRlijst1$toetsjaar <- EKRlijst1$Waardebepalingsmethode.code
-
-xagg <- aggregate(Numeriekewaarde ~ Biotaxon.naam.nl+jaar+Identificatie+toetsjaar,EKRlijst1,FUN=sum)
 
 
-#sel <- xagg$Biotaxon.naam.nl%in%c("Giebel")#eruit halen, want deze komt alleen voor in toetsjaar 2019 en daardoor wordt kleuring van de staafjes anders per soort.
-xagg <- xagg[!sel,] 
 
-#rpivotTable(xagg[xagg$toetsjaar%in%2018,],rows=c("Meetobject.lokaalID"),cols="Biotaxon.naam.nl",vals="Numeriekewaarde",aggregatorName= "Sum",rendererName="Horizontal Stacked Bar Chart", width="100%", height="4000px")
-rpivotTable(
- xagg,
- rows=c("Identificatie","jaar","toetsjaar"),
- cols="Biotaxon.naam.nl",
- aggregatorName = "Sum",
- inclusions = list(HoortBijGeoobject.identificatie = list("NL11_Botshol")),
- exclusions= list( Grootheid.code = list( "BEDKG")),
- vals = "Numeriekewaarde",
- rendererName = "Horizontal Stacked Bar Chart",
- width="100%"
- )
-
-```

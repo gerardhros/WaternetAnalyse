@@ -10,7 +10,7 @@
 \pagestyle{empty}
 % use fontfamiliy{vn} for verdana, but its nog working very well, to be checked later
 % font phv looks like verdana phv = helvetica (original #1)
-\newcommand{\fon}[1]{\fontfamily{phv}\selectfont}
+\newcommand{\fon}[1]{\fontfamily{vn}\selectfont}
 \definecolor{agvblue}{RGB}{52, 152, 219}
 \begin{document}
 
@@ -59,25 +59,25 @@ eah_message <- paste(eah_m1,eah_m2,eah_m3,eah_m4,eah_m5)
 # prepare ESF tabel 
 pESFtab <- out$ESFtab[,c('OORDEEL','oms_latex','piclatex')]
 pESFtab$oms_latex <- as.character(pESFtab$oms_latex)
-pESFtab[,oms_latex := gsub('<','$<$',gsub('µ','micro',gsub('&','en',gsub('°',' graden',oms_latex))))]
+pESFtab[,oms_latex := gsub('<','$<$',gsub('µ','micro',gsub('>','$>$', gsub('&','en', gsub('°',' graden', oms_latex)))))]
 
 # load maatregelentabel, and select the latex columns
-cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
+cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdInitiatiefnemer','UitvoeringIn')
 maatregelen2 <- as.data.table(out$maatregelen2)[,mget(cols)]
 # change text Waterschap Amstel, Gooi en Vecht to AGV
 maatregelen2[,BeoogdInitiatiefnemer := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',BeoogdInitiatiefnemer)]
-maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',BeoogdInitiatiefnemer)]
-maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staats bosbeheer',BeoogdInitiatiefnemer)]
-maatregelen2[,Gebiedspartner := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',Gebiedspartner)]
-maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',Gebiedspartner)]
-maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staats bosbeheer',Gebiedspartner)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',BeoogdInitiatiefnemer)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staatsbosbeheer',BeoogdInitiatiefnemer)]
+#maatregelen2[,Gebiedspartner := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',Gebiedspartner)]
+#maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',Gebiedspartner)]
+#maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staatsbosbeheer',Gebiedspartner)]
 maatregelen2[,Toelichting_latex := gsub('m³','m3',Toelichting_latex)]
 
 #replace NA in first row (eagnr 20, to be solved later)
 maatregelen2[grepl('\\{NA}$',ESFoordeel_latex),ESFoordeel_latex := gsub('\\{NA}$','\\{esf/1roodnummer.jpg}',ESFoordeel_latex)]
 
 # reset names
-setnames(maatregelen2,c('ESF-oordeel','Periode','Naam','Toelichting','Initiatief','Gebieds-partner','Uitvoering','Afweging'))
+setnames(maatregelen2,c('ESF-oordeel','Periode','Naam','Toelichting','Initiatief','Uitvoering'))
 
 #location of pictures
 mapEAG <- out$mapEAG
@@ -118,7 +118,7 @@ cf_tit <- min(1,12 / nchar(lx_title)) * c(108,99,96,88)
   \fontsize{9}{10.8}\selectfont
   
   % add descriptive text for this water body
-Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. \\  \Sexpr{lx_karakterschets} Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. \Sexpr{lx_partners} Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
+  \Sexpr{lx_karakterschets} \\ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de   deelgebieden: \Sexpr{lx_deelgebied}. \\ Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. \Sexpr{lx_partners} Het   waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
    
   % add frame for figuur Ecosysteem in beeld 
   \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gb}{
@@ -281,15 +281,14 @@ ls1 = 9 *cf;ls2 = 10.8 * cf
 <<boring-random2,echo=FALSE,message=FALSE,collapse=TRUE,warning=FALSE>>=
 
 # make table
-knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>% 
+knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>% 
           kable_styling(full_width=FALSE, position = "left",latex_options = "scale_down") %>% 
           column_spec(1, width = "1cm", border_right = F,color = "black") %>%          
           column_spec(2, width = "1.5cm", border_right = F,color = "black") %>%        
           column_spec(3, width = "4cm",border_right = F,color = "black") %>%
           column_spec(4, width = "15cm",border_right = F,color = "black") %>%
-          column_spec(5:6, width = "2cm", border_right = F,color = "black")  %>%
-          column_spec(7, width = "1.5cm", border_right = F,color = "black")  %>%
-          column_spec(8, width = "2.5cm", border_right = F,color = "black")  %>%
+          column_spec(5, width = "3cm", border_right = F,color = "black")  %>%
+          column_spec(6, width = "1.5cm", border_right = F,color = "black")  %>%
           collapse_rows_gr(columns=1, valign="top")
 
 @
@@ -302,7 +301,7 @@ knitr::kable(maatregelen2[,1:8], format = "latex",align = 'l',escape = FALSE) %>
   \posterbox[blankest,interior engine=path,height=0.6cm,fontupper=\fon{phv}\small,colupper=black]{name=ref,column=1,span=10,above=bottom}{
   
    % reduce size of the font
-  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 \Sexpr{lx_litverw}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
+  \fontsize{8}{9.6}\selectfont Auteur: Laura Moria, laura.moria@waternet.nl. Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2020, begrenzing waterlichamen 2020, hydrobiologische data 2006-2019 en conceptmaatregelen en doelen voor SGBP3 \Sexpr{lx_litverw}. De R- en LaTeX-code om deze pdf's te genereren is ontwikkeld door Gerard H. Ros, gerard.ros@waternet.nl.
     }  
     
   \end{tcbposter}
