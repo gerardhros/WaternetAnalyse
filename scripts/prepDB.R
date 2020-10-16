@@ -10,6 +10,7 @@
   # source functions
   source('scripts/ppr_funs.R')
   source('scripts/calc_funs.R')
+  source('scripts/createOutput_gr.R')
   
   # inladen basis bestanden ----
   
@@ -117,7 +118,7 @@
     matrix4 <- merge(matrix2, d4,by.x = 'EAG', by.y = 'locatie.EAG', all.x = TRUE)
     matrix5 <- merge(matrix4,wq1, by.x = 'EAG', by.y = 'locatie.EAG', all.x = TRUE)
     
-    saveRDS(matrix5,'../matrix/matrix.rds')
+    saveRDS(matrix5,'matrix/201005_matrix.rds')
     
   # calculate means per sampling point -----------
     
