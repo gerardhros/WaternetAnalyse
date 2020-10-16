@@ -10,7 +10,7 @@
 \pagestyle{empty}
 % use fontfamiliy{vn} for verdana, but its nog working very well, to be checked later
 % font phv looks like verdana phv = helvetica (original #1)
-\newcommand{\fon}[1]{\fontfamily{vn}\selectfont}
+\newcommand{\fon}[1]{\fontfamily{phv}\selectfont}
 \definecolor{agvblue}{RGB}{52, 152, 219}
 \begin{document}
 
@@ -118,7 +118,9 @@ cf_tit <- min(1,12 / nchar(lx_title)) * c(108,99,96,88)
   \fontsize{9}{10.8}\selectfont
   
   % add descriptive text for this water body
-  \Sexpr{lx_karakterschets} \\ Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de   deelgebieden: \Sexpr{lx_deelgebied}. \\ Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. \Sexpr{lx_partners} Het   waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
+  \Sexpr{lx_karakterschets} 
+  
+  Het waterlichaam \Sexpr{lx_naam} \Sexpr{lx_code} heeft watertype "\Sexpr{lx_wtypeoms} (\Sexpr{lx_wtype})" en bestaat uit de deelgebieden: \Sexpr{lx_deelgebied}. Het waterlichaam ligt in de provincie(s) \Sexpr{lx_prov} en gemeente(n) \Sexpr{lx_gem}. \Sexpr{lx_partners} Het waterlichaam \Sexpr{lx_naam} heeft de status \Sexpr{lx_status} en is in eigendom van \Sexpr{lx_owner}.}
    
   % add frame for figuur Ecosysteem in beeld 
   \posterbox[adjusted title=Het ecosysteem in beeld,height = 6cm,valign=center]{name=fig1,column=1,span=2,below=gb}{

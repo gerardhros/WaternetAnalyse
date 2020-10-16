@@ -35,7 +35,7 @@ source('../diepte/fun_iloc.R')
 source('../diepte/funs_model.R')
 
 ## define folder names
-iloc <- fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI")
+iloc <- fun_iloc(fdnm = "SPRINGG YAZILIM GELISTIRME TICARET LIMITED SIRKETI/Sven Verweij - NMI-DATA")
 iloc_onedrive <- iloc[1]
 iloc_project <- iloc[2]
 iloc_afk <- iloc[3]
@@ -58,9 +58,9 @@ eag_fn <- "../data/EAG20191205.gpkg"
 # waterpeil polygon shape
 waterpeil_fn <- paste0(iloc_afk, "peilgebieden.gpkg")
 # rasterstack of factor variables
-fac_rs_fn <- paste0(iloc_onedrive, "NMI_Data - Documents/rasterstack/products/fac_rs.RData")
+fac_rs_fn <- paste0(iloc_onedrive, "rasterstack/products/fac_rs.RData")
 # rasterstack of numerical variables
-num_rs_fn <- paste0(iloc_onedrive, "NMI_Data - Documents/rasterstack/products/num_rs.RData")
+num_rs_fn <- paste0(iloc_onedrive, "rasterstack/products/num_rs.RData")
 # seepage point data name
 kwel_fn <- paste0(iloc_afk, "kwel.gpkg")
 # water width on ditch shore points (calculated in GIS)
@@ -138,6 +138,7 @@ hybi <- merge(hybi, locaties[, .(CODE, XCOORD, YCOORD, MORFOLOGIE)], by.x = "loc
 # remove hybi data with unrealistic WATDTE_M and WATBTE_m from line features
 hybi <- remove_unrealistic(hybi, max_d = 5, max_b = 50, print = FALSE)
 
+
 ```
 
 
@@ -150,6 +151,11 @@ De mediaanwaarden van waterdiepte (_WATDTE_m_), slibdiepte (_SLIBDTE_m_) en tota
 dt_loc <- location_summary(hybi, year2u = 2006:2019)
 # Merge location info
 dt_loc <- merge(dt_loc, locaties[, .(CODE, XCOORD, YCOORD, EAGIDENT, GAFIDENT, MORFOLOGIE, WATERTYPE)], by.x = "locatiecode", by.y = "CODE", all.x= T)
+
+    # waterquality measurements
+    wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
+    wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
+    
 # convert location-based hybi data to sf
 loc_sf <- st_as_sf(dt_loc, coords = c("XCOORD", "YCOORD"), crs = 28992)
 ```
@@ -346,6 +352,7 @@ Een raster stack maken van gebiedsdekkende covariables
 
 # Make a raster stack of resolution 25m
 covars_pre <- disaggregate(stack(waterpeil_rs, soilcode_rs, kwel_rs, om_rs), fact = 4)
+ww_ahn_2 <- projectRaster(ww_ahn_rs,covars_pre)
 covars_pre2 <- stack(covars_pre, ww_ahn_rs)
 
 
