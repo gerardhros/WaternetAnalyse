@@ -17,7 +17,10 @@ eag_wl <- fread('./Oppervlakken/EAG_Opp_kenmerken_20200701.csv')
 
 map <- sp::merge(gEAG, eag_wl, by.x = 'GAFIDENT', by.y =
                    'GAFIDENT', all.x = TRUE, duplicateGeoms = T)
-map$param <- as.factor(paste(map$StedelijkLandelijk, map$LANDBOUWGEB))
+#map$param <- as.factor(paste(map$StedelijkLandelijk, map$LANDBOUWGEB))
+map$param <- as.factor(map$watertype.y)
+map <- map[order(map$param),]
+
 col <- rainbow(length(unique(map$param)))
 pal <- colorFactor(palette = col,  domain = map$param)
 

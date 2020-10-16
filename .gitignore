@@ -17,6 +17,7 @@
 /atlasKRW/input/*
 /atlasKRW/app/*
 /atlasESF/output/*
+/atlasESF/_book*
 *_book/*
 factsheets/**/*.docx
 factsheets/output/*.html
@@ -29,6 +30,7 @@ factsheets/output/*
 /atlasToestand/figurenEnTabellen/*
 /atlasToestand/www/*
 /atlasToestand/_book/*
+/atlasToestand/atlasToestand/*
 /KRW overzicht/*
 /KRW overzicht/output*
 /KRW overzicht/KRW-overzicht.html
