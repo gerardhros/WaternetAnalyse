@@ -281,13 +281,17 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
             legend.position="none") +
       coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax), ylim = c(bboxEAG$ymin,bboxEAG$ymax), datum = NA)
 
+    # make filename for directory
+    pdir <- gsub(',| ','_',my_title2)
+    
     # create dir to save plots
-    if(!my_title2 %in% list.files('factsheets/routput')){dir.create(paste0('factsheets/routput/',my_title2))}
+    if(!pdir %in% list.files('factsheets/routput')){
+      dir.create(paste0('factsheets/routput/',pdir))}
 
     # save plot, and location where map is saved
-    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',my_title2,'/mapEAG.png'),
+    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',pdir,'/mapEAG.png'),
                               width = 11,height = 10,units='cm',dpi=500)    }
-    mapEAG <- paste0('routput/',my_title2,'/mapEAG.png')
+    mapEAG <- paste0('routput/',pdir,'/mapEAG.png')
 
     ## plot locatie deelgebieden binnen EAG
 
@@ -316,8 +320,8 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                ylim = c(bboxEAG$ymin,bboxEAG$ymax) + c(-250,250), datum = NA)
 
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',my_title2,'/mapDEELGEBIED.png'), units='cm',dpi=600)}
-    mapDEELGEBIED <- paste0('routput/',my_title2,'/mapDEELGEBIED.png')
+    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',pdir,'/mapDEELGEBIED.png'), units='cm',dpi=600)}
+    mapDEELGEBIED <- paste0('routput/',pdir,'/mapDEELGEBIED.png')
 
     # --- make EKR plot ------------
 
