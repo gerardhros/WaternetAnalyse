@@ -8,6 +8,7 @@
 \usepackage{multirow}
 \usepackage{adjustbox}
 \pagestyle{empty}
+\pdfcompresslevel0
 % use fontfamiliy{vn} for verdana, but its nog working very well, to be checked later
 % font phv looks like verdana phv = helvetica (original #1)
 \newcommand{\fon}[1]{\fontfamily{phv}\selectfont}
