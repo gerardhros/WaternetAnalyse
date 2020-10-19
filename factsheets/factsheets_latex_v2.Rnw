@@ -8,6 +8,7 @@
 \usepackage{multirow}
 \usepackage{adjustbox}
 \pagestyle{empty}
+\usepackage{helvet}
 % set here the compression level for jpg (0 = no compression, 9 = maximum compression)
 \pdfcompresslevel7
 % use fontfamiliy{vn} for verdana, but its nog working very well, to be checked later
@@ -27,7 +28,7 @@ require(data.table,quietly = TRUE)
 source('../scripts/kable_fixerror.R')
 
 # read file from earlier saved ourput file (not required, can be used for testing on single pdf)
-#out = readRDS('routput/out.rds')
+out = readRDS('routput/out.rds')
 
 lx_title <- out$my_title
 lx_wtype <- unique(out$eagwl$watertype)
@@ -239,7 +240,7 @@ if(nrow(maatregelen2)>4){
   tsize = sum(nchar(out$maatregelen2$Toelichting_latex))
   cf = 0
   # make special correction factor for some factsheets
-  if(grepl('botshol',tolower(out$my_title2))){cf = 4700 / tsize}
+  if(grepl('botshol',tolower(out$my_title2))){cf = 3900 / tsize}
   if(grepl('bovenke',tolower(out$my_title2))){cf = 4700 / tsize}
   if(grepl('noorderleg',tolower(out$my_title2))){cf = 4300 / tsize}
   if(grepl('vinkeve',tolower(out$my_title2))){cf = 7400 / tsize}
