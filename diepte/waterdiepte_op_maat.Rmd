@@ -1,6 +1,6 @@
 ---
 title: "Waterdiepte op maat"
-author: "Laura Moria en Gerard Ros"
+author: "Laura Moria"
 date: "`r Sys.Date()`"
 always_allow_html: yes
 site: bookdown::bookdown_site
@@ -37,9 +37,15 @@ proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +
 
 ## Waterdiepte op maat
 
-De inrichting van onze waterlichamen is niet overal optimaal voor flora en fauna. In veel sloten in het beheergebied is de waterdiepte gering en is er veel slib en bagger aanwezig op de waterbodem. Waterdiepte en het aanwezige slib heeft via verschillende mechanismen invloed op de ecologische waterkwaliteit.
+De inrichting van onze waterlichamen is niet overal optimaal voor flora en fauna. In veel sloten in het beheergebied is de waterdiepte gering en is er veel slib en bagger aanwezig op de waterbodem. De geringe waterdiepte en het aanwezige slib heeft via verschillende mechanismen invloed op de ecologische waterkwaliteit. 
 
-Vanwege kleine dimensies van smalle sloten (watertype M1 en M8) vertoont de zuurstofconcentratie grote dagelijkse fluctuaties. Overdag komt regelmatig oververzadiging voor als gevolg van groei van algen en planten, terwijl ‘s nachts of onder een kroosdek snel zuurstofloosheid kan optreden. Het relatief grote oppervlak waterbodem met een hoge zuurstofvraag ten opzichte van het relatief kleine watervolume in sloten leidt snel tot een zuurstoftekort. Een schoningsbeurt of een toename van de kroosbedekking kunnen daardoor al snel zorgen voor een daling van de zuurstofconcentraties. Vanwege het zuurstofgebrek vertonen sloten ook sneller fosfaatmobilisatie en methaanproductie vanuit de waterbodem. Door de kleine dimensies zijn smalle sloten minder gevoelig voor windwerking en dus minder gevoelig voor golfslag en de daardoor veroorzaakte resuspensie van het sediment, maar in bredere watergangen (watertype M10) kan resuspensie van het sediment het lichtklimaat wel beinvloeden. De verwachting is dan ook dat aanwezige vis- en kreeften de vestiging van waterplanten vooral beinvloeden in bredere wateren.
+Door de kleine dimensies van sloten vertoont de zuurstofconcentratie grote dagelijkse fluctuaties. Overdag komt regelmatig oververzadiging voor als gevolg van groei van algen en planten, terwijl ‘s nachts of onder een kroosdek snel zuurstofloosheid kan optreden. Het relatief grote oppervlak waterbodem met een hoge zuurstofvraag door de afbraak van organisch materiaal, ten opzichte van het relatief kleine watervolume in sloten leidt snel tot een zuurstoftekort. Een schoningsbeurt of een toename van de kroosbedekking kunnen daardoor al snel zorgen voor een daling van de zuurstofconcentraties. Vanwege het zuurstofgebrek vertonen sloten ook snel fosfaatmobilisatie en methaanproductie vanuit de waterbodem. 
+
+In ondiep water nemen temperaturen snel toe waardoor biologische en chemische reacties versnellen. Hierdoor vergroot de afbraaksnelheid van organisch materiaal, neemt de nalevering van nutriënten toe en wordt de minerale fractie van het slib groter. 
+
+Door de kleine dimensies zijn smalle sloten minder gevoelig voor windwerking en dus minder gevoelig voor golfslag en de daardoor veroorzaakte resuspensie van het slib, maar in bredere watergangen (watertype M10) kan wind het lichtklimaat van waterplanten wel beinvloeden. Naast golfslag kunnen kreeften en bodemwoelende vissen ook resuspentie veroorzaken. Kreeft en vis kunnen ook nutriënten uit het sediment richting de waterkolom vrijmaken door middel van bioturbatie (als gevolg van lopen, graven en foerageren; Angler et al., 2001; Rodriguez et al., 2003). De zo vrijgekomen nutriënten kunnen dan weer tot algenbloei leiden (Angler et al., 2001). De verwachting is dat aanwezige vis- en kreeften de vestiging van waterplanten ook in smallere sloten kunnen beinvloeden. 
+
+De hoeveelheid slib op de bodem heeft invloed op verschillende aspecten van de bodem, zoals de chemische gradiënten, de stabiliteit voor vestiging van vegetatie en de hoeveelheid organisch materiaal. Afhankelijk van de mate van verstoring door bijvoorbeeld golven of bioturbatie, zal slib de bodem verstevigen, of juist niet. Daarnaast is de organische fractie van slib bepalend voor de stevigheid van het slib. De organische fractie van slib is in staat veel water op te nemen. Door polaire krachten is dit meer vast gebonden en geeft het slib een slijmachtige, plastische consistentie, dus een hoge viscositeit en stevigheid (Groenewold & Dankers, 2002).
 
 Het programma Waterdiepte op Maat beoogd de morfolgie van watergangen zo aan te passen dat er meer ruimte komt voor een gezond ecosysteem.
 

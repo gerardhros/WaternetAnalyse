@@ -37,7 +37,6 @@ packages(sp) # zit ook in raster # voor CRS projectie functie
 # packages(ggseas)
 # packages(scales)
 packages(broom)
-
 packages(leaflet)
 packages(plotly)
 # packages(rgdal)
@@ -56,7 +55,6 @@ packages(kableExtra)
 packages(sf)
 packages(zoo)
 # packages(processx)
-
 packages(rmarkdown)
 # packages(bookdown)
 packages(RColorBrewer)
