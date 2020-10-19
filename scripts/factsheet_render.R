@@ -26,11 +26,10 @@ source('scripts/ppr_funs.R')
 
 # run for all files
 
-
-for(eagnr in 1:50){#4 : nrow(brondata$ESFoordelen)){
+for(eagnr in 5:50){#4 : nrow(brondata$ESFoordelen)){
 
   # voor debug attach(brondata) detach(brondata)
-  # eagnr <- 8
+  # eagnr <- 4
   
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)
@@ -56,7 +55,7 @@ for(eagnr in 1:50){#4 : nrow(brondata$ESFoordelen)){
   
   # reset working directory
   setwd('../')
-  
+
   
 }
 
