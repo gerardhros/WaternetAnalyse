@@ -36,14 +36,14 @@ for(eagnr in 1:50){#4 : nrow(brondata$ESFoordelen)){
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)
   
   #render the html flexdashboard
-  #outputF <- "html"
-  #rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
-  #                output_format = "flexdashboard::flex_dashboard", #pdf_document
-  #                output_file = paste("FS_", out$my_title2, ".html", sep=''),
-  #                output_dir = "factsheets/output/")
-  
+  outputF <- "html"
+  rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
+                 output_format = "flexdashboard::flex_dashboard", #pdf_document
+                 output_file = paste("FS_", out$my_title2, ".html", sep=''),
+                 output_dir = "factsheets/output/")
+
   # save relavant output and run file for latex pdf
-  #saveRDS(out,'factsheets/routput/out.rds')
+  # saveRDS(out,'factsheets/routput/out.rds')
 
   # change working directory (needed for knit2pdf)
   setwd("factsheets")

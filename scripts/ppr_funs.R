@@ -275,7 +275,7 @@ ppr_wbal <- function(db){
 
 }
 
-ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
+ppr_wbalfiles <- function(dir_bal,EAG.sf = gEAG,kopTab = kopTab){
 
   # this function select the relevant file names of the excel waterbalances.
   # two checks are done:
@@ -284,7 +284,7 @@ ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
   # wdir <- dir_bal
 
   # select file names in the directory where waterbalansen are stored
-  files <- list.files(wdir)
+  files <- list.files(dir_bal)
 
   # select only the xlsx files (all are renewed to xlsx)
   files <- files[grepl('xlsx$',files)]
@@ -296,8 +296,15 @@ ppr_wbalfiles <- function(wdir,EAG.sf = gEAG,kopTab = kopTab){
   #files <- sapply(1:length(filesn),function(x) max(files[grep(filesn[x],files)])[1])
 
   # use files that are given in kopTab and print warning when files are missing
-  bal_mis <- kopTab[!balans %in% files,namen]
+  bal_mis <- kopTab[!balans %in% files, namen]
+  kop_mis <- as.data.frame(files[!files %in% kopTab$balans])
+  # write.csv2(kop_mis)
 
+
+  # print warning 0
+  if(length(kop_mis)>1){
+    print(paste0('warning: the waterbalans is missing in kopTab for ',length(kop_mis),' balances'))}
+  
   # print warning 1
   if(length(bal_mis)>1){
     print(paste0('warning: the waterbalans is missing for ',length(bal_mis),' eags, as given in kopTab'))}
@@ -948,13 +955,14 @@ ppr_waterdieptesloot <- function(hybi, parameter = c('WATDTE_m')){
     guides(col=guide_legend(title="KRW watertype"))+
     theme(
       strip.background = element_blank(),
-      axis.text.x = element_text(size= 7),
+      axis.text.x = element_text(angle = 30, hjust =1),
       axis.text.y = element_text(size= 7),
       panel.background = element_blank(),
       plot.background = element_blank(),
       axis.title = element_text(size=7),
       axis.ticks =  element_line(colour = "black"),
-      axis.line = element_line(colour='black'))+
+      axis.line = element_line(colour='black')
+      )+
     theme(legend.title = element_text(size = 7, face = 'bold'),
           legend.text  = element_text(size = 7),
           legend.key.size = unit(0.9, "lines"),

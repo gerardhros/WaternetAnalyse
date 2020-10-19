@@ -4,10 +4,10 @@
 # 1. Directories and names -----------------------------------------------
 
   # file directory koppeltabel. NB: zorg dat sheetname='AGV', kolommen= 'CODE', 'balansnaam', 'agrarisch'
-  dir_kop <- 'pbelasting/input/200218_koppeltabel.xlsx'
+  dir_kop <- 'pbelasting/input/201019_koppeltabel.xlsx'
 
   #folder directory waterbalansen NB: zorg dat alle foute balansen niet in deze dir staan
-  dir_bal <- "../../../balansen/"
+  dir_bal <- "../../Schoon water - Waterbalansen/"
   #dir_bal <- "F:/AGV data/"
 
 # 2. input-----------------------
@@ -16,7 +16,9 @@
   kopTab <- readxl::read_xlsx(dir_kop) %>% as.data.table()
 
   # filter on latest versions of available water balances
-  kopTab <- kopTab[selectiefilter==1] # wel voor matrix een selectie maken, niet voor overzicht
+  # kopTab <- kopTab[selectiefilter ==1] # wel voor matrix een selectie maken, niet voor overzicht
+  proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+  gEAG<- st_read("./data/EAG20191205.gpkg") %>% st_transform(proj4.google)
 
   # eag weg bij eerdere versies, 2500-eag-5 weg, 1balansen aan meerdere eags koppelen werkt niet in deze functie
   files <- ppr_wbalfiles(dir_bal, EAG.sf = gEAG, kopTab = kopTab) # wel voor matrix een selectie maken, niet voor overzicht

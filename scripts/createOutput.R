@@ -976,13 +976,13 @@ plottrendEAG <- function(gebiedData, gEAG){
                                                      ),
                 stroke = T, color= 'black', opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
-    addLegend("bottomright", colors = col, labels = labels, title = paste0("Trend EKR ", unique(map$GHPR)))%>%
+    addLegend("bottomright", colors = col, labels = labels, title = unique(map$GHPR))%>%
     addProviderTiles("Esri.WorldGrayCanvas")
 }
 
 plottrendKRW <- function(gebiedData, gKRW){
-  # gebiedData <- ekrtrend
-  pl <- gKRW %>% group_by(OWMIDENT, OWMNAAM) %>% summarize()
+  # gebiedData <- ekrtrend[ekrtrend$facet_wrap_code == 'Vis',]
+  pl <- gKRW %>% dplyr::group_by(OWMIDENT, OWMNAAM) %>% dplyr::summarize()
   #gebiedData$klasse <- gebiedData[order(gebiedData$klasse),]
   '1' -> gebiedData$klasse[gebiedData$estimate < -0.3]
   '2' -> gebiedData$klasse[gebiedData$estimate >= -0.3 & gebiedData$estimate < -0.05]
@@ -1010,7 +1010,7 @@ plottrendKRW <- function(gebiedData, gKRW){
     ),
     stroke = T, color= ~pal(klasse), opacity=0.8, weight = 1, smoothFactor = 0.8,
     fill=T, fillColor = ~pal(klasse), fillOpacity = 0.6) %>%
-    addLegend("bottomright", colors = col, labels = labels, title = paste0("Trend EKR ", unique(map$GHPR)))%>%
+    addLegend("bottomright", colors = col, labels = labels, title = unique(map$GHPR))%>%
     addProviderTiles("Esri.WorldGrayCanvas")
 }
 

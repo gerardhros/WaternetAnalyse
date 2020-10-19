@@ -5,6 +5,8 @@ date: "`r Sys.Date()`"
 always_allow_html: yes
 delete_merged_file: TRUE
 site: bookdown::bookdown_site
+documentclass: book
+css: css/factsheet.css
 output:
   bookdown::gitbook:
     split_by: none
@@ -13,30 +15,36 @@ output:
     config:
       toolbar:
         position: static
-documentclass: book
-css: css/factsheet.css
 biblio-style: apa
 editor_options: 
   chunk_output_type: inline
 ---
 
 ```{r global, include = FALSE}
+# voor hosten bij bookdown
+# replace ../script by ./scripts
+# ../hydrobiologie by ./data
+#../data by ./data
+
 #  Settings-------------------------------------------------------
 rm(list=ls())                               #maakt geheugen leeg voor aanvang
 chooseCRANmirror(graphics=FALSE, ind=1)
 knitr::opts_chunk$set(echo = TRUE)
-dirGIS <-"../development/GIS"
 
 # Load packages and functions-------------------------------------
-library(scatterpie); library(ggnewscale); library(tmap); library(cowplot); library(ggspatial)
-source('../scripts/loadPackages.R')
-assignInNamespace("cedta.pkgEvalsUserCode", c(data.table:::cedta.pkgEvalsUserCode,"rtvs"), "data.table")
-assign("depthtrigger", 4, data.table:::.global)
+library(scatterpie); library(ggnewscale); library(tmap); library(cowplot); library(ggspatial) # voor map pie figuur
+library(flextable);library(officer) # voor tabel toestand trend
+library(knitr)# weergave figuur met inlcude grapics
+library(raster) #voor crs functie
+library(purrr); library(tidyr); library(broom); library(readxl);library(manipulateWidget);library(rpivotTable);library(kableExtra)
+library(dplyr);library(plyr);library(sp);library(plotly);library(sf);library(zoo);
+library(leaflet);library(RColorBrewer) #voor kaarten met kleurenlegenda
+library(ggplot2);library(data.table)
 
-source("../scripts/fun_map_pie.R")
-source('../scripts/createOutput.R')
-source('../scripts/ppr_funs.R')
-source('../scripts/postProces.R')
+source("./scripts/fun_map_pie.R")
+source('./scripts/createOutput.R')
+source('./scripts/ppr_funs.R')
+source('./scripts/postProces.R')
 
 # other settings
 proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
@@ -50,73 +58,40 @@ outputF <- "word" #"html"
 # bookdown::render_book("index.Rmd", "bookdown::word_document2")
 # bookdown::render_book("index.Rmd", "bookdown::pdf_book")
 # bookdown::render_book("index.Rmd", "bookdown::html_book")
-# bookdown::publish_book()
+# bookdown::publish_book(render = 'local')
 ```
-
 
 ```{r data, include = FALSE}
 ## data voor kaart ----------
-gEAG<- st_read("../data/EAG20191205.gpkg") %>% st_transform(proj4.google)
+gEAG<- st_read("./data/EAG20191205.gpkg") %>% st_transform(proj4.google)
 gEAG$watertype <- NULL
-EAG <- st_read("../data/EAG20191205.gpkg") %>% st_transform(28992)
-gKRW<- st_read("../data/WBPKRW20200525.gpkg")%>% st_transform(proj4.google)
-KRW<- st_read("../data/WBPKRW20200525.gpkg")%>% st_transform(28992)
-
-# locaties van alle metingen (water, biologie, en slootbodem)
-locaties <- fread('../data/Location.csv')
+EAG <- st_read("./data/EAG20191205.gpkg") %>% st_transform(28992)
+gKRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(proj4.google)
+KRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(28992)
 ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
 ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-eag_wl <- fread('../data/EAG_Opp_kenmerken_20201005.csv')
-TWNev <- read_excel('../hydrobiologie/TwnList_2019-07-19.xlsx')
+eag_wl <- fread('./data/EAG_Opp_kenmerken_20201005.csv')
 
-# KRW doelen 
-doelen <- fread('../hydrobiologie/Doelen.csv')
-doelen$Doel_2022 <- as.numeric(doelen$Doel_2022)
+TWNev <- read_excel('./data/TwnList_2019-07-19.xlsx')
 
-hybi <- readRDS('../data/alles_reliable.rds')
-# hybi measurements
-hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)
-hybi$meetwaarde <- as.numeric(hybi$meetwaarde)
+hybi <- readRDS('./data/hybi.rds') %>% as.data.table()
+EKRset <- readRDS('./data/ekrset.rds') %>% as.data.table()
+trendekr <- readRDS('./data/trendekreag.rds') %>% as.data.table()
+trendekreag<- readRDS('./data/trendekreag.rds')  %>% as.data.table()
+ekrtrend <- readRDS('./data/ekrtrend.rds') %>% as.data.table()
+ekrtrendeag <- readRDS('./data/ekrtrendeag.rds')  %>% as.data.table()
 
-# EKR sets KRW en overig water
-EKRset1 <- readRDS('../hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
-EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
-# EKR measurements
-EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2, doelen=doelen, eag_wl = eag_wl)
-# EKRset  <- EKRset[,maxscore := Numeriekewaarde==max(Numeriekewaarde,na.rm=T), by = c('HoortBijGeoobject.identificatie','EAGIDENT','Waardebepalingsmethode.code','level','GHPR')]
-# ptnset <- EKRset[EKRset$Waardebepalingsmethode.code == 'Maatlatten2018 Ov. waterflora',]
-# write.table(ptnset, file = paste(getwd(),"/output/ptnsetmaxpereagmaatlat",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-# hybisel <- hybi[paste0(hybi$locatiecode,hybi$jaar) %in% paste0(ptnset$CODE[ptnset$maxscore == TRUE],ptnset$jaar[ptnset$maxscore == TRUE]),] #mooiste sloot
-# write.table(hybisel, file = paste(getwd(),"/output/mooistesloothybi",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
- 
-EKRlijst <- readRDS('../hydrobiologie/EKRlijstKRW.rds')
-#EKRlijst2 <- readRDS('../hydrobiologie/EKRlijstOvWater.rds')
+EKRlijst <- readRDS('./data/EKRlijstKRW.rds')
+#EKRlijst2 <- readRDS('./data/EKRlijstOvWater.rds')
 #EKRlijst <- smartbind(EKRlijst,EKRlijst2)
 
-# EKR
-tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") %>% as.data.table()# deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
-tabset[,oordeelsort := EKR3jr / GEP_2022]
-tabset <- tabset[GHPR == 'Waterdiepte', GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten", GHPR))]
-
-# zoek laagste oordeel per hoofdmaatlat 
-tabset <- tabset[!is.na(id) & level == 1, minscore := oordeelsort==min(oordeelsort,na.rm=T), by = c('id','EAGIDENT')]
-# zoek laagste score per (deel)maatlat
-tabset <- tabset[!level == 1 ,minscore := EKR3jr==min(EKR3jr,na.rm=T), by = c('id','EAGIDENT','facet_wrap_code','level')]
-# subset 3 correctie laagte score deelmaatlat soorten abundantie waarbij oever en drijfblad niet meedoet
-tabset<- tabset[wbmethode =="Maatlatten2018 Ov. waterflora" &
-                              level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),minscore := EKR3jr==min(EKR3jr,na.rm=T), by = c('id','EAGIDENT','facet_wrap_code','level')]
-
+tabset <- readRDS('./data/tabset.rds') %>% as.data.table()
 # subsets maken 
 ekr_scores1 <- tabset[!grepl("^NL11_*",id) & level == 1, ] # alleen gewogen van KRW waterlichamen en overig water
 ekr_scores2 <- tabset[!is.na(tabset$EAGIDENT), ] # alleen gemiddelde scores per EAG selecteren
 
-# waterquality measurements
-wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
-# water quality
-wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties)
-
-projectie <- read.csv("../hydrobiologie/BeherenProjectieregels_20200129Upload3.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-projectie <- projectie[projectie$Parameter.code == 'O2'& projectie$KRWMeetLocatietype.code == 'TT',]
+wq <- readRDS('./data/wq.rds') %>% as.data.table()
+pvskp <- readRDS('./data/pvskp.rds') %>% as.data.table()
 
 ```
 
@@ -181,30 +156,6 @@ include_graphics('map_oordeel_waterlichaam.jpg')
 In het overig water wordt standaard alleen een oordeel bepaald voor het kwaliteitselement waterplanten (overige waterflora). 
 
 ## Overzicht toestand en trend
-
-```{r, echo = FALSE, message = FALSE, warning = FALSE, include=FALSE}
-# bereken trend per toetsgebied
-trendekr <- trend(EKRset, detail = "deel") 
-#koppel trend aan ekr per jaar en gemiddeld
-trendekr <- merge(trendekr[,c('id','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code','estimate','r.squared','p.value')], tabset, by.x = c('id','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code'), by.y = c('id','facet_wrap_code', 'GHPR_level','wbmethode','watertype'), all.y = T)
-trendekr$estimate <- trendekr$estimate*12 # ekr per 2 planperioden
-trendekr$estimate[trendekr$estimate < 0.05 & trendekr$estimate > -0.05] <- 0 # verwaarloosbaar klein
-trendekr$estimate <- round(trendekr$estimate, digits = 2)
-trendekr$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", trendekr$facet_wrap_code)
-ekrtrend <- trendekr[!(grepl('^NL11*', trendekr$id) & !trendekr$KRW_SGBP3 == "") & trendekr$level == 1,] # alleen gewogen scores
-
-# bereken trend per eag (ook voor krw wl)
-trendekreag <- trendEAG(EKRset, detail = "deel") 
-#koppel trend aan ekr per jaar en gemiddeld
-trendekreag <- merge(trendekreag[,c('id','EAGIDENT','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code','estimate','r.squared','p.value')], tabset, by.x = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code'), by.y = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','wbmethode','watertype'), all.y = T)
-trendekreag$estimate <- trendekreag$estimate*12 # ekr per 2 planperioden
-trendekreag$estimate[trendekreag$estimate < 0.05 & trendekreag$estimate > -0.05] <- 0 # verwaarloosbaar klein
-trendekreag$estimate <- round(trendekreag$estimate, digits = 2)
-trendekreag$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", trendekreag$facet_wrap_code)
-ekrtrendeag <- trendekreag[!is.na(trendekreag$EAGIDENT) & trendekreag$level == 1,] # alleen scores per eag op hoofdmaatlatten
-
-# write.table(trendekreag, file = paste(getwd(),"/output/OordeelTrendPerGebiedScorePerJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
-```
 
 Per maatlat en ecologisch analysegebied is berekend hoe de ecologische kwaliteit zich ontwikkeld. Uit deze trends in de toestand van ecologische waterkwaliteit blijkt dat op veel plaatsen de waterkwaliteit achteruit gaat. In `r round((length(ekrtrendeag$estimate[ekrtrendeag$estimate < 0 &!is.na(ekrtrendeag$estimate)])/length(ekrtrendeag$estimate))*100, 0)`% van de gebieden en maatlatten is met een hoge betrouwbaarheid vast te stellen dat ze achteruit zijn gegaan, ondanks onze pogingen om het omgaan met water (gebiedsontwikkelingen, agrarisch gebruik, afvalwaterbeheer (opsporen foutaansluitingen)) te beïnvloeden en onze inzet om sloten, zuiveringsinstallaties en waterpeilen te beheren. Een andere invloed op de ecologische toestand in waterlichamen ligt in een toenemende klimaatdruk. Deze uit zich niet alleen in achteruitgang van ecologische kwaliteit en biodiversiteit, maar ook op meer terreinen. Denk bijvoorbeeld aan verhoogde emissies van broeikasgassen uit ondiep, zuurstofloos oppervlaktewater en de gezondheidsrisicos van blauwalgen, botulisme, poepbacterieen en microverontreinigingen.
 
@@ -382,17 +333,19 @@ In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '2V1 Overige 
 
 #krw<-
 combineWidgets(
-    nrow = 4,
-    plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V1 Overige waterflora',], gEAG),
+    ncol = 3,
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V21 Soortensamenstelling macrofyten',], gEAG),
     plottrendEAG(trendekreag[trendekreag$GHPR == 'Soortensamenstelling macrofyten Oeverplanten',], gEAG),
-    plottrendEAG(trendekreag[trendekreag$GHPR == 'Soortensamenstelling macrofyten Waterplanten',], gEAG),
+    plottrendEAG(trendekreag[trendekreag$GHPR == 'Soortensamenstelling macrofyten Waterplanten',], gEAG)
+    )
+
+combineWidgets(
+    ncol = 3,
     plottrendEAG(trendekreag[trendekreag$GHPR_level %in% c('2V3 Bedekking som submerse planten en draadalgen', 
                                                            '2V3 Vestigingsdiepte waterplanten'),], gEAG),
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V3 Bedekking Emerse planten',], gEAG),
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V3 Bedekking Flab (Floating Algae Beds)',], gEAG),
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '2V3 Bedekking Kroos',], gEAG)
-    
 )
 # saveWidget(krw, "trenddeelmtltwaterflora.html", selfcontained = FALSE)
 # webshot("trendbiodivwaterflora.html", file = "trendbiodivwaterflora.png")
@@ -448,7 +401,7 @@ In afbeelding \@ref(fig:kaartfytojaren) is te zien hoe fytoplankton scoort in ve
 ```{r kaartfytojaren, fig.cap = 'Overzicht van EKR scores per EAG per jaar op de maatlat Fytoplankton.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 #krw <-
 combineWidgets(
-    ncol = 4, colsize = c(1,1),
+    ncol = 4, 
     ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
     ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
     ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
@@ -468,7 +421,7 @@ In `r round((length(ekrtrendeag$estimate[ekrtrendeag$GHPR_level == '1F1 Fytoplan
 
 #krw<-
 combineWidgets(
-    nrow = 3,
+    ncol = 3,
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '1F1 Fytoplankton-kwaliteit',], gEAG),
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '1F2 Abundantie fytoplankton',], gEAG),
     plottrendEAG(trendekreag[trendekreag$GHPR_level == '1F2 Soortensamenstelling fytoplankton',], gEAG)
@@ -522,7 +475,7 @@ In afbeelding \@ref(fig:kaartmafajaren) is te zien hoe macrofauna scoort in vers
 ```{r kaartmafajaren, fig.cap = 'Overzicht van EKR scores per EAG per jaar op de maatlat Macrofauna.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
 #krw <-
 combineWidgets(
-    ncol = 4, colsize = c(1,1),
+    ncol = 4, 
     ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2018 Macrofauna"),], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
     ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
     ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
@@ -619,19 +572,7 @@ colgroup <-c('jaar','HoortBijGeoobject.identificatie','Numeriekewaarde','GeoObje
 # rename columns and order data.table
 setnames(xagg,colgroup,c('jaar','waterlichaam','biomassa','ident'))
 
-# laden: Rdata file die meegestuurd is
-dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
-dat[,date := as.POSIXct(paste0(jaar,"-",maand,"-01"), format = '%Y-%m-%d')]
-
-# nonogram
-nomogram <- data.table::fread('../data/nomogram.csv')
-# datafile with P-load PC Ditch
-Overzicht_kP <- data.table::fread('../data/Overzicht_kP.csv')
-Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
-pvskp <- ppr_pmaps(dat, Overzicht_kp, hybi, nomogram) 
-
 #merge vis en pbel
-
 visbelas <- merge(xagg, pvskp, by.x = 'ident', by.y = 'KRW')
 
 p<- ggplot(visbelas, aes(x= wp_min_sum, y= biomassa, col = watertype, label = paste0(waterlichaam, jaar.x)))+
@@ -726,10 +667,13 @@ In `r round((length(ekrtrend$estimate[ekrtrend$GHPR_level == '4VI1 Vis-kwaliteit
 ```{r trendvis1, fig.cap = 'Overzicht van de trend in EKR scores op de maatlat vis per ecologisch analysegebied tussen 2006 en 2019', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 #krw<-
 combineWidgets(
-    nrow = 3,
-    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI1 Vis-kwaliteit',], gKRW),
+    ncol = 2,
     plottrendKRW(trendekr[trendekr$GHPR_level %in% c('4VI2 Massafractie Visgilde - plantminnende soort (Pm)','4VI2 Soortenrijkdom Visgilde - plantminnende en migrerende soort (PmM)'),], gKRW),
-    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgilde - zuurstoftolerante soort (O2)',], gKRW),
+    plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgilde - zuurstoftolerante soort (O2)',], gKRW)
+)
+
+combineWidgets(
+    ncol = 2,
     plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgroep - brasem en karper (BK)',], gKRW),
     plottrendKRW(trendekr[trendekr$GHPR_level == '4VI2 Massafractie Visgroep - baars en blankvoorn (BB)',], gKRW)
 )

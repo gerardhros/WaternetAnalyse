@@ -7,6 +7,7 @@
 \usepackage{array}
 \usepackage{multirow}
 \usepackage{adjustbox}
+\usepackage{helvet}
 \pagestyle{empty}
 \usepackage{helvet}
 % set here the compression level for jpg (0 = no compression, 9 = maximum compression)
@@ -252,7 +253,7 @@ if(nrow(maatregelen2)>4){
   if(grepl('ouderkerkerplas',tolower(out$my_title2))){cf = 6500 / tsize} 
   if(grepl('loosdrechtseplas1tm5',tolower(out$my_title2))){cf = 8100 / tsize} 
   if(grepl('kievitsbuurt',tolower(out$my_title2))){cf = 5800 / tsize}
-  if(grepl('amstellandboezem',tolower(out$my_title2))){cf = 6400 / tsize}
+  #if(grepl('amstellandboezem',tolower(out$my_title2))){cf = 5820 / tsize}
   if(grepl('^vecht$',tolower(out$my_title2))){cf = 5400 / tsize}
   if(grepl('vaartenamsterdam',tolower(out$my_title2))){cf = 4000 / tsize}
   if(grepl('vaartenvechtstreek',tolower(out$my_title2))){cf = 5600 / tsize}
@@ -341,6 +342,7 @@ knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>
   \posterbox[blankest,interior engine=path,height=3.2cm,halign=center,valign=center,colupper=black,fonttitle=\fon{phv}\bfseries,fontupper=\fon{phv}\scshape, fontlower =\fon{phv}\itshape ]{name=title,column=1,span=6,below=top}{
   \fontsize{\Sexpr{cf_tit[3]}}{\Sexpr{cf_tit[3]}}\selectfont \Sexpr{lx_title}\\[3mm]
   \fontsize{18}{16.5}\selectfont
+  
   Toelichting en onderbouwing ESF-en, monitoring en begrenzing
   \vspace{1mm}
     }
@@ -364,6 +366,7 @@ knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotPwbal}}
     \vspace{5mm}
+    \fontsize{9}{10.8}\selectfont
     Fosforbelasting per bron (bar) en kritische belasting (rode stip is berekend met PCDitch, roze stip met PCLake).\\
     Bron: water- en stoffenbalansen
   }
@@ -373,6 +376,7 @@ knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotLichtklimaat}}
     \vspace{5mm}
+    \fontsize{9}{10.8}\selectfont
     Lichtklimaat obv extinctie (2010 - 2019).\\
     Bron: monitoringsresultaten uit meetprogramma's fysisch-chemie en hydrobiologie.
   }
@@ -382,6 +386,7 @@ knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotWaterdiepte}}
     \vspace{5mm}
+    \fontsize{9}{10.8}\selectfont
      Waterdiepte in sloten.\\
      Bron: monitoringsresultaten uit meetprogramma's fysisch-chemie en hydrobiologie.
   }
@@ -392,6 +397,7 @@ knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotbodFW}}
     \vspace{5mm}
+    \fontsize{9}{10.8}\selectfont
     Voedselrijkdom waterbodem.\\
     Bron: Monitoringsresultaten uit meetprogramma waterbodemchemie.
   }
@@ -401,6 +407,7 @@ knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>
   \centering
     \includegraphics[height = 5cm,keepaspectratio,valign=M]{\Sexpr{out$plotqPW}}
     \vspace{5mm}
+    \fontsize{9}{10.8}\selectfont
     Nalevering waterbodem.\\
     Bron: Monitoringsresultaten uit meetprogramma waterbodemchemie.
   } 

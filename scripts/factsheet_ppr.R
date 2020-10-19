@@ -20,6 +20,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 
   # informatie over maatregelen
   maatregelen <- ppr_maatregelen()
+  maatregelen <- maatregelen[!maatregelen$SGBPPeriode %in% c('Niet uitvoeren','Niet opnemen in SGBP3'),]
 
   # shape met alle EAGs
   gEAG <- sf::st_read("data/EAG20191205.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
@@ -390,14 +391,14 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     ESFtab[,oms_latex := gsub('  ',' ',gsub('\r\n','',oms_latex))]
 
     # --- uitgevoerde maatregelen ----------
-
+    
     # uitgevoerd in SGBP 1 en 2, in planvorming of in fasering dan wel ingetrokken of vervangen
     maatregelen1[,Uitgevoerd1 := pmax(0,as.numeric(Uitgevoerd),na.rm=T)+pmax(0,as.numeric(Uitvoering),na.rm=T)]
     maatregelen1[,Plan := as.numeric(Plan)]
     maatregelen1[,Gefaseerd := as.numeric(Gefaseerd)]
 
     # percentage per type
-    periode <- c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015") # hier mis een periode (niet insgbp)
+    periode <- c("SGBP1 2009-2015", "SGBP2 2015-2021", "SGBP1 2006-2015") # hier mis een periode (niet in sgbp)
     rates <- list(
       rate_uit = nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode & Uitgevoerd1 > 0,]),
       rate_max = nrow(maatregelen1[SGBPPeriode.omschrijving %in% periode]),
@@ -462,8 +463,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     cols <- c('Naam','Toelichting','SGBPPeriode','esffrst','Initiatiefnemer','BeoogdInitiatiefnemer',
               'Gebiedspartner','UitvoeringIn',"afweging")
     maatregelen2 <- merge.data.table(ESFtab, maatregelen1[,mget(cols)],by.x = 'esf', by.y = 'esffrst', all.y = T)
-    maatregelen2 <- maatregelen2[!maatregelen2$SGBPPeriode %in% c('Niet uitvoeren','Niet opnemen in SGBP3'),]
-
+    
     # als meerdere esf aan een maatregel gekoppeld zijn dan wordt de eerste geselecteerd
     cols <- c('ESFoordeel','ESFoordeel_latex','SGBPPeriode','Naam','Toelichting','Initiatiefnemer','BeoogdInitiatiefnemer','Gebiedspartner','UitvoeringIn','afweging')
     maatregelen2[,ESFoordeel := OORDEEL]
