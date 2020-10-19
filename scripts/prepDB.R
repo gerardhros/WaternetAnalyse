@@ -139,6 +139,50 @@
     # add GAF code
     krw.mp.ekr[,GAF := substr(EAGIDENT, 1, 4)]
 
+    # update mp-id
+    krw.mp.ekr[,mpid2 := tstrsplit(mpid,'_',keep=1)]
+    
+    # add info for db Locaties
+    loc.sel <- locaties[,.(CODE,WATERTYPE,MORFOLOGIE,BODEMSOORT,
+                           GAFIDENT,EAGIDENT,OWMIDENT,XCOORD,YCOORD)]
+    setnames(loc.sel,paste0('loc_',colnames(loc.sel)))
+    krw.mp.ekr <- merge(krw.mp.ekr,loc.sel,by.x = 'mpid2', by.y = 'loc_CODE',all.x = TRUE)
+    
+    # add info waterkwaliteitsmetingen, given season and year
+    wq.sel <- wq[,.(locatiecode,fewsparameter,meetwaarde,jaar,maand)]
+    wq.sel[,season := fifelse(maand %in% 4:10,'summer','winter')]
+    wq.sel <- wq.sel[,.(meetwaarde = mean(meetwaarde,na.rm=T)),by=.(locatiecode,fewsparameter,jaar,season)]
+    wq.par <- c('P','PO4','KJN','N','NH4','ZICHT','NO3NO2','CL',
+               'FEO','O2','PH','T','DOC','WATDTE','S','CHLFA',
+               'FLUOGROE','FLUOBLAU','FLUODIAT','FLUOCRYP','FLUOTOT')
+    wq.sel <- wq.sel[fewsparameter %in% wq.par]
+    wq.sel <- wq.sel[,fewsparameter := tolower(fewsparameter)]
+    wq.sel <- dcast(wq.sel,locatiecode+jaar+season~fewsparameter,value.var = 'meetwaarde')
+    
+    wq.sel2 <- unique(wq[,.(locatiecode)])
+    wq.sel2 <- merge(wq.sel2,loc.sel[,.(loc_CODE,loc_XCOORD,loc_YCOORD,loc_EAGIDENT)],by.x='locatiecode',by.y = 'loc_CODE',all.x = TRUE)
+    wq.sel2 <- sf::st_as_sf(wq.sel2,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+    
+    krw.mp.ekr.sf <- unique(krw.mp.ekr[!is.na(loc_XCOORD),.(mpid2,loc_XCOORD,loc_YCOORD,EAGIDENT)])
+    krw.mp.ekr.sf <- sf::st_as_sf(krw.mp.ekr.sf,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+  
+    wq.kop <- sf::st_intersection(st_buffer(krw.mp.ekr.sf,dist = 1000),wq.sel2)
+    wq.kop <- as.data.table(wq.kop)
+    wq.kop <- wq.kop[EAGIDENT==loc_EAGIDENT][,geometry := NULL]
+    
+    wq.kop.mean <- merge(krw.mp.ekr[,.(mpid2,jaar,season)],wq.kop[,.(mpid2,locatiecode)],by='mpid2',
+                         allow.cartesian = TRUE,all.x = TRUE)
+    wq.kop.mean <- merge(wq.kop.mean, wq.sel,by=c('locatiecode','jaar','season'),all.x=TRUE)
+    wq.kop.mean <- melt(wq.kop.mean,id.vars = c('mpid2','locatiecode','jaar','season'),variable.name = 'fewsparameter',value.name = 'meetwaarde')
+    wq.kop.mean <- wq.kop.mean[!is.na(meetwaarde)]
+    wq.kop.mean <- wq.kop.mean[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by=.(mpid2,jaar,season,fewsparameter)]
+    
+    
+    krw.mp.ekr <- merge(krw.mp.ekr)
+    test = krw.mp.ekr$mpid2
+    test = test[!test %in% wq.kop.mean$mpid2]
+                        
+    
     PvskP.mp <- makePmaps(dbwbal = dat, dbhybi = hybi,dbnomogram = nomogram,
                        dbov_kP = Overzicht_kP, dbeag_wl = eag_wl)
         
