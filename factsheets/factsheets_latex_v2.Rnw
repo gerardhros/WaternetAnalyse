@@ -11,7 +11,7 @@
 \pagestyle{empty}
 \usepackage{helvet}
 % set here the compression level for jpg (0 = no compression, 9 = maximum compression)
-\pdfcompresslevel7
+\pdfcompresslevel4
 % use fontfamiliy{vn} for verdana, but its nog working very well, to be checked later
 % font phv looks like verdana phv = helvetica (original #1)
 \newcommand{\fon}[1]{\fontfamily{phv}\selectfont}
@@ -29,7 +29,7 @@ require(data.table,quietly = TRUE)
 source('../scripts/kable_fixerror.R')
 
 # read file from earlier saved ourput file (not required, can be used for testing on single pdf)
-out = readRDS('routput/out.rds')
+#out = readRDS('routput/out.rds')
 
 lx_title <- out$my_title
 lx_wtype <- unique(out$eagwl$watertype)
@@ -44,7 +44,7 @@ lx_status <- out$waterlichamenwl$Status
 lx_owner <- out$waterlichamenwl$Eigenaren
 lx_motstat <- out$waterlichamenwl$motstat
 lx_partners <- if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}
-lx_monwens <- gsub('\r\n','',gsub('&','en',out$waterlichamenwl$MonitoringAnalyseWensen))
+lx_monwens <- gsub('\r\n',"",gsub('&','en',out$waterlichamenwl$MonitoringAnalyseWensen))
 lx_litverw <- ifelse(out$waterlichamenwl$Literatuurverwijzing=='','',paste0('en ',out$waterlichamenwl$Literatuurverwijzing))
   
 # text for ecologische analyse op hoofdlijnen
@@ -247,9 +247,9 @@ if(nrow(maatregelen2)>4){
   if(grepl('vinkeve',tolower(out$my_title2))){cf = 7400 / tsize}
   if(grepl('sloterplas',tolower(out$my_title2))){cf = 4200 / tsize}
   if(grepl('noorderijplas',tolower(out$my_title2))){cf = 2800 / tsize} 
-  if(grepl('gaasper',tolower(out$my_title2))){cf = 3800 / tsize} 
-  if(grepl('hethol',tolower(out$my_title2))){cf = 6600 / tsize}
-  if(grepl('loenderveenoost',tolower(out$my_title2))){cf = 4700 / tsize}
+  if(grepl('gaasper',tolower(out$my_title2))){cf = 3500 / tsize} 
+  if(grepl('hethol',tolower(out$my_title2))){cf = 5600 / tsize}
+  if(grepl('loenderveenoost',tolower(out$my_title2))){cf = 4000 / tsize}
   if(grepl('ouderkerkerplas',tolower(out$my_title2))){cf = 6500 / tsize} 
   if(grepl('loosdrechtseplas1tm5',tolower(out$my_title2))){cf = 8100 / tsize} 
   if(grepl('kievitsbuurt',tolower(out$my_title2))){cf = 5800 / tsize}
@@ -258,27 +258,28 @@ if(nrow(maatregelen2)>4){
   if(grepl('vaartenamsterdam',tolower(out$my_title2))){cf = 4000 / tsize}
   if(grepl('vaartenvechtstreek',tolower(out$my_title2))){cf = 5600 / tsize}
   if(grepl('vaartengrootmijdrecht',tolower(out$my_title2))){cf = 2500 / tsize}
-  if(grepl('spiegelplas',tolower(out$my_title2))){cf = 6500 / tsize}
+  if(grepl('spiegelplas',tolower(out$my_title2))){cf = 6000 / tsize}
   if(grepl('wijdeblik',tolower(out$my_title2))){cf = 4000 / tsize}
   if(grepl('waterleidingplas',tolower(out$my_title2))){cf = 2000 / tsize}
-  if(grepl('naardermeer',tolower(out$my_title2))){cf = 4300 / tsize}
-  if(grepl('molenpolder',tolower(out$my_title2))){cf = 6500 / tsize}
-  if(grepl('noorderijplas',tolower(out$my_title2))){cf = 4500 / tsize}
+  if(grepl('naardermeer',tolower(out$my_title2))){cf = 3800 / tsize}
+  if(grepl('molenpolder',tolower(out$my_title2))){cf = 5900 / tsize}
+  if(grepl('noorderijplas',tolower(out$my_title2))){cf = 3300 / tsize}
   if(grepl('ouderkerkerplas',tolower(out$my_title2))){cf = 4400 / tsize}
-  if(grepl('breukeleveenscheplas',tolower(out$my_title2))){cf = 6000 / tsize}
+  if(grepl('breukeleveenscheplas',tolower(out$my_title2))){cf = 5500 / tsize}
   if(grepl('tienhovenseplassen',tolower(out$my_title2))){cf = 6200 / tsize}
   if(grepl('sterenzodden',tolower(out$my_title2))){cf = 7200 / tsize}
   if(grepl('hollandsankeveenseplassen',tolower(out$my_title2))){cf = 6500 / tsize}
   if(grepl('wijdegat',tolower(out$my_title2))){cf = 5700 / tsize}
-  if(grepl('hilversumskanaal',tolower(out$my_title2))){cf = 3500 / tsize}
-  if(grepl('oostelijkebinnenpolder',tolower(out$my_title2))){cf = 5500 / tsize}
+  if(grepl('hilversumskanaal',tolower(out$my_title2))){cf = 3000 / tsize}
+  if(grepl('oostelijkebinnenpolder',tolower(out$my_title2))){cf = 5300 / tsize}
   if(grepl('tussenboezemvinkeveena',tolower(out$my_title2))){cf = 3500 / tsize}
   if(grepl('mijdrechtsebovenlanden',tolower(out$my_title2))){cf = 4300 / tsize}
   if(grepl('maarsseveensezoddenenomgeving',tolower(out$my_title2))){cf = 3700 / tsize}
   if(grepl('grootwilnis-vinkeveenzuid',tolower(out$my_title2))){cf = 4400 / tsize}
   if(grepl('demmerik',tolower(out$my_title2))){cf = 4400 / tsize}
   if(grepl('vaartenzevenhoven',tolower(out$my_title2))){cf = 4400 / tsize}
-  if(grepl('vinkeveenseplassen',tolower(out$my_title2))){cf = 6600 / tsize}
+  if(grepl('vinkeveenseplassen',tolower(out$my_title2))){cf = 6000 / tsize}
+  if(grepl('grotemaarsseveenseplas',tolower(out$my_title2))){cf = 3500 / tsize}
   
   if(cf==0) {cf = 4900 / tsize}
   

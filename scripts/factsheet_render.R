@@ -27,23 +27,23 @@ source('scripts/ppr_funs.R')
 # run for all files
 
 
-for(eagnr in 1:50){#4 : nrow(brondata$ESFoordelen)){
+for(eagnr in c(1:8,11,14,16,17,20,24,25,26,27,31,47)){#4 : nrow(brondata$ESFoordelen)){
 
   # voor debug attach(brondata) detach(brondata)
-  # eagnr <- 8
+  # eagnr <- 47
   
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)
   
   #render the html flexdashboard
-  outputF <- "html"
-  rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
-                 output_format = "flexdashboard::flex_dashboard", #pdf_document
-                 output_file = paste("FS_", out$my_title2, ".html", sep=''),
-                 output_dir = "factsheets/output/")
+  #outputF <- "html"
+  #rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
+  #               output_format = "flexdashboard::flex_dashboard", #pdf_document
+  #               output_file = paste("FS_", out$my_title2, ".html", sep=''),
+  #               output_dir = "factsheets/output/")
 
   # save relavant output and run file for latex pdf
-  # saveRDS(out,'factsheets/routput/out.rds')
+  #saveRDS(out,'factsheets/routput/out.rds')
 
   # change working directory (needed for knit2pdf)
   setwd("factsheets")
