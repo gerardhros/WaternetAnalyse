@@ -537,12 +537,12 @@ ekrmap <- function(EKRset2, maatlat = "2V1 Overige waterflora"){
   }
 }
 # ekr per eag en mp
-ekrmap2 <- function(EKRset, maatlat = "2V1 Overige waterflora", col=col, labels=labels){
+ekrmap2 <- function(EKRset, gEAG, maatlat = "2V1 Overige waterflora", col=col, labels=labels){
     gebiedData <- EKRset[EKRset$GHPR_level == maatlat,]
     gebiedData <- gebiedData[!is.na(gebiedData$EAGIDENT),]
     gebiedData1 <- gebiedData[!(is.na(gebiedData$XCOORD)) & !(is.na(gebiedData$YCOORD))
                               & !is.na(gebiedData$CODE),]
-    gebiedData1 <- st_transform(st_as_sf(gebiedData1,coords = c("XCOORD","YCOORD"),crs = proj4.rd),proj4.google)
+    gebiedData1 <- st_transform(st_as_sf(gebiedData1,coords = c("XCOORD","YCOORD"),crs = 28992),4326)
     
 
     gebiedData <- dcast(gebiedData, EAGIDENT+KRWwatertype.code+
@@ -587,7 +587,7 @@ ekrmap2 <- function(EKRset, maatlat = "2V1 Overige waterflora", col=col, labels=
 }
 
 # kaart ekr scores per jaar in krw waterlichaam
-ekrmapKRW <- function(gebiedData, maatlat = "4VI1 Vis-kwaliteit"){
+ekrmapKRW <- function(gebiedData, gKRW, maatlat = "4VI1 Vis-kwaliteit", col= col, labels=labels){
   #gebiedData <- EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2020' & EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",]
   #maatlat = "4VI1 Vis-kwaliteit"
   gebiedData <- gebiedData[!grepl('^NL11*', gebiedData$HoortBijGeoobject.identificatie),]
@@ -1063,18 +1063,10 @@ kaartmcftchara <- function(hybi1){
   #write.table(chara, file = paste(getwd(),"/output/kranswierenSomBedekking",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   ptn <- dcast(hybi1[hybi1$analysecode == 'PTN',],locatiecode+jaar+locatie.x+locatie.y~.,
                sum, value.var = "meetwaarde")
-
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=chara[,c("locatie.x","locatie.y")],
-                                       data=chara, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
-
-  gebiedData1 <-
-    spTransform(SpatialPointsDataFrame(coords=ptn[,c("locatie.x","locatie.y")],
-                                       data=ptn, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData1 <-as.data.frame(gebiedData1)
+  
+  
+  gebiedData <- st_transform(st_as_sf(chara,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  gebiedData1 <- st_transform(st_as_sf(ptn,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
 
   gebiedData$klasse <- cut(gebiedData$bedekkingspercentageKranswieren,
                            breaks= c(min(gebiedData$bedekkingspercentageKranswieren)-0.1, 5, 10,15,25,50, 80,max(gebiedData$bedekkingspercentageKranswieren)+0.1))
@@ -1084,9 +1076,9 @@ kaartmcftchara <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   chara <- leaflet() %>%
-    addCircles(data= gebiedData1, ~locatie.x.1, ~locatie.y.1, popup = c(as.character(gebiedData1$locatiecode)),
+    addCircles(data= gebiedData1, popup = c(as.character(gebiedData1$locatiecode)),
                weight = 3, radius=40, fillOpacity = 0.8, color = 'grey') %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$bedekkingspercentageKranswieren), gebiedData$eenheidequivalent, gebiedData$eenheid, "<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1106,17 +1098,8 @@ kaartfontein <- function(hybi1){
   ptn <- dcast(hybi1[hybi1$analysecode == 'PTN',],locatiecode+jaar+locatie.x+locatie.y~.,
                sum, value.var = "meetwaarde")
 
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=fontein[,c("locatie.x","locatie.y")],
-                                       data=fontein, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
-
-  gebiedData1 <-
-    spTransform(SpatialPointsDataFrame(coords=ptn[,c("locatie.x","locatie.y")],
-                                       data=ptn, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData1 <-as.data.frame(gebiedData1)
+  gebiedData <- st_transform(st_as_sf(fontein,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  gebiedData1 <- st_transform(st_as_sf(ptn,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
 
   gebiedData$klasse <- cut(gebiedData$bedekkingspercentagefonteinkruiden, breaks= c(0, 5, 10,15,25,50, 80,100))
 
@@ -1125,9 +1108,9 @@ kaartfontein <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   ktPbod <- leaflet() %>%
-    addCircles(data= gebiedData1, ~locatie.x.1, ~locatie.y.1, popup = c(as.character(gebiedData1$locatiecode)),
+    addCircles(data= gebiedData1,  popup = c(as.character(gebiedData1$locatiecode)),
                weight = 3, radius=40, fillOpacity = 0.8, color = 'grey') %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData,  popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$bedekkingspercentagefonteinkruiden),gebiedData$eenheidequivalant, gebiedData$eenheid,"<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1219,17 +1202,8 @@ kaartstrat <- function(hybi1){
   ptn <- dcast(hybi1[hybi1$analysecode == 'PTN',],locatiecode+jaar+locatie.x+locatie.y~.,
                sum, value.var = "meetwaarde")
 
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=kr[,c("locatie.x","locatie.y")],
-                                       data=kr, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
-
-  gebiedData1 <-
-    spTransform(SpatialPointsDataFrame(coords=ptn[,c("locatie.x","locatie.y")],
-                                       data=ptn, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData1 <-as.data.frame(gebiedData1)
+  gebiedData <- st_transform(st_as_sf(kr,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  gebiedData1 <- st_transform(st_as_sf(ptn,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
 
   gebiedData$klasse <- cut(gebiedData$bedekkingspercentageKrabbenscheer,
                            breaks= c(min(gebiedData$bedekkingspercentageKrabbenscheer)-0.1, 5, 10,15,25,50, 80,max(gebiedData$bedekkingspercentageKrabbenscheer)+0.1))
@@ -1239,9 +1213,9 @@ kaartstrat <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   ktPbod <- leaflet() %>%
-    addCircles(data= gebiedData1, ~locatie.x.1, ~locatie.y.1, popup = c(as.character(gebiedData1$locatiecode)),
+    addCircles(data= gebiedData1,  popup = c(as.character(gebiedData1$locatiecode)),
                weight = 3, radius=40, fillOpacity = 0.8, color = 'grey') %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData,  popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$bedekkingspercentageKrabbenscheer),gebiedData$eenheidequivalant, gebiedData$eenheid,"<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1261,17 +1235,8 @@ kaartutr <- function(hybi1){
   ptn <- dcast(hybi1[hybi1$analysecode == 'PTN',],locatiecode+jaar+locatie.x+locatie.y~.,
                sum, value.var = "meetwaarde")
 
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=kr[,c("locatie.x","locatie.y")],
-                                       data=kr, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
-
-  gebiedData1 <-
-    spTransform(SpatialPointsDataFrame(coords=ptn[,c("locatie.x","locatie.y")],
-                                       data=ptn, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData1 <-as.data.frame(gebiedData1)
+  gebiedData <- st_transform(st_as_sf(kr,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  gebiedData1 <- st_transform(st_as_sf(ptn,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
 
   gebiedData$klasse <- cut(gebiedData$bedekkingspercentageBlaasjeskruid, breaks= c(min(gebiedData$bedekkingspercentageBlaasjeskruid)- 0.1, 5, 10,15,25,50, 80,max(gebiedData$bedekkingspercentageBlaasjeskruid)+0.1))
 
@@ -1280,11 +1245,11 @@ kaartutr <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   ktPbod <- leaflet() %>%
-    addCircles(data= gebiedData1, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData1$locatiecode), "<br>",
+    addCircles(data= gebiedData1, popup =  paste("locatiecode", as.character(gebiedData1$locatiecode), "<br>",
                                                                              "Bedekking:", as.character(gebiedData1$bedekkingspercentageBlaasjeskruid),gebiedData$eenheidequivalent,gebiedData$eenheid,"<br>",
                                                                              "Meetjaar:", as.character(gebiedData1$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color = 'grey') %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData,popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$bedekkingspercentageBlaasjeskruid),gebiedData$eenheidequivalent,gebiedData$eenheid,"<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1302,12 +1267,8 @@ kaartkreeft <- function(hybi1){
   kreeft$aantalKreeften <- kreeft$.; kreeft$. <- NULL
   #write.table(kreeft, file = paste(getwd(),"/2018/output/kreeft",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=kreeft[,c("locatie.x","locatie.y")],
-                                       data=kreeft, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
-
+  gebiedData <- st_transform(st_as_sf(kreeft ,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  
   gebiedData$klasse <- cut(gebiedData$aantalKreeften, breaks= c(min(gebiedData$aantalKreeften)-0.1, 5, 10,15,25,50,max(gebiedData$aantalKreeften))+0.1)
 
   col <- c('7'= 'darkred','6'="red", '5'="salmon",'4'="orange",'3'="yellow",'2'="deepskyblue")
@@ -1315,7 +1276,7 @@ kaartkreeft <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   ktPbod <- leaflet() %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$aantalKreeften),gebiedData$eenheid,"<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1326,19 +1287,15 @@ kaartkreeft <- function(hybi1){
   return(ktPbod)
 }
 #cabomba
-kaartcam <- function(hybi1){
+kaartcam <- function(hybi1, proj4.rd =proj4.rd, proj4.google =proj4.google){
   kr <-  rbind(hybi1[grep('^Cabomba', hybi1$TWN.naam),])
   cabomba <- dcast(kr,locatiecode+jaar+locatie.x+locatie.y+eenheid+eenheidequivalent~.,
                    sum, value.var = "meetwaarde")
   cabomba$bedCabomba <- cabomba$.; cabomba$. <- NULL
   #write.table(cabomba, file = paste(getwd(),"/2018/output/cabomba",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=cabomba[,c("locatie.x","locatie.y")],
-                                       data=cabomba, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
-
+  gebiedData <- st_transform(st_as_sf(cabomba ,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  
   gebiedData$klasse <- cut(gebiedData$bedCabomba, breaks= c(min(gebiedData$bedCabomba)-0.1, 5, 10,15,25,50,80,max(gebiedData$bedCabomba)+0.1))
 
   col <- c('7'= 'darkred','6'="red", '5'="salmon",'4'="orange",'3'="yellow",'2'="deepskyblue", "1"='blue')
@@ -1346,7 +1303,7 @@ kaartcam <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   ktPbod <- leaflet() %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$bedCabomba),gebiedData$eenheidequivalent, gebiedData$eenheid,"<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1356,18 +1313,15 @@ kaartcam <- function(hybi1){
 
   return(ktPbod)
 }
-kaartved <- function(hybi1){
+kaartved <- function(hybi1, proj4.rd =proj4.rd, proj4.google =proj4.google){
   kr <-  rbind(hybi1[grep('^Myriophyllum heterophyllum', hybi1$TWN.naam),])
   cabomba <- dcast(kr,locatiecode+jaar+locatie.x+locatie.y+eenheid+eenheidequivalent~.,
                    sum, value.var = "meetwaarde")
   cabomba$bedVederkruid <- cabomba$.; cabomba$. <- NULL
   #write.table(cabomba, file = paste(getwd(),"/2018/output/vederkruid",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
-  gebiedData <-
-    spTransform(SpatialPointsDataFrame(coords=cabomba[,c("locatie.x","locatie.y")],
-                                       data=cabomba, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  gebiedData <-as.data.frame(gebiedData)
+  gebiedData <- st_transform(st_as_sf(cabomba ,coords = c("locatie.x","locatie.y"),crs = 28992),4326)
+  
 
   gebiedData$klasse <- cut(gebiedData$bedVederkruid, breaks= c(min(gebiedData$bedVederkruid)-0.1, 5, 10,15,25,50,80,max(gebiedData$bedVederkruid)+0.1))
 
@@ -1376,7 +1330,7 @@ kaartved <- function(hybi1){
   pal <- colorFactor(palette = col,  domain = gebiedData$klasse)
 
   ktPbod <- leaflet() %>%
-    addCircles(data= gebiedData, ~locatie.x.1, ~locatie.y.1, popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
+    addCircles(data= gebiedData,  popup =  paste("locatiecode", as.character(gebiedData$locatiecode), "<br>",
                                                                             "Bedekking:", as.character(gebiedData$bedVederkruid),gebiedData$eenheidequivalent, gebiedData$eenheid,"<br>",
                                                                             "Meetjaar:", as.character(gebiedData$jaar)),
                weight = 3, radius=40, fillOpacity = 0.8, color= ~pal(klasse)) %>%
@@ -1571,7 +1525,6 @@ plotmafa <- function(mafa,TWNev){
   return(mafaplot)
 }
 plotmafa2 <- function(mafa,TWNev){
-  mafa <- hybi
   mafa <- mafa[mafa$analysecode == 'MEA',]
   mafa <- merge.data.frame(TWNev, mafa, by.x = 'taxonname', by.y ='TWN.naam', all.x = FALSE, all.y = TRUE)
   # mafa <- dcast(mafa, taxongroup+locatie.EAG+datum+jaar~ ., value.var = "meetwaarde", fun.aggregate = sum, drop = TRUE)# som aantallen per groep
@@ -2862,7 +2815,7 @@ toxiciteit3 <- function(simoni){
   ggplotly(p=zw)
 }
 
-chlorofylA <- function (wq){
+chlorofylA <- function (wq, gEAG){
   b = dcast(wq, locatie.EAG+jaar+locatie.KRW.watertype ~ fewsparameter,
             value.var = "meetwaarde", fun.aggregate = mean, na.rm =TRUE, fill = NaN, subset = .(fewsparameter == 'CHLFA'))
   b <- b[!is.na(b$CHLFA)& !is.na(b$jaar) & !is.na(b$locatie.EAG) & !b$locatie.EAG == '', ]
@@ -3067,7 +3020,7 @@ combineWidgets(
 }
 
 # overzichtskaarten-------------------------------------
-krwmap <- function(gKRW){
+krwmap <- function(gKRW, gEAG){
 
   # Find a center point for each region
   # centers <- st_centroid(gKRW, byid = TRUE)
