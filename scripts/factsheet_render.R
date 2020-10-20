@@ -26,6 +26,7 @@ source('scripts/ppr_funs.R')
 
 # run for all files
 
+for(eagnr in 5:50){#4 : nrow(brondata$ESFoordelen)){
 
 for(eagnr in c(1:8,11,14,16,17,20,24,25,26,27,31,47)){#4 : nrow(brondata$ESFoordelen)){
 
@@ -56,7 +57,7 @@ for(eagnr in c(1:8,11,14,16,17,20,24,25,26,27,31,47)){#4 : nrow(brondata$ESFoord
   
   # reset working directory
   setwd('../')
-  
+
   
 }
 

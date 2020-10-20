@@ -70,9 +70,9 @@ cols <- c('ESFoordeel_latex','SGBPPeriode','Naam','Toelichting_latex','BeoogdIni
 maatregelen2 <- as.data.table(out$maatregelen2)[,mget(cols)]
 # change text Waterschap Amstel, Gooi en Vecht to AGV
 maatregelen2[,BeoogdInitiatiefnemer := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',BeoogdInitiatiefnemer)]
-maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',BeoogdInitiatiefnemer)]
+maatregelen2[,BeoogdInitiatiefnemer := gsub('Natuurmonumenten|natuurmonumenten','Natuur monumenten',BeoogdInitiatiefnemer)]
 maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staatsbosbeheer',BeoogdInitiatiefnemer)]
-#maatregelen2[,Gebiedspartner := gsub('Waterschap Amstel Gooi en Vecht','Waterschap AGV',Gebiedspartner)]
+#maatregelen2[,SGBPPeriode := gsub('Niet opgenomen in SGBP','Waterschap AGV',Gebiedspartner)]
 #maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',Gebiedspartner)]
 #maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staatsbosbeheer',Gebiedspartner)]
 maatregelen2[,Toelichting_latex := gsub('m³','m3',Toelichting_latex)]
@@ -295,14 +295,13 @@ ls1 = 9 *cf;ls2 = 10.8 * cf
     % top strut
     \newcommand\T{\rule{0pt}{0.5cm}}
  
- 
 <<boring-random2,echo=FALSE,message=FALSE,collapse=TRUE,warning=FALSE>>=
 
 # make table
 knitr::kable(maatregelen2[,1:6], format = "latex",align = 'l',escape = FALSE) %>% 
           kable_styling(full_width=FALSE, position = "left",latex_options = "scale_down") %>% 
           column_spec(1, width = "1cm", border_right = F,color = "black") %>%          
-          column_spec(2, width = "1.5cm", border_right = F,color = "black") %>%        
+          column_spec(2, width = "2cm", border_right = F,color = "black") %>%        
           column_spec(3, width = "4cm",border_right = F,color = "black") %>%
           column_spec(4, width = "15cm",border_right = F,color = "black") %>%
           column_spec(5, width = "3cm", border_right = F,color = "black")  %>%

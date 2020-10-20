@@ -35,9 +35,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(scatterpie); library(ggnewscale); library(tmap); library(cowplot); library(ggspatial) # voor map pie figuur
 library(flextable);library(officer) # voor tabel toestand trend
 library(knitr)# weergave figuur met inlcude grapics
-library(raster) #voor crs functie
 library(purrr); library(tidyr); library(broom); library(readxl);library(manipulateWidget);library(rpivotTable);library(kableExtra)
-library(dplyr);library(plyr);library(sp);library(plotly);library(sf);library(zoo);
+library(dplyr);library(plyr);library(sp);library(plotly);library(sf);library(zoo)
 library(leaflet);library(RColorBrewer) #voor kaarten met kleurenlegenda
 library(ggplot2);library(data.table)
 
@@ -47,8 +46,6 @@ source('./scripts/ppr_funs.R')
 source('./scripts/postProces.R')
 
 # other settings
-proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
-proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
 labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 
@@ -63,10 +60,10 @@ outputF <- "word" #"html"
 
 ```{r data, include = FALSE}
 ## data voor kaart ----------
-gEAG<- st_read("./data/EAG20191205.gpkg") %>% st_transform(proj4.google)
+gEAG<- st_read("./data/EAG20191205.gpkg") %>% st_transform(4326)
 gEAG$watertype <- NULL
 EAG <- st_read("./data/EAG20191205.gpkg") %>% st_transform(28992)
-gKRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(proj4.google)
+gKRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(4326)
 KRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(28992)
 ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
 ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
@@ -314,10 +311,10 @@ In afbeelding \@ref(fig:kaartvegjaren) is te zien hoe de vegetatie scoort (EKR s
 #krw <-
 combineWidgets(
     ncol = 4, colsize = c(1,1),
-    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2018 Ov. waterflora"),], maatlat = "2V1 Overige waterflora",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], maatlat = "2V1 Overige waterflora",col=col,labels=labels))
+    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2018 Ov. waterflora"),], gEAG, maatlat = "2V1 Overige waterflora",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], gEAG, maatlat = "2V1 Overige waterflora",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], gEAG, maatlat = "2V1 Overige waterflora",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Ov. waterflora",], gEAG, maatlat = "2V1 Overige waterflora",col=col,labels=labels))
 
 # saveWidget(krw, "waterflorapermpjaar.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
@@ -387,8 +384,8 @@ wq1 <- wq[grep('VAST', wq$locatie.meetnethistorie),]
 #chlfa<-
 combineWidgets(
     ncol = 2, colsize = c(1, 1),
-    chlorofylA(wq1[wq1$jaar < '2013'& wq1$jaar > '2005',]),
-    chlorofylA(wq1[wq1$jaar > '2012'& wq1$jaar < '2018',])
+    chlorofylA(wq1[wq1$jaar < '2013'& wq1$jaar > '2005',], gEAG),
+    chlorofylA(wq1[wq1$jaar > '2012'& wq1$jaar < '2018',], gEAG)
 )
 #saveWidget(chlfa, "chlfa.html", selfcontained = FALSE)
 #webshot("chlfa.html", file = "chlfa.png")
@@ -402,10 +399,10 @@ In afbeelding \@ref(fig:kaartfytojaren) is te zien hoe fytoplankton scoort in ve
 #krw <-
 combineWidgets(
     ncol = 4, 
-    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels))
+    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], gEAG, maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], gEAG, maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], gEAG, maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Fytoplankton",], gEAG, maatlat = "1F1 Fytoplankton-kwaliteit",col=col,labels=labels))
 
 # saveWidget(krw, "fytopermpjaar.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
@@ -476,10 +473,10 @@ In afbeelding \@ref(fig:kaartmafajaren) is te zien hoe macrofauna scoort in vers
 #krw <-
 combineWidgets(
     ncol = 4, 
-    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2018 Macrofauna"),], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
-    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels))
+    ekrmap2(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2009'& EKRset$Waardebepalingsmethode.code %in% c("Maatlatten2018 Macrofauna"),], gEAG, maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2009' & EKRset$jaar < '2012'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], gEAG, maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2012' & EKRset$jaar < '2015'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], gEAG, maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels),
+    ekrmap2(EKRset[EKRset$jaar >= '2015' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Macrofauna",], gEAG, maatlat = "3M1 Macrofauna-kwaliteit",col=col,labels=labels))
 
 #saveWidget(krw, "macrofaunapermpjaar.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
@@ -647,13 +644,13 @@ In afbeelding \@ref(fig:kaartvisjaren) is te zien hoe vis scoort in verschillend
 combineWidgets(
     ncol = 4, colsize = c(1,1),
     ekrmapKRW(EKRset[EKRset$jaar >= '2006' & EKRset$jaar < '2010' & EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
-                 maatlat = "4VI1 Vis-kwaliteit" ),
+              gKRW, maatlat = "4VI1 Vis-kwaliteit" , col=col,labels=labels),
     ekrmapKRW(EKRset[EKRset$jaar >= '2010' & EKRset$jaar < '2013'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",],
-                 maatlat = "4VI1 Vis-kwaliteit" ),
+               gKRW,   maatlat = "4VI1 Vis-kwaliteit" ,col=col,labels=labels),
     ekrmapKRW(EKRset[EKRset$jaar >= '2013' & EKRset$jaar < '2016'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
-                 maatlat = "4VI1 Vis-kwaliteit" ),
+               gKRW,   maatlat = "4VI1 Vis-kwaliteit" ,col=col,labels=labels),
     ekrmapKRW(EKRset[EKRset$jaar >= '2016' & EKRset$jaar < '2020'& EKRset$Waardebepalingsmethode.code == "Maatlatten2018 Vis",], 
-                 maatlat = "4VI1 Vis-kwaliteit" ))
+                gKRW,  maatlat = "4VI1 Vis-kwaliteit" ,col=col,labels=labels))
 # saveWidget(krw, "vismpjaren.html", selfcontained = FALSE)
 # webshot("vismpjaren.html", file = "vis.png")
 ```
@@ -687,62 +684,41 @@ In de kaarten hieronder is de som van bedekkingen van verschillende taxa kranswi
 ### Kranswieren
 Hieronder staan gesommeerde bedekingspercentages per meetlocatie per jaar van de gevonden taxa van Characea, Nitella en Nitellopsis.
 
-```{r kaartkranswierenmj, fig.cap = 'Overzicht van de waargenomen kranswieren 2006 t/m 2012 links en 2013 t/m 2018 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+```{r kaartkranswierenmj, fig.cap = 'Overzicht van de waargenomen kranswieren 2006 t/m 2012 links en 2013 t/m 2019 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 #krw<-
 combineWidgets(
     ncol = 2, colsize = c(1, 1),
     kaartmcftchara(hybi[hybi$jaar > 2005 & hybi$jaar < 2013,]),
-    kaartmcftchara(hybi[hybi$jaar > 2012 & hybi$jaar < 2019,])
+    kaartmcftchara(hybi[hybi$jaar > 2012 & hybi$jaar < 2020,])
 )
 #saveWidget(krw, "kranswieren.html", selfcontained = FALSE)
 #webshot("kranswieren.html", file = "kranswieren.png")
 ```
 
-```{r kaartkranswieren, fig.cap = 'Overzicht van de waargenomen kranswieren 2015 t/m 2017', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-#krw<-
-kaartmcftchara(hybi[hybi$jaar > 2014 & hybi$jaar < 2019,])
-#saveWidget(krw, "kranswieren2.html", selfcontained = FALSE)
-#webshot("kranswieren2.html", file = "kranswieren2.png")
-```
-
 ### Fonteinkruiden
 Hieronder staan gesommeerde bedekkingspercentages van alle taxa fonteinkruiden (behalve Potamogeton pectinatus).
 
-```{r kaartfonteinmj, fig.cap = 'Overzicht van de waargenomen fonteinkruiden 2006 t/m 2012 links en 2012 t/m 2018 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+```{r kaartfonteinmj, fig.cap = 'Overzicht van de waargenomen fonteinkruiden 2006 t/m 2012 links en 2012 t/m 2019 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 #krw<-
 combineWidgets(
     ncol = 2, colsize = c(1, 1),
     kaartfontein(hybi[hybi$jaar > 2005 & hybi$jaar < 2013,]),
-    kaartfontein(hybi[hybi$jaar > 2012 & hybi$jaar < 2019,])
+    kaartfontein(hybi[hybi$jaar > 2012 & hybi$jaar < 2020,])
 )
 #saveWidget(krw, "fonteinkruiden.html", selfcontained = FALSE)
 #webshot("fonteinkruiden.html", file = "fonteinkruiden.png")
 ```
 
-
-```{r fkaart2017, fig.cap = 'Overzicht van de waargenomen fonteinkruiden 2015 t/m 2018', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-#krw<-
-kaartfontein(hybi[hybi$jaar > 2014 & hybi$jaar < 2019,])
-#saveWidget(krw, "fonteinkruiden2.html", selfcontained = FALSE)
-#webshot("fonteinkruiden2.html", file = "fonteinkruiden2.png")
-```
-
 ### Krabbenscheer
 
-```{r kaartkr, fig.cap = 'Overzicht van de waargenomen Krabbenscheer 2006 t/m 2012 links en 2013 t/m 2018 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+```{r kaartkr, fig.cap = 'Overzicht van de waargenomen Krabbenscheer 2006 t/m 2012 links en 2013 t/m 2019 rechts', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 combineWidgets(
     ncol = 2, colsize = c(1, 1),
     kaartstrat(hybi[hybi$jaar > 2005 & hybi$jaar < 2013,]),
-    kaartstrat(hybi[hybi$jaar > 2012 & hybi$jaar < 2019,])
+    kaartstrat(hybi[hybi$jaar > 2012 & hybi$jaar < 2020,])
 )
 ```
 
-```{r kaartstratmj, fig.cap = 'Overzicht van de waargenomen Krabbenscheer 2014 t/m 2018', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
-#krw<-
-kaartstrat(hybi[hybi$jaar > '2013',])
-#saveWidget(krw, "strat.html", selfcontained = FALSE)
-#webshot("strat.html", file = "strat.png")
-```
 
 ### Groot blaasjeskruid
 
@@ -791,11 +767,11 @@ In de Kaderrichtlijn Water (KRW) is een indeling gemaakt in verschillende typen 
 
 ```{r wl, fig.cap = 'Overzicht van KRW waterlichamen in het beheergebied van AGV', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 ## Dissolve polygons with same area IDs ---------
-gKRW <- gKRW %>% group_by(OWMIDENT,OWMNAAM) %>% summarize()
-eag_wl1 <- eag_wl %>% group_by(KRW_SGBP3,watertype) %>% summarize()
-gKRW <- merge(gKRW,eag_wl1[,c('KRW_SGBP3','watertype')], by.x = "OWMIDENT", by.y = "KRW_SGBP3", all.x = TRUE, all.y = F)%>% st_transform(proj4.google)
+gKRW <- gKRW %>% dplyr::group_by(OWMIDENT,OWMNAAM) %>% dplyr::summarize()
+eag_wl1 <- eag_wl %>% dplyr::group_by(KRW_SGBP3,watertype) %>% dplyr::summarize()
+gKRW <- merge(gKRW, eag_wl1[,c('KRW_SGBP3','watertype')], by.x = "OWMIDENT", by.y = "KRW_SGBP3", all.x = TRUE, all.y = F)%>% st_transform(4326)
 # krw <-
-krwmap(gKRW)
+krwmap(gKRW, gEAG)
 # saveWidget(krw, "waterlichamen.html", selfcontained = FALSE)
 #webshot("waterlichamen.html", file = "waterlichamen.png")
 ```
@@ -808,7 +784,7 @@ Ecologische analysegebieden (EAG’s) zijn nieuwe opdelingen van de bestaande af
 
 Ook EAG`s in het 'overig water' die niet zijn aangewezen als KRW waterlichaam hebben een KRW watertype toegekend gekregen.
 
-```{r eag1, fig.cap = 'Overzicht van KRW waterlichamen in het beheergebied van AGV', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
+```{r eag1, fig.cap = 'Overzicht van Ecologische analysegebieden in het beheergebied van AGV', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 eagoverzicht(gEAG, eag_wl)
 ```
 
