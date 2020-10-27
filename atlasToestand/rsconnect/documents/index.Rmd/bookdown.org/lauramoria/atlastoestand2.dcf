@@ -1,0 +1,13 @@
+name: atlastoestand2
+title: atlasToestand
+username: lauramoria
+account: lauramoria
+server: bookdown.org
+hostUrl: https://bookdown.org/__api__
+appId: 5793
+bundleId: 29754
+url: https://bookdown.org/lauramoria/atlastoestand2/
+when: 1603225430.7798
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .nojekyll|atlasToestand|output

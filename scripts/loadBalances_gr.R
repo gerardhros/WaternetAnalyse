@@ -1,5 +1,6 @@
 # adoption from original script
 # done by Gerard & Laura, december 2019
+require(readxl);library(dplyr);library(data.table);library(sf)
 
 # 1. Directories and names -----------------------------------------------
 
@@ -17,8 +18,7 @@
 
   # filter on latest versions of available water balances
   # kopTab <- kopTab[selectiefilter ==1] # wel voor matrix een selectie maken, niet voor overzicht
-  proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-  gEAG<- st_read("./data/EAG20191205.gpkg") %>% st_transform(proj4.google)
+  gEAG<- st_read("./data/EAG20191205.gpkg") %>% st_transform(4326)
 
   # eag weg bij eerdere versies, 2500-eag-5 weg, 1balansen aan meerdere eags koppelen werkt niet in deze functie
   files <- ppr_wbalfiles(dir_bal, EAG.sf = gEAG, kopTab = kopTab) # wel voor matrix een selectie maken, niet voor overzicht

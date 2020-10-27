@@ -26,9 +26,7 @@ source('scripts/ppr_funs.R')
 
 # run for all files
 
-for(eagnr in 5:50){#4 : nrow(brondata$ESFoordelen)){
-
-for(eagnr in c(1:8,11,14,16,17,20,24,25,26,27,31,47)){#4 : nrow(brondata$ESFoordelen)){
+for(eagnr in c(1:241)){#4 : nrow(brondata$ESFoordelen)){
 
   # voor debug attach(brondata) detach(brondata)
   # eagnr <- 47
@@ -37,26 +35,26 @@ for(eagnr in c(1:8,11,14,16,17,20,24,25,26,27,31,47)){#4 : nrow(brondata$ESFoord
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)
   
   #render the html flexdashboard
-  #outputF <- "html"
-  #rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
-  #               output_format = "flexdashboard::flex_dashboard", #pdf_document
-  #               output_file = paste("FS_", out$my_title2, ".html", sep=''),
-  #               output_dir = "factsheets/output/")
+  outputF <- "html"
+  rmarkdown::render(input = "factsheets/factsheets_html.Rmd",
+                output_format = "flexdashboard::flex_dashboard", #pdf_document
+                output_file = paste("FS_", out$my_title2, ".html", sep=''),
+                output_dir = "factsheets/output/")
 
   # save relavant output and run file for latex pdf
   #saveRDS(out,'factsheets/routput/out.rds')
 
   # change working directory (needed for knit2pdf)
-  setwd("factsheets")
-
-  # make the pdf file
+   setwd("factsheets")
+  # 
+  # # make the pdf file
   knitr::knit2pdf("factsheets_latex_v2.Rnw",compiler = 'pdflatex')
-
-  # copy the pdf to the correct directory (factsheets/output)
+  # 
+  # # copy the pdf to the correct directory (factsheets/output)
   file.rename(from = 'factsheets_latex_v2.pdf',to = paste0("output/FS_", tolower(out$my_title2), ".pdf"))
-  
-  # reset working directory
-  setwd('../')
+  # 
+  # # reset working directory
+   setwd('../')
 
   
 }
