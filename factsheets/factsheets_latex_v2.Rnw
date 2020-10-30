@@ -1,4 +1,5 @@
 \documentclass[12pt]{article}
+\NeedsTeXFormat{LaTeX2e}
 \usepackage[a3paper]{geometry}
 \usepackage[poster]{tcolorbox}
 \usepackage{graphicx}
@@ -44,7 +45,7 @@ lx_status <- out$waterlichamenwl$Status
 lx_owner <- out$waterlichamenwl$Eigenaren
 lx_motstat <- out$waterlichamenwl$motstat
 lx_partners <- if(!is.null(unique(out$waterlichamenwl$Gebiedpartners))){paste0("Andere gebiedspartners zijn ",unique(out$waterlichamenwl$Gebiedpartners),".")}
-lx_monwens <- gsub('\r\n',"",gsub('&','en',out$waterlichamenwl$MonitoringAnalyseWensen))
+lx_monwens <- gsub('\\r\n',"",gsub('&','en',out$waterlichamenwl$MonitoringAnalyseWensen))
 lx_litverw <- ifelse(out$waterlichamenwl$Literatuurverwijzing=='','',paste0('en ',out$waterlichamenwl$Literatuurverwijzing))
   
 # text for ecologische analyse op hoofdlijnen
@@ -76,6 +77,8 @@ maatregelen2[,BeoogdInitiatiefnemer := gsub('Staatsbosbeheer','Staatsbosbeheer',
 #maatregelen2[,Gebiedspartner := gsub('Natuurmonumenten|natuurmonumenten','Natuurmonumenten',Gebiedspartner)]
 #maatregelen2[,Gebiedspartner := gsub('Staatsbosbeheer','Staatsbosbeheer',Gebiedspartner)]
 maatregelen2[,Toelichting_latex := gsub('m³','m3',Toelichting_latex)]
+maatregelen2[,Toelichting_latex := gsub('\\/','- en ',gsub('\\r\n',"",Toelichting_latex))]
+maatregelen2[,Naam := gsub('\\/','-',Naam)]
 
 #replace NA in first row (eagnr 20, to be solved later)
 maatregelen2[grepl('\\{NA}$',ESFoordeel_latex),ESFoordeel_latex := gsub('\\{NA}$','\\{esf/1roodnummer.jpg}',ESFoordeel_latex)]
