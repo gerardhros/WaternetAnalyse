@@ -170,17 +170,31 @@
     wq.kop <- as.data.table(wq.kop)
     wq.kop <- wq.kop[EAGIDENT==loc_EAGIDENT][,geometry := NULL]
     
+    # koppel met waterkwaliteitsmetingen op basis van jaar en seizoensgemiddelde
     wq.kop.mean <- merge(krw.mp.ekr[,.(mpid2,jaar,season)],wq.kop[,.(mpid2,locatiecode)],by='mpid2',
                          allow.cartesian = TRUE,all.x = TRUE)
     wq.kop.mean <- merge(wq.kop.mean, wq.sel,by=c('locatiecode','jaar','season'),all.x=TRUE)
+    wq.kop.mean.mis1 <- wq.kop.mean[!is.na(locatiecode)]
     wq.kop.mean <- melt(wq.kop.mean,id.vars = c('mpid2','locatiecode','jaar','season'),variable.name = 'fewsparameter',value.name = 'meetwaarde')
     wq.kop.mean <- wq.kop.mean[!is.na(meetwaarde)]
     wq.kop.mean <- wq.kop.mean[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by=.(mpid2,jaar,season,fewsparameter)]
+    wq.kop.mean <- dcast(wq.kop.mean,mpid2+jaar+season~fewsparameter,value.var='meetwaarde')
+    
+    # koppel met waterkwaliteitsmetingen op basis van jaar en seizoensgemiddelde
+    wq.kop.mean <- merge(krw.mp.ekr[,.(mpid2,jaar,season)],wq.kop[,.(mpid2,locatiecode)],by='mpid2',
+                         allow.cartesian = TRUE,all.x = TRUE)
+    wq.kop.mean <- merge(wq.kop.mean, wq.sel,by=c('locatiecode','jaar','season'),all.x=TRUE)
+    wq.kop.mean <- wq.kop.mean[!is.na(locatiecode)]
+    wq.kop.mean <- melt(wq.kop.mean,id.vars = c('mpid2','locatiecode','jaar','season'),variable.name = 'fewsparameter',value.name = 'meetwaarde')
+    wq.kop.mean <- wq.kop.mean[!is.na(meetwaarde)]
+    wq.kop.mean <- wq.kop.mean[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by=.(mpid2,jaar,season,fewsparameter)]
+    wq.kop.mean <- dcast(wq.kop.mean,mpid2+jaar+season~fewsparameter,value.var='meetwaarde')
     
     
-    krw.mp.ekr <- merge(krw.mp.ekr)
-    test = krw.mp.ekr$mpid2
-    test = test[!test %in% wq.kop.mean$mpid2]
+    
+    krw.mp.ekr.fin <- merge(krw.mp.ekr,wq.kop.mean,by=c('mpid2','jaar','season'),all.x = TRUE)
+    
+    
                         
     
     PvskP.mp <- makePmaps(dbwbal = dat, dbhybi = hybi,dbnomogram = nomogram,
