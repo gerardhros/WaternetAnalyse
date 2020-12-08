@@ -891,6 +891,27 @@ plotEmpty <-function(db,type){
       ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
       labs(x="",y="P mg/m2/dag\n", fill = '')
   }
+  
+  if(type=='plotekrplot'){
+    plot <- ggplot(db) + geom_point() + xlim(0, 10) + ylim(0, 100) +
+      theme_minimal()+
+      theme(
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        strip.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks =  element_blank(),
+        axis.line = element_line(colour='black'),
+        panel.background = element_blank(),
+        plot.background = element_blank())+
+      annotate("text", x = 5 , y = 50,
+               label = "Ecologische toestand en doelen \nzijn (nog) niet bekend.",
+               hjust = 'middle', size=5, color='blue') +
+      labs(x="",y=" ", fill = '')
+  
+   
+  }
 
 
   # return plot

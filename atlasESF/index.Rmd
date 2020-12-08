@@ -80,18 +80,8 @@ bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
 simoni <- fread("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv")
 locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
 
-wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
-wq$jaar <- format(wq$datum, '%Y')
-wq$maand <- format(wq$datum, '%m')
-wq$jaar <- as.numeric(wq$jaar)
-wq$maand <- as.numeric(wq$maand)
-wq$meetwaarde[wq$limietsymbool == '<'] <- wq$meetwaarde[wq$limietsymbool == '<']/2 
-wq <- wq[!wq$meetwaarde < -998,] 
-wq <- merge(wq, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =TRUE, all.y=FALSE)
-wq$locatie.EAG <- wq$EAGIDENT
-wq <- merge(wq, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-wq$locatie.KRW.watertype <- wq$watertype
+wq <- readRDS('./data/wq.rds') %>% as.data.table()
+pvskp <- readRDS('./data/pvskp.rds') %>% as.data.table()
 
 ```
 

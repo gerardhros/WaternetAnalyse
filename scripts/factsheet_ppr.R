@@ -20,7 +20,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 
   # informatie over maatregelen
   maatregelen <- ppr_maatregelen()
-  maatregelen <- maatregelen[!maatregelen$SGBPPeriode %in% c('Niet uitvoeren','Niet opnemen in SGBP3'),]
+  maatregelen <- maatregelen[!maatregelen$SGBPPeriode.omschrijving %in% c('Niet uitvoeren','Niet opnemen in SGBP3', "niet opnemen in SGBP3"),]
 
   # shape met alle EAGs
   gEAG <- sf::st_read("data/EAG20191205.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
@@ -140,7 +140,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 # --- extractfunctie for relevant properties needed for single factsheet ----
 
   factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
-    # Naardermeer i <- 30
+    # i <- 177
     # subset data ----
     # subset ESFoordelen and get ESF
     waterlichamenwl <- ESFoordelen[i,]
@@ -148,6 +148,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 
     # waterlichaam of eagcode
     wl <- waterlichamenwl$OWL_SGBP3
+    wl <- unlist(strsplit(wl, split=c(', ',',','_'), fixed=TRUE))
 
     # select data for water body and extract name
     if(wl %in% eag_wl$KRW_SGBP3){
@@ -164,14 +165,16 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       eagwl <- eag_wl[GAFIDENT %in% wl|substr(GAFIDENT,1,4) %in% wl,]
 
       # extract the name and remove prefix 'NL11_'
-      wlname <- unique(EKRset[EAGIDENT %in% eagwl$GAFIDENT,HoortBijGeoobject.identificatie])
+      wlname <- unique(EKRset[EAGIDENT %in% eagwl$GAFIDENT, HoortBijGeoobject.identificatie])
       wlname <- gsub("NL11_","",wlname)
+      if(identical(wlname, character(0))){wlname <- "nietbeschikbaar"}
     }
 
     # get title
     my_title <- paste0(waterlichamenwl$OWMNAAM_SGBP3)
     my_title2 <- gsub('\\/','',gsub(' ','',my_title))
-
+    my_title2 <- gsub(',','_',gsub(' ','',my_title2))
+    
     # get P load vs critical p load
     pvskpsel <- pvskp[KRW %in% wl | EAG %in% eagwl$GAFIDENT | GAF %in% c(wl,substr(eagwl$GAFIDENT, 1, 4)),]
 
@@ -253,7 +256,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_5_1')){ESTnaam <- "esticon/W4_O6_OM_L.jpg"}
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_2')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
       if(unique(dtEST2$KRW_SGBP3) %in% c('NL11_1_1')){ESTnaam <- "esticon/W6_O6_K_St.jpg"}
-    }
+    }else(ESTnaam <- "NietBeschikbaar")
 
     # --- make kaarten plots ----
     ## plot locatie EAG binnen beheergebied AGV
@@ -349,17 +352,32 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     d3_deelptn <- ekr_scores3[EKR==min(EKR,na.rm=T),]
 
     # create plt met ekr scores en doelen
-    mapEKR <- ppr_ekrplot2(ekr_scores1)
-
-    # create plt met ekr scores in de tijd
-    # ongewogen scores obv koppeling locatie en EAG
-    z <- rbind(EKRset1,EKRset2[EKRset2$level == 3,])
-    plotEKRlijn <- plotEKRlijnfs(z)
-
+    # loopje voor alle figuren als EKRset1 = EKRset 
+    # NL11 is ongewogen
+    # for(i in unique(ekr_scores1$id)){
+    # mapEKR <- ppr_ekrplot2(ekr_scores1[ekr_scores1$id == i,])
+    # ggplot2::ggsave(mapEKR,file=paste0('factsheets/output/',i,'mapEKR.png'),
+    #                 width = 14, height = 10,units='cm',dpi=1000)
+    # }
+    
+    if(nrow(ekr_scores1)> 0){
+      # plot figure EKR
+      mapEKR <- ppr_ekrplot2(ekr_scores1)
+    } else {
+      # plot figure EKR when no data is available
+      db <- data.frame()
+      mapEKR = plotEmpty(db = db, type='plotekrplot')
+    }
+    
     # save plot, and location where map is saved
     if(splot){ggplot2::ggsave(mapEKR,file=paste0('factsheets/routput/',my_title2,'/mapEKR.png'),
                               width = 14, height = 10,units='cm',dpi=1000)}
     mapEKR <- paste0('routput/',my_title2,'/mapEKR.png')
+    
+    # create plt met ekr scores in de tijd
+    # ongewogen scores obv koppeling locatie en EAG
+    z <- rbind(EKRset1,EKRset2[EKRset2$level == 3,])
+    plotEKRlijn <- plotEKRlijnfs(z)
 
     # --- Ecologische SleutelFactoren (ESF tabel) ------
 
@@ -505,8 +523,9 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
     } else {
 
       # plot figure ESF1 when no data is available
-      plotLeegDB = data.frame(GAF = eagwl$GAFIDENT, pload = 0)
-      plotPwbal = plotEmpty(db = plotLeegDB,type='Pwbal')
+      plotLeegDB = data.frame(GAF = eagwl$GAFIDENT)
+      plotLeegDB$pload <- 0
+      plotPwbal = plotEmpty(db = plotLeegDB, type='Pwbal')
       class(plotPwbal.ref) <- 'plotempty'
     }
 

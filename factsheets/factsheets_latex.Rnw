@@ -22,7 +22,7 @@ require(data.table,quietly = TRUE)
 source('../scripts/kable_fixerror.R')
 
 # read file from earlier saved ourput file (not required, can be used for testing on single pdf)
-#out = readRDS('routput/out.rds')
+# out = readRDS('routput/out.rds')
 
 lx_title <- out$my_title
 lx_wtype <- unique(out$eagwl$watertype)

@@ -1,18 +1,14 @@
 ---
-title: "KRW factsheets AGV"
-date: "`r Sys.Date()`"
+title: "`r out$my_title`"
 output: 
   flexdashboard::flex_dashboard:
-    
     css: css/factsheet.css
     orientation: rows
     vertical_layout: scroll
     logo: images/WN__Waternet-RGB_small.png
 ---
 
-<script>
-document.querySelector(".navbar-header > span.navbar-brand").innerHTML = "`r out$my_title`";
-</script> 
+`r if(startsWith(out$waterlichamenwl$StatusFS, "WIP")){paste0('<div class="watermark">IN OPBOUW, CONCEPT</div>')}`
 
 # Factsheet toestand en ecologische sleutelfactoren (DIPS)
 
@@ -45,7 +41,7 @@ if(length(out$ESTnaam)>0){include_graphics(out$ESTnaam)}
 ```{r kaart, echo = FALSE, message = FALSE, warning=FALSE, out.width= "100%"}
 
 ## plot ligging waterlichaam
-include_graphics(out$mapEAG)
+if(length(out$mapEAG)>0){include_graphics(out$mapEAG)}
 
 ```
 
@@ -121,8 +117,16 @@ knitr::kable(pESFtab, format = "html",col.names = NULL) %>%
 
 ```
 
-## Bron {data-height=50}
-Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2019, begrenzing waterlichamen 2015-2021, hydrobiologische data 2006-2018 en conceptmaatregelen en doelen voor SGBP3 `r if(!is.na(out$waterlichamenwl$Literatuurverwijzing)){paste0(" en ",out$waterlichamenwl$Literatuurverwijzing)}`.
+
+
+## Bron 
+### Bron {data-width=800}
+Deze factsheet is gebaseerd op de KRW toetsing aan (maatlatten 2018) uit 2020, begrenzing waterlichamen 2022-2027, hydrobiologische data 2006-2019, conceptmaatregelen en doelen voor SGBP3 `r if(!is.na(out$waterlichamenwl$Literatuurverwijzing)){paste0(" en ",out$waterlichamenwl$Literatuurverwijzing)}`. Het beeld (tekening) van de toestand van het waterlichaam is gemaakt door Annemoon van Steen.
+
+### Status {data-width=200}
+Datum: `r Sys.Date()`
+<br>
+Status: `r out$waterlichamenwl$StatusFS`
 
 # Maatregelen `r out$waterlichamenwl$Naam` (R)
 
@@ -210,7 +214,6 @@ Disclaimer: SGBP3 maatregelen zijn nog niet bestuurlijk vastgesteld en kunnen no
 
 ### Motivering KRW status en herbegrenzing
 `r out$waterlichamenwl$motstat` 
-
 ### Monitoringswensen
 `r out$waterlichamenwl$MonitoringAnalyseWensen`
 

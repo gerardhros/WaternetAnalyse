@@ -1,4 +1,14 @@
 /* Whole document: */
+.watermark {
+  opacity: 0.2;
+  display: block;
+  position: fixed;
+  top: 10%;
+  left: 20%;
+  font-size: 900%;
+  color: #00407d;
+}
+
 body {
   padding-top: 69px;
   background-color: #fff;
@@ -9,7 +19,8 @@ body {
 }
 
 .navbar-logo img {
-  margin-right: 25px;
+  position: absolute;
+  right: 0px;
 }
 
 .nav-tabs-custom > .nav-tabs > li.active {
@@ -76,3 +87,5 @@ img[alt=esficon] { width: 50px; }
 .huge .remark-code { /*Change made here*/
   font-size: 200% !important;
 }
+
+

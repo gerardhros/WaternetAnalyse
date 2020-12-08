@@ -73,3 +73,17 @@ kaartcam(hybi)
 ```{r kaartved, fig.cap = 'Overzicht van ongelijkbladig vederkruid', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show='hold'}
 kaartved(hybi)
 ```
+
+## Methoden
+In de kaarten is de som van bedekkingen van verschillende taxa kranswieren en fonteinkruiden per meetlocatie weergegeven. Niet in ieder meetjaar is met dezelfde opnamemethode gewerkt. De som van bedekkingen wordt dus in verschillende eenheden uitgedrukt. In het verleden werd met een Tansley bedekkingschaal gewerkt in lijnvormige wateren en met een 'Emile Nat abundantieschaal' in plassen. Hierin worden de volgende abundantieklassen onderscheiden: 
+
+1: aangetroffen met weinig materiaal in één van de windrichtingen
+2: idem in twee van de windrichtingen
+3: idem in drie van de windrichtingen
+4: idem in vier van de windrichtingen
+5: aangetroffen met veel materiaal in één van de windrichtingen
+6: idem in twee van de windrichtingen
+7: idem in drie van de windrichtingen
+8: idem in vier van de windrichtingen
+
+Vanaf 2014 zijn alle taxa in een opname uitgedrukt als percentage bedekking van het proefvlak waarin een opname plaatsvond.
