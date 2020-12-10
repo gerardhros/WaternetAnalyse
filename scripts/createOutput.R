@@ -478,11 +478,18 @@ tabelEKRPerWLEnEAGPerJaar_v2 <- function (EKRset, detail = "deel"){
   
   setorder(d1,id,EAGIDENT,watertype,wbmethode,GHPR_level,-jaar)
   # add year number (given ordered set), and take only three most recent years
-  d1 <- d1[jaar > 2008, yearid := seq_len(.N),by = colg][yearid < 4]
+  d1b <- d1[jaar > 2008, yearid := seq_len(.N),by = colg][yearid < 4]
   # calculate mean EKR per group over the three years = krw score formeel die wordt vergeleken met doel
-  d1 <- d1[,.(EKR3jr = mean(EKRmean,na.rm=T)),by = colg]
+  d1b <- d1b[,.(EKR3jr = mean(EKRmean,na.rm=T)),by = colg]
+  # add year number (given ordered set), and take only three first years
+  setorder(d1,id,EAGIDENT,watertype,wbmethode,GHPR_level,jaar)
+  d1$yearid <- NULL
+  d1a <- d1[jaar < 2014, yearid := seq_len(.N),by = colg][yearid < 4]
+  # calculate mean EKR per group over the three years = krw score formeel die wordt vergeleken met doel
+  d1a <- d1a[,.(EKRref = mean(EKRmean,na.rm=T)),by = colg]
   # merge per jaar en percentielen
-  d3 <- merge(d1, d3, by = c('EAGIDENT','id','watertype','GHPR_level','GHPR','level','wbmethode','facet_wrap_code','GEP','GEP_2022','waterlichaam','KRW_SGBP3'))
+  d3 <- merge(d1b, d3, by = c('EAGIDENT','id','watertype','GHPR_level','GHPR','level','wbmethode','facet_wrap_code','GEP','GEP_2022','waterlichaam','KRW_SGBP3'), all.y = TRUE)
+  d3 <- merge(d1a, d3, by = c('EAGIDENT','id','watertype','GHPR_level','GHPR','level','wbmethode','facet_wrap_code','GEP','GEP_2022','waterlichaam','KRW_SGBP3'), all.y = TRUE)
   
   # add classification for EKR
   d3[EKR3jr < GEP/3,oordeel := 'slecht']
@@ -503,7 +510,13 @@ tabelEKRPerWLEnEAGPerJaar_v2 <- function (EKRset, detail = "deel"){
   d3[EKR3jr >= 2 * doelhndprs / 3,oordeel_hndprs := 'matig']
   d3[EKR3jr >= doelhndprs, oordeel_hndprs := 'goed']
   
-  write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide_v2_",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  # add classification for EKR3jr
+  d3[EKRref < GEP_2022/3,oordeel_ref := 'slecht']
+  d3[EKRref >= GEP_2022/3 & EKR3jr < 2 * GEP_2022 / 3, oordeel_ref := 'ontoereikend']
+  d3[EKRref >= 2 * GEP_2022 / 3,oordeel_ref := 'matig']
+  d3[EKRref >= GEP_2022, oordeel_ref := 'goed']
+  
+  write.table(d3, file = paste(getwd(),"/output/EKROordeelPerGebiedJaarWide_v2",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(d3)
 }
 
@@ -728,8 +741,23 @@ KRWmapEAG <- function(gEAG, ekr_scores2, maatlat = "2V1 Overige waterflora", par
     labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
     gebiedData <- gebiedData[!is.na(gebiedData$klasse),]
   }
+  
+  if(param == 'ekrref'){
+    '7' -> gebiedData$klasse[gebiedData$EKRref < 0.2]
+    '6' -> gebiedData$klasse[gebiedData$EKRref >= 0.2 & gebiedData$EKRref < 0.4]
+    '5' -> gebiedData$klasse[gebiedData$EKRref >= 0.4 & gebiedData$EKRref < 0.6]
+    '4' -> gebiedData$klasse[gebiedData$EKRref >= 0.6 & gebiedData$EKRref < 0.8]
+    '3' -> gebiedData$klasse[gebiedData$EKRref >= 0.8]
+    gebiedData$param <- as.factor(gebiedData$klasse)
+    gebiedData$param = factor(gebiedData$param, levels = c("3", "4", "5", "6","7"))
+    col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+    labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+    gebiedData <- gebiedData[!is.na(gebiedData$klasse),]
+  }
 
   if(param == 'doel'){
+  #gebiedData <- doelen  
+  #gebiedData$GEP_2022 <-   gebiedData$Doel_2022_v2
   '8' -> gebiedData$klasse[gebiedData$GEP_2022 < 0.2]
   '7' -> gebiedData$klasse[gebiedData$GEP_2022 >= 0.2 & gebiedData$GEP_2022 < 0.3]
   '6' -> gebiedData$klasse[gebiedData$GEP_2022 >= 0.3 & gebiedData$GEP_2022 < 0.4]
@@ -814,28 +842,27 @@ KRWmapEAG <- function(gEAG, ekr_scores2, maatlat = "2V1 Overige waterflora", par
   }
 
   pal <- colorFactor(palette = col,  domain = gebiedData$param)
-  map <- sp::merge(gEAG, gebiedData[, c('param','EKR3jr','oordeel','oordeel_2022','oordeel_hndprs','EAGIDENT','GEP','GEP_2022','doelhndprs','EKRperc90.allejaren', 'watertype',
+  map <- sp::merge(gEAG, gebiedData[, c('param','EKR3jr','EKRref','oordeel','oordeel_2022','EAGIDENT','GEP','GEP_2022','EKRperc90.allejaren', 'watertype',
                                         'GHPR_level')], by.x = 'GAFIDENT', by.y =
                      'EAGIDENT', all.x = TRUE, duplicateGeoms = T)
+  
   map2 <- map[map$GAFIDENT %in% c('3000-EAG-3','3000-EAG-4','3000-EAG-2','2000-EAG-7','2000-EAG-2','2000-EAG-3','2000-EAG-4','2000-EAG-5','2000-EAG-6'),]
 
-  # map <- map[order(map$jaar),]
 
   leaflet() %>%
     addPolygons(data = map, layerId = map$GAFIDENT, popup= paste("EAG naam", map$GAFNAAM, "<br>",
                                                                 "EKR score:", map$EKR3jr, "<br>",
+                                                                "Referentiescore:", map$EKRref, "<br>",
                                                                 "Oordeel:", map$oordeel_2022, "<br>",
-                                                                "Oordeelv2:", map$oordeel_hndprs, "<br>",
                                                                 "Doel:", map$GEP_2022, "<br>",
-                                                                "Doelv2:", map$doelhndprs, "<br>",
                                                                 "Percentiel90:", map$EKRperc90.allejaren, "<br>",
                                                                 "Maatlat:", map$GHPR_level ),
                 stroke = T, color= 'grey', opacity=0.8, weight = 0.5, smoothFactor = 0.8,
                 fill=T, fillColor = ~pal(param), fillOpacity = 0.6) %>%
     addPolygons(data= map2, layerId = map2$GAFIDENT, popup= paste("EAG naam", map2$GAFNAAM, "<br>",
                                                                  "EKR score:", map2$EKR3jr, "<br>",
+                                                                 "Referentiescore:", map2$EKRref, "<br>",
                                                                  "Oordeel:", map2$oordeel_2022, "<br>",
-                                                                 "Oordeelv2:", map2$oordeel_hndprs, "<br>",
                                                                  "Doel:", map2$GEP_2022, "<br>",
                                                                  "Percentiel90:", map2$EKRperc90.allejaren, "<br>",
                                                                  "Maatlat:", map2$GHPR_level),
@@ -3285,14 +3312,24 @@ krwmap <- function(gKRW, gEAG){
 eagoverzicht <- function(gEAG, eag_wl){
 
   tabset1 <- merge(gEAG, eag_wl, by = 'GAFIDENT',  all.x = TRUE, duplicateGeoms = T)
+  tabset1 <- tabset1[tabset1$KRW_SGBP3 == "",]
+  setorder(tabset1,watertype)
+  ### Create n colors for fill
+  n <- length(unique(tabset1$watertype))
+  mypal <- colorRampPalette(brewer.pal(9, "Paired"))(n-2)
+  mypal1 <- colorRampPalette(brewer.pal(3, "Greys"))(1)
+  mypal <- c(mypal,mypal1)
+  pal <- colorFactor(palette = mypal,  domain = tabset1$watertype)
 
-  leaflet(tabset1) %>%
+  # krw <- 
+    leaflet(tabset1) %>%
     addPolygons(layerId = tabset1$GAFIDENT, popup= paste("naam", tabset1$GAFNAAM.x, "<br>",
                                                       "Ident:", tabset1$GAFIDENT,"<br>",
-                                                      "watertype:", tabset1$watertype.y),
-                stroke = T, color= NA , fillColor = brewer.pal(length(tabset1$GAFNAAM.x), "Spectral"), opacity=0.8, weight = 1, smoothFactor = 0.8,
+                                                      "watertype:", tabset1$watertype),
+                stroke = T, color= ~pal(watertype) , fillColor = ~pal(watertype), opacity=0.8, weight = 1, smoothFactor = 0.8,
                 fill=T, fillOpacity = 0.6) %>%
-    addTiles()
+    addProviderTiles("Esri.WorldGrayCanvas")%>%
+    addLegend("bottomright", pal=pal, values=tabset1$watertype)
 }
 
 mpwaterkwaliteit <- function (wq){
@@ -3395,9 +3432,9 @@ calcMeanHybiY <- function(hybisel, eenheid = 'KRW'){
 
   # rename relevant columns # toevoegen kroos
   cols <- c('PTN_BEDKG_%_SUBMSPTN_','PTN_BEDKG_%_FLAB_SUBMS','PTN_BEDKG_%_FLAB_DRIJVD','PTN_BEDKG_%_EMSPTN_','PTN_BEDKG_%_KROOS_',
-            'TALBVWTR_graad_TALBVWTR_','ZICHT_m_ZICHT_','WATDTE_m_WATDTE_',"WATERBTE_m_WATERBTE_","SLIBDTE_m_SLIBDTE_",'DTEZICHT','CHLFa_ug_l_CHLFa_','CHLFa_ug_l_blauwalg_CHLFa_blauwalg','CHLFa_ug_l_groenalg_CHLFa_groenalg')
+            'TALBVWTR_graad_TALBVWTR_','ZICHT_m_ZICHT_','WATDTE_m_WATDTE_',"WATERBTE_m_WATERBTE_","SLIBDTE_m_SLIBDTE_",'DTEZICHT')
   colsn <- c('bedsubmers','draadwieren','FLAB','bedemers','kroos','taludhoek','doorzicht',
-             'waterdiepte','waterbreedte','slibdikte','dieptedoorzicht','chlorofyla','blauwalg','groenalg')
+             'waterdiepte','waterbreedte','slibdikte','dieptedoorzicht')
   setnames(b,cols,colsn, skip_absent = T)
 
   # select those columns
@@ -3422,13 +3459,16 @@ calcMeanHybiY <- function(hybisel, eenheid = 'KRW'){
   if(eenheid == "EAG"){
   b_med <- b[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(locatie.EAG,locatie.KRW.watertype,jaar, compartiment)]
   b_mean <- b[,lapply(.SD,mean),.SDcols = cols[!cols=='jaar'],by=.(locatie.EAG,locatie.KRW.watertype,jaar, compartiment)]
+  b_p90 <- b[,lapply(.SD,quantile,0.9, na.rm = T),.SDcols = cols[!cols=='jaar'],by=.(locatie.EAG,locatie.KRW.watertype,jaar, compartiment)]
   b <- merge(b_mean, b_med , by= c('locatie.EAG','locatie.KRW.watertype', 'jaar', 'compartiment'),suffixes = c(".mean", ".median"))
+  b<-  merge(b, b_p90 , by= c('locatie.EAG','locatie.KRW.watertype', 'jaar', 'compartiment'),suffixes = c("", ".p90"))
+  
   }
   if(eenheid == "GAF"){
     b_med <- b[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(locatie.afaanvoergebied,locatie.KRW.watertype,jaar, compartiment)]
     b_mean <- b[,lapply(.SD,mean),.SDcols = cols[!cols=='jaar'],by=.(locatie.afaanvoergebied,locatie.KRW.watertype,jaar, compartiment)]
     b <- merge(b_mean, b_med , by= c('locatie.afaanvoergebied','locatie.KRW.watertype', 'jaar', 'compartiment'),suffixes = c(".mean", ".median"))
-    
+  
   }
 
   b[,dieptedoorzichtfrac.mean := cut(dieptedoorzicht.mean, breaks = c('0.1','0.2','0.3','0.4','0.6', '0.8','1.0'))]
@@ -3485,7 +3525,7 @@ wqsamKRW <- function(wq, locset = locKRW){
   return(wqsam)
 }
 wqsamEAG <- function(wq, locset = locKRW){
-  wq1<- wq[wq$fewsparameter %in% c("PO4","O2","P","N","NH3","NO3", "CHLFA","FLUOBLAU","FLUOGROE"),]
+  wq1<- wq[wq$fewsparameter %in% c("CL","PO4","O2","P","N","NH3","NO3", "CHLFA","FLUOBLAU","FLUOGROE"),]
   #selecteer alleen KRW locaties
   wq1<- wq1[wq1$locatiecode %in% locset$CODE,]
 
@@ -3516,7 +3556,7 @@ wqsamEAG <- function(wq, locset = locKRW){
   wqsam <- dcast(setDT(d7),  locatie.EAG+jaar ~ fewsparameter ,
                  value.var = c("median","mean","min"))
 
-  #write.table(wqsam, file = paste(getwd(),"/output/chemEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+  write.table(wqsam, file = paste(getwd(),"/output/chemEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
   return(wqsam)
 }
 

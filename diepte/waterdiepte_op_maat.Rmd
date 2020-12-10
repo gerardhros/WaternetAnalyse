@@ -55,11 +55,11 @@ Het programma Waterdiepte op Maat beoogd de morfolgie van watergangen zo aan te 
 locaties <- fread('../data/Location.csv')
     
 # locaties van EAG oppervlaktes
-eag_wl <- fread('../data/EAG_Opp_kenmerken_20200218.csv')
+eag_wl <- fread('../data/EAG_Opp_kenmerken_20201208.csv')
 eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 
 # gegevens hydrobiologie (only data after 2006)
-hybi <- readRDS('../data/alles_reliable.rds')
+hybi <- readRDS('../data/alles_reliable.rds')%>% as.data.table()
 hybi <- ppr_hybi(db = hybi, syear = 2006, wtype = eag_wl, mlocs = locaties)
 
 # EAG kaart
@@ -145,13 +145,16 @@ In onderstaande tabel staan de gebieden waar de waterdiepte tijdens de laatste m
 
 ```{r dieptetabel, echo=FALSE, fig.cap='Waterdiepte en handelingsperspectief per EAG', fig.show='hold', message=FALSE, warning=FALSE, out.width="100%"}
 
-b = dcast(hybi[hybi$locatie.KRW.watertype %in% c('M1a','M1b','M8','M3','M10'),],locatie.EAG+jaar ~ fewsparameter,
+b = dcast(hybi[hybi$locatie.KRW.watertype %in% c('M1a','M1b','M8','M3','M10'),],locatiecode+locatie.EAG+jaar ~ fewsparameter,
               value.var = "meetwaarde", fun.aggregate = median, na.rm =TRUE, fill = NaN)
 
-# d1 <- hybi[hybi$fewsparameter == c('WATDTE_m','WATERBTE_m', 'SLIBDTE_m'),.(mean = mean(meetwaarde,na.rm=T), median = quantile(meetwaarde,probs = c(0.50), na.rm=T), perc90 = quantile(meetwaarde,probs = c(0.90), na.rm=T), perc95 = quantile(meetwaarde,probs = c(0.95), na.rm=T)), by = c('locatie.EAG','jaar','fewsparameter')]
 
 b$WATDTE_max[b$WATERBTE_m > 6 & !is.na(b$WATDTE_m)& !is.na(b$WATERBTE_m)] <-  b$WATDTE_m[b$WATERBTE_m > 6 & !is.na(b$WATDTE_m) & !is.na(b$WATERBTE_m)] + 0.15
 b$handelpers <- b$WATDTE_m + b$SLIBDTE_m
+
+c <- b[,.(mean = mean(WATDTE_m,na.rm=T), median = quantile(WATDTE_m,probs = c(0.50), na.rm=T), perc90 = quantile(WATDTE_m,probs = c(0.90), na.rm=T), perc95 = quantile(WATDTE_m,probs = c(0.95), na.rm=T)), by = c('locatie.EAG','jaar')]%>%
+    group_by(locatie.EAG) %>%
+    top_n(1, wt = jaar)
 
 b <- b[, c('locatie.EAG','jaar','handelpers','WATDTE_m','WATDTE_max','WATERBTE_m', 'SLIBDTE_m')] %>%
     arrange(locatie.EAG,desc(jaar)) %>%

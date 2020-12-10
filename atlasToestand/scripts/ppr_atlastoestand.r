@@ -5,9 +5,9 @@ doelen <- fread('../hydrobiologie/Doelen.csv')
 doelen$Doel_2022 <- as.numeric(doelen$Doel_2022)
 
 ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-eag_wl <- fread('../data/EAG_Opp_kenmerken_20201005.csv')
+eag_wl <- fread('../data/EAG_Opp_kenmerken_20201208.csv')
 
-hybi <- readRDS('../data/alles_reliable.rds')
+hybi <- readRDS('../data/alles_reliable.rds')%>%as.data.table
 # hybi measurements
 hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)
 hybi$meetwaarde <- as.numeric(hybi$meetwaarde)
@@ -46,7 +46,7 @@ tabset <- tabset[!level == 1 ,minscore := EKR3jr==min(EKR3jr,na.rm=T), by = c('i
 # subset 3 correctie laagte score deelmaatlat soorten abundantie waarbij oever en drijfblad niet meedoet
 tabset<- tabset[wbmethode =="Maatlatten2018 Ov. waterflora" &
                   level == 3 & !(GHPR %in% c('Bedekking Grote drijfbladplanten','Bedekking Kruidlaag')),minscore := EKR3jr==min(EKR3jr,na.rm=T), by = c('id','EAGIDENT','facet_wrap_code','level')]
-saveRDS(tabset, file = './data/tabset_v2.rds')
+saveRDS(tabset, file = './data/tabset.rds')
 
 # bereken trend per toetsgebied
 trendekr <- trend(EKRset, detail = "deel") 
@@ -107,7 +107,7 @@ hybimeanKRW <- calcMeanHybiY(hybisel, eenheid = 'KRW') #loopt vast gaat iets mis
 hybimeanEAG <- calcMeanHybiY(hybisel, eenheid = 'EAG')
 hybimeanGAF <- calcMeanHybiY(hybisel, eenheid = 'GAF')
 colnames(hybisel) <- gsub(".", " ", colnames(hybisel), fixed=TRUE)
-#write.table(hybimeanEAG, file = paste(getwd(),"/output/hybimeanEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+# write.table(b[!is.na(b$doorzicht.mean),], file = paste(getwd(),"/output/hybimeanEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
 # subset locaties voor KRW selecteren: moet kolom CODE bevatten met locatiecodes
 locKRW <- fread('../atlasKRW/input/NL11_relatieKRWmonitoringslocatiesEnWerkelijkeMeetpunten.csv')

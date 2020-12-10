@@ -191,7 +191,7 @@ EST_aggloc <- function(est){
   cols2 <- c('compartiment','monsterident',"W1","W2","W2a","W3","W4","W4a","W5","W5a","W5b","W5c","W6","W6a","W6b","W7","W7a","W7b","W7b","W7c","W7d","W8","W9","O1","O2","O3","O4","O5","O6","O7","O8")
   estloc2 <- est[,lapply(.SD, median, na.rm=TRUE), by=c('locatie.EAG','locatiecode','jaar','watertype'),.SDcols = -cols2]
   estloc <- merge(estloc,estloc2, by=c('locatie.EAG','locatiecode','jaar','watertype'))
-  write.table(estloc, paste0("estlocatie_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
+  write.table(estloc, paste0("output/estlocatie_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estloc)
 }
 
@@ -201,7 +201,7 @@ EST_aggeag <- function(estloc){
   cols2 <- c('locatiecode',"W1","W2","W2a","W3","W4","W4a","W5","W5a","W5b","W5c","W6","W6a","W6b","W7","W7a","W7b","W7b","W7c","W7d","W8","W9","O1","O2","O3","O4","O5","O6","O7","O8")
   esteag2 <- estloc[,lapply(.SD, median, na.rm=TRUE), by=c('locatie.EAG','jaar','watertype'),.SDcols = -cols2]
   esteag <- merge(esteag,esteag2, by=c('locatie.EAG','jaar','watertype'))
-  write.table(esteag, paste0("esteag_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
+  write.table(esteag, paste0("output/esteag_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(esteag)
 }
 
@@ -221,7 +221,7 @@ EST_addnameeag <- function(esteag, EKRset, eag_wl){
   estmerg <- merge(grenswaarden_EST[,c('omschrijving','type')], estmerg, by.y = 'O', by.x = 'type', all.y = T, allow.cartesian =T)
   estmerg$type <- NULL; estmerg$type.y <-NULL
   estmerg$estnaamvol <- paste0(estmerg$estnaam,'_',estmerg$omschrijving.y,'_', estmerg$omschrijving.x)
-  write.table(estmerg, paste0("esteagnaam_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
+  write.table(estmerg, paste0("output/esteagnaam_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estmerg)
 }  
 
@@ -238,7 +238,7 @@ EST_addnameloc <- function(estloc, EKRset, eag_wl){
   estmergl$ESTnaam3[estmergl$StedelijkLandelijk == 'Landelijk'] <- 'L'
   estmergl$estnaam <- paste0(estmergl$W,'_',estmergl$O,'_',estmergl$ESTnaam2,'_', estmergl$ESTnaam3)
   
-  write.table(estmergl, paste0("estlocnaam_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
+  write.table(estmergl, paste0("output/estlocnaam_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estmergl)
 }
 
@@ -246,14 +246,14 @@ EST_koppeleag <- function(estmerg, EKRset){
   ekragg <- tabelOordeelPerGebiedPerJaar(EKRset, detail = "hoofd")
   ekragg <- ekragg[ekragg$facet_wrap_code == 'Ov. waterflora', ]
   estekr <- merge(estmerg, ekragg, by.x=c('locatie.EAG','jaar'), by.y = c('EAGIDENT','jaar'))
-  write.table(estekr, paste0("estekr_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
+  write.table(estekr, paste0("output/estekr_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estekr)
 }
 
 EST_koppelloc <- function(estmergl, EKRset){  
   ekrsel <- EKRset[EKRset$facet_wrap_code == 'Ov. waterflora' & EKRset$level == 1, ]
   estekrloc <- merge(estmergl, ekrsel, by.x=c('locatiecode','jaar'), by.y = c('CODE','jaar'))
-  write.table(estekrloc, paste0("estekrloc_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
+  write.table(estekrloc, paste0("output/estekrloc_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estekrloc)
 }
 
@@ -314,7 +314,7 @@ printestplots <- function(estekr){
       )+
       ggtitle('') +
       labs(x= 'ecosysteem toestand' , y= 'ekr flora')
-    ggsave(paste0("ekrest_W",i,".png"))
+    ggsave(paste0("output/ekrest_W",i,".png"))
   }
 }
 kaartEST <- function(){

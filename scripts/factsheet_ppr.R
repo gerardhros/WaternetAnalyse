@@ -48,7 +48,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   simoni <- readRDS('data/simoni.rds')
 
   ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
-  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200701.csv')
+  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
   eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 
   # KRW doelen

@@ -69,7 +69,8 @@ gKRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(4326)
 KRW<- st_read("./data/WBPKRW20200525.gpkg")%>% st_transform(28992)
 ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
 ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-eag_wl <- fread('./data/EAG_Opp_kenmerken_20201005.csv')
+eag_wl <- fread('./data/EAG_Opp_kenmerken_20201208.csv')
+eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 
 TWNev <- read_excel('./data/TwnList_2019-07-19.xlsx')
 
@@ -264,22 +265,25 @@ Het beheergebied van AGV is zeer divers en daarom opgedeeld in kleinere [Ecologi
 In afbeelding \@ref(fig:kaartenekroordeeldoelmcft) staan de berkende EKR scores, doelen en de oordelen die daaruit volgen weergegeven zodat zichtbaar wordt hoe het oordeel is opgebouwd. De actuele toestand van vegetatie is gebaseerd op metingen in meerdere jaren. De gemeten vegetatie laat van nature fluctuaties zien in de tijd en een gemiddelde van verschillende jaren geeft een betrouwbaarder beeld van de ecologische toestand. In de systematiek van de KRW wordt een oordeel gegeven door dit ‘slepend gemiddelde’ van EKR scores per gebied te vergelijken met een doel.
 
 ```{r kaartenekroordeeldoelmcft, fig.cap = 'Overzicht van oordelen, EKR scores en doelen op de maatlat overige waterflora.', echo = FALSE, message = FALSE, warning = FALSE, out.width="100%", fig.show ='hold'}
-krw <-
-#ekr_scores2 <- ekr_scores2[ekr_scores2$KRW_SGBP3 == "",] #alleen ov water
+# ekr_scores2 <- ekr_scores2[ekr_scores2$KRW_SGBP3 == "",] #alleen ov water
+# krw <-
+#   KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,],
+#               maatlat = "2V1 Overige waterflora", param = "ekrref")
 
 combineWidgets(
     ncol = 4,
     KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
               maatlat = "2V1 Overige waterflora", param = "ekr3jr"),
     KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
-              maatlat = "2V1 Overige waterflora", param = "doel_gemhndprs"),   KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
-              maatlat = "2V1 Overige waterflora", param = "oordeelv2"),
+              maatlat = "2V1 Overige waterflora", param = "doel"),
     KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
-              maatlat = "2V1 Overige waterflora", param = "doelgatv2")
+              maatlat = "2V1 Overige waterflora", param = "oordeel"),
+    KRWmapEAG(gEAG,ekr_scores2[ekr_scores2$wbmethode == "Maatlatten2018 Ov. waterflora" ,], 
+              maatlat = "2V1 Overige waterflora", param = "doelgat")
 )
 
 
-saveWidget(krw, "waterfloraekrdoeloordeelgatv2.html", selfcontained = FALSE)
+# saveWidget(krw, "referentie.html", selfcontained = FALSE)
 #webshot("waterflora.html", file = "waterflora.png")
 
 ```
