@@ -13,6 +13,7 @@
 
 /development/*
 /KRWapp/*
+/EST/*
 /atlasKRW/output/*
 /atlasKRW/input/*
 /atlasKRW/app/*
@@ -27,6 +28,8 @@ factsheets/output/*
 /toxiciteit/docs/*
 /matrix/_book/*
 /atlasToestand/output/*
+/atlasToestand/data/*
+/atlasToestand/scripts/*
 /atlasToestand/figurenEnTabellen/*
 /atlasToestand/www/*
 /atlasToestand/_book/*
@@ -50,3 +53,4 @@ factsheets/output/*
 factsheets/*.log
 factsheets/*.tex
 /iregv_app/*
+/diepte/output*

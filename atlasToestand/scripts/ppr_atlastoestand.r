@@ -5,9 +5,9 @@ doelen <- fread('../hydrobiologie/Doelen.csv')
 doelen$Doel_2022 <- as.numeric(doelen$Doel_2022)
 
 ## let op: als nieuwe EAG (gEAG) dan deze tabel aanpassen en aanvullen
-eag_wl <- fread('../data/EAG_Opp_kenmerken_20201005.csv')
+eag_wl <- fread('../data/EAG_Opp_kenmerken_20201208.csv')
 
-hybi <- readRDS('../data/alles_reliable.rds')
+hybi <- readRDS('../data/alles_reliable.rds')%>%as.data.table
 # hybi measurements
 hybi <- ppr_hybi(db = hybi, syear = 1990, wtype = eag_wl, mlocs = locaties)
 hybi$meetwaarde <- as.numeric(hybi$meetwaarde)
@@ -29,8 +29,13 @@ saveRDS(EKRset, file = './data/ekrset.rds')
 
 source('./scripts/createOutput.R')
 
+# EKR 0 situatie
+# tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset[EKRset$jaar < 2011,], detail = "deel", vayear = 2005) %>% as.data.table() # deelmaatlatten, wide format, oordelen, percentielen, 3jarig
+# tabset[,oordeelsort := EKR3jr / GEP_2022]
+# tabset <- tabset[GHPR == 'Waterdiepte', GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten", GHPR))]
+
 # EKR
-tabset <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") %>% as.data.table() # deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
+tabset <- tabelEKRPerWLEnEAGPerJaar_v2(EKRset, detail = "deel") %>% as.data.table() # deelmaatlatten, wide format, oordelen, percentielen, 3jarig 
 tabset[,oordeelsort := EKR3jr / GEP_2022]
 tabset <- tabset[GHPR == 'Waterdiepte', GHPR := as.factor(gsub('Waterdiepte',"Vestigingsdiepte waterplanten", GHPR))]
 
@@ -56,18 +61,18 @@ ekrtrend <- trendekr[!(grepl('^NL11*', trendekr$id) & !trendekr$KRW_SGBP3 == "")
 # bereken trend per eag (ook voor krw wl)
 trendekreag <- trendEAG(EKRset, detail = "deel") 
 #koppel trend aan ekr per jaar en gemiddeld
-trendekreag <- merge(trendekreag[,c('id','EAGIDENT','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code','estimate','r.squared','p.value')], tabset, by.x = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code'), by.y = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','wbmethode','watertype'), all.y = T)
+#trendekreag <- merge(trendekreag[,c('id','EAGIDENT','facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code','estimate','r.squared','p.value')], tabset, by.x = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','Waardebepalingsmethode.code','KRWwatertype.code'), by.y = c('id',"EAGIDENT",'facet_wrap_code', 'GHPR_level','wbmethode','watertype'), all.y = T)
 trendekreag$estimate <- trendekreag$estimate*12 # ekr per 2 planperioden
 trendekreag$estimate[trendekreag$estimate < 0.05 & trendekreag$estimate > -0.05] <- 0 # verwaarloosbaar klein
 trendekreag$estimate <- round(trendekreag$estimate, digits = 2)
 trendekreag$facet_wrap_code <- gsub("Ov. waterflora", "Waterflora", trendekreag$facet_wrap_code)
 ekrtrendeag <- trendekreag[!is.na(trendekreag$EAGIDENT) & trendekreag$level == 1,] # alleen scores per eag op hoofdmaatlatten
 
-saveRDS(trendekr, file = './data/trendekreag.rds')
+saveRDS(trendekr, file = './data/trendekr.rds')
 saveRDS(trendekreag, file = './data/trendekreag.rds')
 saveRDS(ekrtrend, file = './data/ekrtrend.rds')
 saveRDS(ekrtrendeag, file = './data/ekrtrendeag.rds')
-# write.table(trendekreag, file = paste(getwd(),"/output/OordeelTrendPerGebiedScorePerJaarWide",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+# write.table(ekrtrendeag, file = paste(getwd(),"/output/TrendekrtoetsgebiedHoofdmtlt",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
 
 # waterquality measurements
 wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
@@ -86,3 +91,42 @@ Overzicht_kP <- data.table::fread('../data/Overzicht_kP.csv')
 Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
 pvskp <- ppr_pmaps(dat, Overzicht_kp, hybi, nomogram) 
 saveRDS(pvskp, file ='./data/pvskp.rds')
+
+#tabeloverzichten toetsing
+tabelOordeelPerGebiedPerJaar(EKRset, detail = "hoofd") # alleen hoofdmaatlatten, long format
+tabelOordeelPerMeetlocatiePerJaar(EKRset, detail = "hoofd") # alleen hoofdmaatlatten, meetpunten, long format
+tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "hoofd") # hoofdmaatlatten, wide format
+
+tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "deel") # deelmaatlatten, wide format
+tabelG <- tabelOordeelPerGebiedPerJaar(EKRset, detail = "deel")# deelmaatlatten, long format
+
+# info voor Gerard ter Heerdt regresssie doelafleiding toevoegen
+hybisel <- hybi[hybi$biotaxonnaam == "" & !hybi$eenheidequivalent %in% c("TansleyS", "BraunBS")
+                & !hybi$afronding %in% c("ja",'Ja'),]
+hybimeanKRW <- calcMeanHybiY(hybisel, eenheid = 'KRW') #loopt vast gaat iets mis
+hybimeanEAG <- calcMeanHybiY(hybisel, eenheid = 'EAG')
+hybimeanGAF <- calcMeanHybiY(hybisel, eenheid = 'GAF')
+colnames(hybisel) <- gsub(".", " ", colnames(hybisel), fixed=TRUE)
+# write.table(b[!is.na(b$doorzicht.mean),], file = paste(getwd(),"/output/hybimeanEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+
+# subset locaties voor KRW selecteren: moet kolom CODE bevatten met locatiecodes
+locKRW <- fread('../atlasKRW/input/NL11_relatieKRWmonitoringslocatiesEnWerkelijkeMeetpunten.csv')
+wqmeanK <- wqsamKRW(wq, locset = locKRW)
+wqmeanE <- wqsamEAG(wq, locset = locKRW)
+
+matrixreg <- sp::merge(tabelG[is.na(tabelG$EAGIDENT),], 
+                       hybimeanKRW, 
+                       by.x = c('KRW_SGBP3','jaar'), by.y = c('locatie.KRWmeetpuntlocatie','jaar'), all.x = TRUE)
+matrixreg2 <- sp::merge(tabelG[!is.na(tabelG$EAGIDENT),], 
+                        hybimeanEAG, 
+                        by.x = c('EAGIDENT','jaar'), by.y = c('locatie.EAG','jaar'), all.x = TRUE)
+matrixreg <- smartbind(matrixreg, matrixreg2)
+matrixreg1 <- sp::merge(matrixreg[is.na(matrixreg$EAGIDENT),], 
+                        wqmeanK, 
+                        by.x = c('KRW_SGBP3','jaar'), by.y = c('locatie.KRWmeetpuntlocatie','jaar'), all.x = TRUE)
+matrixreg2 <- sp::merge(matrixreg[!is.na(matrixreg$EAGIDENT),], 
+                        wqmeanE, 
+                        by.x = c('EAGIDENT','jaar'), by.y = c('locatie.EAG','jaar'), all.x = TRUE)
+matrixreg <- smartbind(matrixreg1, matrixreg2)
+write.table(matrixreg, file = paste(getwd(),"/output/regressiematrixKRWEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+

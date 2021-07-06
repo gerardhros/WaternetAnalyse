@@ -61,5 +61,20 @@
   # inladen toxiciteitsdata
   simoni <- fread("toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv",stringsAsFactors = F)
   saveRDS(simoni,'data/simoni.rds')
+  
+  # import en aanpassen hybi met gecorrigeerde data
+  # gegevens hydrobiologie
+  hybi <- readRDS('data/alles_reliable.rds')
+  hybi2 <- fread("development/HB_macrofyten_all.csv", stringsAsFactors = F)
+  monst <- unique(hybi2$monsterident)
+  hybi1 <- hybi[!hybi$monsterident %in% monst,]
+  colnames(hybi2) <- gsub(" ", ".", colnames(hybi2), fixed=TRUE)
+  hybi <- smartbind(hybi1,hybi2, fill =T)
+  saveRDS(hybi,'data/alles_reliable.rds')  
+  
+ 
+  
+  
+  
 
   

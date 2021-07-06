@@ -37,12 +37,13 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
 
   # remove columns with no data or non-relevant information (judgement gerard)
   cols <- colnames(db)[unlist(db[,lapply(.SD,function(x) sum(is.na(x))==nrow(db))])]
-  cols <- c(cols,'watertype','EAGIDENT','monsternemer','planvanaanpak','analist',
+  cols <- c(cols,'monsternemer','planvanaanpak','analist',
             'bron','bemonsteringsprotocol','analyseprotocol','locatie.referentievlakzcoord',
             'locatie.meetprogrammaactueel',
             'locatie.meetnetactueel','opmerkingmeting','externereferentie')
+  cols <- unique(cols)
   db[,c(cols) := NULL]
-
+  
   # return updated database
   return(db)
 }
@@ -890,6 +891,27 @@ plotEmpty <-function(db,type){
       scale_fill_manual(values = c('red', 'salmon', 'lightblue'), labels = c('geen ijzerval', 'beperkte ijzerval', 'functionele ijzerval'), drop = FALSE)+
       ggtitle( "Actuele nalevering uit de waterbodem\nobv poriewatermetingen") +
       labs(x="",y="P mg/m2/dag\n", fill = '')
+  }
+  
+  if(type=='plotekrplot'){
+    plot <- ggplot(db) + geom_point() + xlim(0, 10) + ylim(0, 100) +
+      theme_minimal()+
+      theme(
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
+        strip.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks =  element_blank(),
+        axis.line = element_line(colour='black'),
+        panel.background = element_blank(),
+        plot.background = element_blank())+
+      annotate("text", x = 5 , y = 50,
+               label = "Ecologische toestand en doelen \nzijn (nog) niet bekend.",
+               hjust = 'middle', size=5, color='blue') +
+      labs(x="",y=" ", fill = '')
+  
+   
   }
 
 

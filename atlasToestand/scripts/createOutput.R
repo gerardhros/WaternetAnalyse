@@ -631,6 +631,15 @@ KRWmapEAG <- function(gEAG, ekr_scores2, maatlat = "2V1 Overige waterflora", par
   col <- c('goed'="green",'matig'="yellow",'ontoereikend'="orange",'slecht'="red")
   labels <- c('goed'='goed','matig'='matig','ontoereikend'='ontoereikend','slecht'='slecht')
   }
+  
+  if(param == 'oordeeloud'){
+    gebiedData$param <- as.factor(gebiedData$oordeel)
+    #gebiedData$oordeel = factor(gebiedData$oordeel, levels = c( "4", "5", "6","7"))
+    gebiedData <- gebiedData[!is.na(gebiedData$oordeel),]
+    
+    col <- c('goed'="green",'matig'="yellow",'ontoereikend'="orange",'slecht'="red")
+    labels <- c('goed'='goed','matig'='matig','ontoereikend'='ontoereikend','slecht'='slecht')
+  }
 
   if(param == 'ekr3jr'){
     '7' -> gebiedData$klasse[gebiedData$EKR3jr < 0.2]
@@ -656,6 +665,19 @@ KRWmapEAG <- function(gEAG, ekr_scores2, maatlat = "2V1 Overige waterflora", par
   gebiedData <- gebiedData[!is.na(gebiedData$klasse),]
   col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
   labels <- c('3'='>0.8', '4'='0.6-0.8','5'='0.4-0.6','6'='0.2-0.4','7'='0-0.2')
+  }
+  
+  if(param == 'doeloud'){
+    '7' -> gebiedData$klasse[gebiedData$GEP < 0.2]
+    '6' -> gebiedData$klasse[gebiedData$GEP >= 0.2 & gebiedData$GEP < 0.4]
+    '5' -> gebiedData$klasse[gebiedData$GEP >= 0.4 & gebiedData$GEP < 0.6]
+    '4' -> gebiedData$klasse[gebiedData$GEP >= 0.6 & gebiedData$GEP < 0.8]
+    '3' -> gebiedData$klasse[gebiedData$GEP >= 0.8]
+    gebiedData$param <- as.factor(gebiedData$klasse)
+    gebiedData$param = factor(gebiedData$param, levels = c("3", "4", "5", "6","7"))
+    gebiedData <- gebiedData[!is.na(gebiedData$klasse),]
+    col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
+    labels <- c('3'='>0.8', '4'='0.6-0.8','5'='0.4-0.6','6'='0.2-0.4','7'='0-0.2')
   }
 
   if(param == 'doelgat'){
@@ -1836,58 +1858,73 @@ pbalansjaar <- function(dat){
 }
 
 # esf waterdiepte----------------------------
-diepte <- function (hybi, gEAG, bandbreedte = 'minimaal'){
-  # hybi2 <-hybi1[hybi1$jaar >= '2018' & hybi1$jaar < '2021',]
+diepte <- function (hybi, gEAG, bandbreedte = 'minimaal', param = 'watdte'){
+  # hybi <-hybi[hybi1$jaar >= '2006' & hybi1$jaar < '2021',]
   if(nrow(hybi)>0){
   b = dcast(hybi,locatie.EAG+jaar ~ fewsparameter,
             value.var = "meetwaarde", fun.aggregate = median, na.rm =TRUE, fill = NaN)
+  b$handelpers <- b$WATDTE_m + b$SLIBDTE_m
   #median(b$WATDTE_m[b$jaar > 2015 & b$locatie.KRW.watertype %in% c('M1a','')], na.rm =T)
+  
   if(!is.null(b$WATDTE_m)){
   c = dcast(hybi,locatiecode+jaar+xcoormonster+ycoormonster ~ fewsparameter,
             value.var = "meetwaarde", fun.aggregate = median, na.rm =TRUE, fill = NaN)
+  c$handelpers <- c$WATDTE_m + c$SLIBDTE_m
 
   if(bandbreedte == "maximaal"){
-    b$WATDTE_m[b$WATERBTE_m > 6] <-  b$WATDTE_m + 0.15
-    c$WATDTE_m[c$WATERBTE_m > 6] <-  c$WATDTE_m + 0.15
+    b$WATDTE_m[b$WATERBTE_m > 6 & !is.na(b$WATERBTE_m)] <-  b$WATDTE_m[b$WATERBTE_m > 6 & !is.na(b$WATERBTE_m)] + 0.15
+    c$WATDTE_m[c$WATERBTE_m > 6 & !is.na(c$WATERBTE_m)] <-  c$WATDTE_m[c$WATERBTE_m > 6 & !is.na(c$WATERBTE_m)] + 0.15
   }
 
-  b$watdtefac <- cut(b$WATDTE_m, breaks = c('0','0.1','0.2','0.3','0.4','0.6','3.0','20'))
-  c$watdtefac <- cut(c$WATDTE_m, breaks = c('0','0.1','0.2','0.3','0.4','0.6','3.0','20'))
-  col <- c('1'="darkred",'2'="red", '3'="orange",'4'="yellow",'5'="deepskyblue", '6'= 'blue', '7'='darkblue')
-  labels <- c('1'="0-0.1",'2'="0.1-0.2" ,'3'="0.2-0.3",'4'="0.3-0.4",'5'="0.4-0.6",'6' = '0.6-3.0','7'='3.0-20')
+  
+  b$watdtefac <- cut(b$WATDTE_m,  breaks = c('0','0.1','0.2','0.3','0.35','0.4','0.5','0.6','3.0','20'))
+  c$watdtefac <- cut(c$WATDTE_m,  breaks = c('0','0.1','0.2','0.3','0.35','0.4','0.5','0.6','3.0','20'))
+  b$handelpersfac <- cut(b$handelpers,   breaks = c('0','0.1','0.2','0.3','0.35','0.4','0.5','0.6','3.0','20'))
+  c$handelpersfac <- cut(c$handelpers, breaks = c('0','0.1','0.2','0.3','0.35','0.4','0.5','0.6','3.0','20'))
+  
+  col <- c('1'="darkred",'2'="red", '3'="orange",'4'="yellow",'5'="green",'6'="deepskyblue", '7'= 'blue', '8'='darkblue','8'='grey')
+  labels <- c('1'="0-0.1",'2'="0.1-0.2" ,'3'="0.2-0.3",'4'="0.3-0.35",'5'="0.35-0.4",'6'="0.4-0.5",'7'="0.5-0.6",'8' = '0.6-3.0','9'='3.0-20')
+  
 
-
-  map <- sp::merge(gEAG, b[, c('watdtefac','WATDTE_m','jaar','locatie.EAG')],
+  map <- sp::merge(gEAG, b[, c('handelpersfac','handelpers','watdtefac','WATDTE_m','jaar','locatie.EAG')],
                    by.x = 'GAFIDENT', by.y =
                      'locatie.EAG', all.x = FALSE, duplicateGeoms = T)
-  pal <- colorFactor(palette = col,  domain = map$watdtefac)
-
-  c<- c[!is.na(c$xcoormonster) & !c$xcoormonster == '' & !c$xcoormonster == 0,]
-  selc <-
-    spTransform(SpatialPointsDataFrame(coords=c[,c("xcoormonster","ycoormonster")],
-                                       data=c, proj4string=proj4.rd),
-                CRSobj=proj4.google)
-  selc <-as.data.frame(selc)
-  pal1 <- colorFactor(palette = col,  domain = c$watdtefac)
-
+  c <- c[!is.na(c$xcoormonster) & !is.na(c$ycoormonster),]
+  selc <- st_transform(st_as_sf(c,coords = c("xcoormonster","ycoormonster"),crs = 28992),4326)
+  
+  
+  if(param == 'watdte'){
+    map$param <- map$watdtefac
+    selc$param <- c$watdtefac
+    }
+  
+  if(param == 'handelpers'){
+    map$param <- map$handelpersfac
+    selc$param <- c$handelpersfac
+    }
+  
+  pal <- colorFactor(palette = col,  domain = map$param)
+  pal1 <- colorFactor(palette = col,  domain = c$param)
   selc <- selc[order(selc$jaar),]
   map <- map[order(map$jaar),]
 
   leaflet() %>%
     addPolygons(data = map, layerId = map$GAFIDENT, popup= paste("Naam ecologisch analyse gebied", map$GAFNAAM, "<br>",
                                                                  "Diepte in m:", map$WATDTE_m, "<br>",
+                                                                 "Vaste bodem in m:", map$handelpers, "<br>",
                                                                  "Meetjaar:", map$jaar),
                 stroke = T, color= 'green', opacity=0.8, weight = 1, smoothFactor = 0.8,
-                fill=T, fillColor = ~pal(watdtefac), fillOpacity = 0.6) %>%
-    addCircles(data = selc, ~xcoormonster.1, ~ycoormonster.1, popup= paste("Meetlocatiecode", selc$locatiecode, "<br>",
+                fill=T, fillColor = ~pal(param), fillOpacity = 0.6) %>%
+    addCircles(data = selc, popup= paste("Meetlocatiecode", selc$locatiecode, "<br>",
                                                                            "Diepte in meter:", selc$WATDTE_m, "<br>",
-                                                                            "Meetjaar:", selc$jaar),
-               weight = 3, radius=40, fillOpacity = 0.8, color = ~pal1(watdtefac)) %>%
+                                                                           "Vaste bodem in m:", selc$handelpers, "<br>",
+                                                                           "Meetjaar:", selc$jaar),
+               weight = 3, radius=40, fillOpacity = 0.8, color = ~pal1(param)) %>%
     addLegend("bottomright", colors=col, labels=labels, title = unique(map$jaar))%>%
     addTiles()
 }}
 }
-diepte1<- function (hybi, gEAG, bandbreedte = 'minimaal'){ # kaart mediane diepte per eag + slibdikte is handelingsperspectief
+diepte1<- function (hybi, gEAG, bandbreedte = 'minimaal', output = 'tabel'){ # kaart mediane diepte per eag + slibdikte is handelingsperspectief
 
   if(nrow(hybi)>0){
     b = dcast(hybi,locatie.EAG+jaar ~ fewsparameter,
@@ -1902,7 +1939,11 @@ diepte1<- function (hybi, gEAG, bandbreedte = 'minimaal'){ # kaart mediane diept
     b$handelpers <- b$WATDTE_m + b$SLIBDTE_m
     b$handelpersfac <- cut( b$handelpers, breaks = c('0','0.1','0.2','0.3','0.35','0.4','0.5','0.6','3.0','20'))
     b$watdtefac <- cut(b$WATDTE_m, breaks = c('0','0.1','0.2','0.3','0.35','0.4','0.5','0.6','3.0','20'))
-
+  
+  if(output == 'tabel'){
+      return(b)
+    
+    }else{
     col <- c('1'="darkred",'2'="red", '3'="orange",'4'="yellow",'5'="green",'6'="deepskyblue", '7'= 'blue', '8'='darkblue','8'='grey')
     labels <- c('1'="0-0.1",'2'="0.1-0.2" ,'3'="0.2-0.3",'4'="0.3-0.35",'5'="0.35-0.4",'6'="0.4-0.5",'7'="0.5-0.6",'8' = '0.6-3.0','9'='3.0-20')
 
@@ -1923,7 +1964,12 @@ diepte1<- function (hybi, gEAG, bandbreedte = 'minimaal'){ # kaart mediane diept
                   fill=T, fillColor = ~pal(map$watdtefac), fillOpacity = 0.6) %>%
       addLegend("bottomright", colors=col, labels=labels, title = "")%>%
       addProviderTiles("Esri.WorldGrayCanvas")
-    }}
+    }
+  }
+    
+    }
+  
+  
 }
 
 diepteVegetatie <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE','ZICHT')){
@@ -2035,34 +2081,28 @@ diepteVegetatiemp2 <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATD
   hybi2 <- dcast.data.table(hybi1,locatie.EAG+locatiecode+jaar+locatie.KRW.watertype ~
                               parametercode+parameterfractie+TWN.naam, mean,
                             value.var = c("meetwaarde")) #gemiddelde per EAG+jaar
-
+  
   cols <- c('SUBMSPTN__NA','FLAB_SUBMS_NA', '_SUBMS_Nuphar lutea', 'ZICHT__NA','WATDTE__NA','locatie.EAG', 'locatiecode', 'locatie.KRW.watertype','jaar')
   hybi2 <- hybi2[, cols, with=FALSE]
-
+  
   hybi2$FLAB_SUBMS_NA[is.na(hybi2$FLAB_SUBMS_NA)] <- 0
   hybi2$`_SUBMS_Nuphar lutea`[is.na(hybi2$`_SUBMS_Nuphar lutea`)] <- 0
-
+  
   hybi2$subms <- hybi2$SUBMSPTN__ - hybi2$FLAB_SUBMS_
   hybi2$subms <- hybi2$subms -  hybi2$`_SUBMS_Nuphar lutea`
   hybi2$subms[hybi2$subms < 0] = 0
-
+  
   hybi2$DTEZICHT <- ifelse(hybi2$ZICHT__NA/hybi2$WATDTE__NA > 1, NaN, hybi2$ZICHT__NA/hybi2$WATDTE__NA)
   hybi2$DTEZICHT <- as.numeric(hybi2$DTEZICHT)
   hybi2$DTEZICHTfac <- cut(hybi2$DTEZICHT, breaks = c('0.1','0.2','0.3','0.4','0.6','0.8','1.0'))
   hybi2$watdtefac <- cut(hybi2$WAT, breaks = c('0.1','0.15','0.2','0.25','0.3','0.35','0.4','0.5','0.6','0.7','0.8','1.0'))
   hybi3 <- hybi2[!is.na(hybi2$locatie.EAG) & !is.na(hybi2$locatie.KRW.watertype) & !is.na(hybi2$subms) & !is.na(hybi2$DTEZICHTfac),]
   hybi3 <- hybi3[as.integer(hybi3$DTEZICHTfac)>3,]
-
-
-  give.n <- function(x){
-    return(c(y = max(x)*1.05, label = length(x)))
-    # experiment with the multiplier to find the perfect position
-  }
-
+  
   p<- ggplot(hybi3, aes(x= watdtefac, y= subms))+
     #,text = sprintf("EAG: %s, <br> %s",locatie.EAG, locatiecode, jaar)))+
     geom_boxplot(position = position_dodge(width=1.5)) +
-    stat_summary(fun.data = give.n, geom = "text", fun = median)+
+    #stat_summary(fun.data = give.n, geom = "text", fun = median)+
     #scale_x_continuous(breaks = c(0,0.1,0.2,0.3,0.4,0.5,0.75,1,1.5,1.75,2.0,2.5,2.75,3.0))+
     facet_grid(locatie.KRW.watertype~., scales = 'fixed')+
     theme_minimal()+
@@ -2070,8 +2110,8 @@ diepteVegetatiemp2 <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATD
       strip.background = element_blank(),
       strip.text.x = element_text(size = 6), #EAG
       strip.text.y = element_text(size = 6), #EKR
-      axis.text.x = element_text(size= 6, angle = 90),
-      axis.text.y = element_text(size= 6),
+      axis.text.x = element_text(size= 8),
+      axis.text.y = element_text(size= 8),
       axis.title = element_text(size=8),
       axis.ticks =  element_line(colour = "black"),
       panel.background = element_blank(),
@@ -2080,8 +2120,61 @@ diepteVegetatiemp2 <- function (hybi, hybiparameter = c('SUBMSPTN','FLAB', 'WATD
     guides(col=guide_legend(title='zicht/ diepte'), size = "legend")+
     ggtitle(paste0("Gemeten waterdiepte versus bedekking onderwaterplanten")) +
     labs(x= 'waterdiepte' , y= 'submerse bedekking')
+  
+  
+  ggplotly(p=p)%>%
+    layout_ggplotly
+}
 
-
+diepteVegetatiemp3 <- function (hybi, EKRset, hybiparameter = c('SUBMSPTN','FLAB', 'WATDTE','ZICHT'), watertype = c('M10','M1a','M8','M3')){
+  #boxplotje plot maken
+  hybi1<- hybi[hybi$analysecode == "PTN" & hybi$parametercode %in% hybiparameter| hybi$TWN.naam == 'Nuphar lutea',]
+  hybi1 <- hybi[hybi$locatie.KRW.watertype %in% watertype,]
+  hybi2 <- dcast.data.table(hybi1,locatie.EAG+locatiecode+jaar+locatie.KRW.watertype ~
+                              parametercode+parameterfractie+TWN.naam, mean,
+                            value.var = c("meetwaarde")) #gemiddelde per EAG+jaar
+  
+  cols <- c('SUBMSPTN__NA','FLAB_SUBMS_NA', '_SUBMS_Nuphar lutea', 'ZICHT__NA','WATDTE__NA','locatie.EAG', 'locatiecode', 'locatie.KRW.watertype','jaar')
+  hybi2 <- hybi2[, cols, with=FALSE]
+  
+  hybi2$DTEZICHT <- ifelse(hybi2$ZICHT__NA/hybi2$WATDTE__NA > 1, NaN, hybi2$ZICHT__NA/hybi2$WATDTE__NA)
+  hybi2$DTEZICHT <- as.numeric(hybi2$DTEZICHT)
+  hybi2$DTEZICHTfac <- cut(hybi2$DTEZICHT, breaks = c('0.1','0.2','0.3','0.4','0.6','0.8','1.0'))
+  hybi2$watdtefac <- cut(hybi2$WAT, breaks = c('0.1','0.15','0.2','0.25','0.3','0.35','0.4','0.5','0.6','0.7','0.8','1.0'))
+  hybi3 <- hybi2[!is.na(hybi2$locatie.EAG) & !is.na(hybi2$locatie.KRW.watertype) & !is.na(hybi2$DTEZICHTfac),]
+  hybi3 <- hybi3[as.integer(hybi3$DTEZICHTfac)>3,]
+  
+  hybi3 <- merge(hybi3, EKRset[EKRset$GHPR == 'Soortensamenstelling macrofyten Waterplanten',], by.x = c("locatiecode","jaar"), by.y = c("CODE", "jaar"))
+  
+  
+  give.n <- function(x){
+    return(c(y = max(x)*1.05, label = length(x)))
+    # experiment with the multiplier to find the perfect position
+  }
+  
+  p<- ggplot(hybi3, aes(x= watdtefac, y= Numeriekewaarde))+
+    #,text = sprintf("EAG: %s, <br> %s",locatie.EAG, locatiecode, jaar)))+
+    geom_boxplot(position = position_dodge(width=1.5)) +
+    #stat_summary(fun.data = give.n, geom = "text", fun = median)+
+    #scale_x_continuous(breaks = c(0,0.1,0.2,0.3,0.4,0.5,0.75,1,1.5,1.75,2.0,2.5,2.75,3.0))+
+    facet_grid(locatie.KRW.watertype~., scales = 'fixed')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), #EAG
+      strip.text.y = element_text(size = 6), #EKR
+      axis.text.x = element_text(size= 6),
+      axis.text.y = element_text(size= 6),
+      axis.title = element_text(size=8, hjust = 1),
+      axis.ticks =  element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.background = element_blank()
+    )+
+    guides(col=guide_legend(title='zicht/ diepte'), size = "legend")+
+    ggtitle(paste0("Gemeten waterdiepte versus soorten onderwaterplanten")) +
+    labs(x= 'waterdiepte' , y= 'soortensamenstelling bedekking')
+  
+  
   ggplotly(p=p)%>%
     layout_ggplotly
 }
@@ -3144,6 +3237,11 @@ calcMeanHybiY <- function(hybisel, eenheid = 'KRW', aggregatie){
   b <- dcast(b, locatiecode+locatie.EAG+locatie.KRW.watertype+compartiment+jaar~fewsparameter+parametercode+parameterfractie,
              value.var = "meetwaarde", fun.aggregate = mean)
   }
+  
+  if(eenheid == "GAF"){
+    b <- dcast(b, locatiecode+locatie.afaanvoergebied+locatie.KRW.watertype+compartiment+jaar~fewsparameter+parametercode+parameterfractie,
+               value.var = "meetwaarde", fun.aggregate = mean)
+  }
   # calculate and classify zichtdiepte
   b[,DTEZICHT := ZICHT_m_ZICHT_/WATDTE_m_WATDTE_]
   b[DTEZICHT > 1, DTZICHT := 1]
@@ -3166,6 +3264,9 @@ calcMeanHybiY <- function(hybisel, eenheid = 'KRW', aggregatie){
   if(eenheid == "EAG"){
   b <- b[,mget(c('locatie.EAG','locatie.KRW.watertype','jaar',colsn))]
   }
+  if(eenheid == "GAF"){
+    b <- b[,mget(c('locatie.afaanvoergebied','locatie.KRW.watertype','jaar',colsn))]
+  }
 
   # calculate median value per EAG, watertype and year
   cols <- colnames(b)[sapply(b, is.numeric)]
@@ -3174,6 +3275,9 @@ calcMeanHybiY <- function(hybisel, eenheid = 'KRW', aggregatie){
   }
   if(eenheid == "EAG"){
   b <- b[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(locatie.EAG,locatie.KRW.watertype,jaar)]
+  }
+  if(eenheid == "GAF"){
+    b <- b[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(locatie.afaanvoergebied,locatie.KRW.watertype,jaar)]
   }
 
   b[,dieptedoorzichtfrac := cut(dieptedoorzicht, breaks = c('0.1','0.2','0.3','0.4','0.6', '0.8','1.0'))]

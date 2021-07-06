@@ -1,4 +1,4 @@
-type;omschrijving;parameter;PAR_NAME;grens;waarde;grensdefinitie
+type;omschrijving;Parameter.code;PAR_NAME;grens;waarde;grensdefinitie
 W1;water met flab/draadalgen;flab;FLAB;ondergrens;50;>=
 W2;water met kroos;;KROOS;ondergrens;50;>=
 W3;water met drijfbladplanten;;DRIJFBPTN;ondergrens;50;>=
@@ -11,6 +11,7 @@ W5;helder water met veel, maar niet woekerende waterplanten;woekering per soort;
 W6;helder water met veel woekerende waterplanten;doorzicht/diepte;ZICHT;ondergrens;0.6;
 W6;helder water met veel woekerende waterplanten;doorzicht/diepte;WATDTE;;1;
 W6;helder water met veel woekerende waterplanten;woekering per soort;woeker_soort;ondergrens;50;>=
+W6;helder water met veel woekerende waterplanten;woekering per soort;n_soorten;ondergrens;3;>=
 W7;helder water met weinig soorten ondergedoken waterplanten in lage dichtheid;submerse bedekking;SUBMS;bovengrens;25;<
 W7;helder water met weinig soorten ondergedoken waterplanten in lage dichtheid;n_soorten;n_soorten;bovengrens;3;<=
 W7;helder water met weinig soorten ondergedoken waterplanten in lage dichtheid;doorzicht/diepte;ZICHT;ondergrens;0.6;
@@ -23,27 +24,27 @@ W9;helder water zonder ondergedoken waterplanten;submerse bedekking;SUBMS;boveng
 W9;helder water zonder ondergedoken waterplanten;n_soorten;n_soorten;bovengrens;1;<
 W9;helder water zonder ondergedoken waterplanten;doorzicht/diepte;ZICHT;ondergrens;0.6;
 W9;helder water zonder ondergedoken waterplanten;doorzicht/diepte;WATDTE;;1;
-O1;beschoeid, weinig riet, soortenarm;n_soorten oever;n_soorten;bovengrens;20;<
+O1;beschoeid, weinig riet, soortenarm;n_soorten oever;n_soorten;bovengrens;15;<
 O1;beschoeid, weinig riet, soortenarm;riet;Phragmites australis;bovengrens;10;<
 O1;beschoeid, weinig riet, soortenarm;beschoeiing;beschoeiing;boolean;ja;
-O2;beschoeid, weinig riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;20;>=
+O2;beschoeid, weinig riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;15;>=
 O2;beschoeid, weinig riet, soortenrijk;riet;Phragmites australis;bovengrens;10;<
 O2;beschoeid, weinig riet, soortenrijk;beschoeiing;beschoeiing;boolean;ja;
-O3;beschoeid, veel riet, soortenarm;n_soorten oever;n_soorten;bovengrens;20;<
+O3;beschoeid, veel riet, soortenarm;n_soorten oever;n_soorten;bovengrens;15;<
 O3;beschoeid, veel riet, soortenarm;riet;Phragmites australis;ondergrens;10;>=
 O3;beschoeid, veel riet, soortenarm;beschoeiing;beschoeiing;boolean;ja;
-O4;beschoeid, veel riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;20;>=
+O4;beschoeid, veel riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;15;>=
 O4;beschoeid, veel riet, soortenrijk;riet;Phragmites australis;ondergrens;10;>=
 O4;beschoeid, veel riet, soortenrijk;beschoeiing;beschoeiing;boolean;ja;
-O5;niet beschoeid, weinig riet, soortenarm;n_soorten oever;n_soorten;bovengrens;20;<
+O5;niet beschoeid, weinig riet, soortenarm;n_soorten oever;n_soorten;bovengrens;15;<
 O5;niet beschoeid, weinig riet, soortenarm;riet;Phragmites australis;bovengrens;10;<
 O5;niet beschoeid, weinig riet, soortenarm;beschoeiing;beschoeiing;boolean;nee;
-O6;niet beschoeid, weinig riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;20;>=
+O6;niet beschoeid, weinig riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;15;>=
 O6;niet beschoeid, weinig riet, soortenrijk;riet;Phragmites australis;bovengrens;10;<
 O6;niet beschoeid, weinig riet, soortenrijk;beschoeiing;beschoeiing;boolean;nee;
-O7;niet beschoeid, veel riet, soortenarm;n_soorten oever;n_soorten;bovengrens;20;<
+O7;niet beschoeid, veel riet, soortenarm;n_soorten oever;n_soorten;bovengrens;15;<
 O7;niet beschoeid, veel riet, soortenarm;riet;Phragmites australis;ondergrens;10;>=
 O7;niet beschoeid, veel riet, soortenarm;beschoeiing;beschoeiing;boolean;nee;
-O8;niet beschoeid, veel riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;20;>=
+O8;niet beschoeid, veel riet, soortenrijk;n_soorten oever;n_soorten;ondergrens;15;>=
 O8;niet beschoeid, veel riet, soortenrijk;riet;Phragmites australis;ondergrens;10;>=
 O8;niet beschoeid, veel riet, soortenrijk;beschoeiing;beschoeiing;boolean;nee;
