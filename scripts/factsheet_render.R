@@ -29,7 +29,7 @@ source('scripts/ppr_funs.R')
 for(eagnr in c(1:241)){#4 : nrow(brondata$ESFoordelen)){
 
   # voor debug attach(brondata) detach(brondata)
-  # eagnr <- 47
+  eagnr <- 4
   
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)

@@ -159,22 +159,32 @@
     wq.sel <- wq.sel[,fewsparameter := tolower(fewsparameter)]
     wq.sel <- dcast(wq.sel,locatiecode+jaar+season~fewsparameter,value.var = 'meetwaarde')
     
-    wq.sel2 <- unique(wq[,.(locatiecode)])
-    wq.sel2 <- merge(wq.sel2,loc.sel[,.(loc_CODE,loc_XCOORD,loc_YCOORD,loc_EAGIDENT)],by.x='locatiecode',by.y = 'loc_CODE',all.x = TRUE)
-    wq.sel2 <- sf::st_as_sf(wq.sel2,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+    # search for water quality measurement points that occur within a distance of 1000m and the same EAG
     
-    krw.mp.ekr.sf <- unique(krw.mp.ekr[!is.na(loc_XCOORD),.(mpid2,loc_XCOORD,loc_YCOORD,EAGIDENT)])
-    krw.mp.ekr.sf <- sf::st_as_sf(krw.mp.ekr.sf,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+      # make wq measurement points spatial
+      wq.sel2 <- unique(wq[,.(locatiecode)])
+      wq.sel2 <- merge(wq.sel2,loc.sel[,.(loc_CODE,loc_XCOORD,loc_YCOORD,loc_EAGIDENT)],by.x='locatiecode',by.y = 'loc_CODE',all.x = TRUE)
+      wq.sel2 <- sf::st_as_sf(wq.sel2,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+    
+      # make ekr set for each measurement point spatial
+      krw.mp.ekr.sf <- unique(krw.mp.ekr[!is.na(loc_XCOORD),.(mpid2,loc_XCOORD,loc_YCOORD,EAGIDENT)])
+      krw.mp.ekr.sf <- sf::st_as_sf(krw.mp.ekr.sf,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
   
-    wq.kop <- sf::st_intersection(st_buffer(krw.mp.ekr.sf,dist = 1000),wq.sel2)
-    wq.kop <- as.data.table(wq.kop)
-    wq.kop <- wq.kop[EAGIDENT==loc_EAGIDENT][,geometry := NULL]
+      # combine both spatial sets with a distance of 1000m and filter on same EAG
+      wq.kop <- sf::st_intersection(st_buffer(krw.mp.ekr.sf,dist = 1000),wq.sel2)
+      wq.kop <- as.data.table(wq.kop)
+      wq.kop <- wq.kop[EAGIDENT==loc_EAGIDENT][,geometry := NULL]
     
-    # koppel met waterkwaliteitsmetingen op basis van jaar en seizoensgemiddelde
-    wq.kop.mean <- merge(krw.mp.ekr[,.(mpid2,jaar,season)],wq.kop[,.(mpid2,locatiecode)],by='mpid2',
-                         allow.cartesian = TRUE,all.x = TRUE)
-    wq.kop.mean <- merge(wq.kop.mean, wq.sel,by=c('locatiecode','jaar','season'),all.x=TRUE)
-    wq.kop.mean.mis1 <- wq.kop.mean[!is.na(locatiecode)]
+      # koppel met waterkwaliteitsmetingen op basis van jaar en seizoensgemiddelde
+      wq.kop.mean <- merge(krw.mp.ekr[,.(mpid2,jaar,season)],wq.kop[,.(mpid2,locatiecode)],by='mpid2',
+                           allow.cartesian = TRUE,all.x = TRUE)
+      wq.kop.mean <- merge(wq.kop.mean, wq.sel,by=c('locatiecode','jaar','season'),all.x=TRUE)
+    
+      # krw meetpunten without wq data
+      wq.kop.mean.mis1 <- wq.kop.mean[!is.na(locatiecode)]
+      
+      
+      
     wq.kop.mean <- melt(wq.kop.mean,id.vars = c('mpid2','locatiecode','jaar','season'),variable.name = 'fewsparameter',value.name = 'meetwaarde')
     wq.kop.mean <- wq.kop.mean[!is.na(meetwaarde)]
     wq.kop.mean <- wq.kop.mean[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by=.(mpid2,jaar,season,fewsparameter)]
