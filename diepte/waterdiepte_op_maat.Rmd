@@ -152,27 +152,33 @@ b = dcast(hybi[hybi$locatie.KRW.watertype %in% c('M1a','M1b','M8','M3','M10'),],
 b$WATDTE_max[b$WATERBTE_m > 6 & !is.na(b$WATDTE_m)& !is.na(b$WATERBTE_m)] <-  b$WATDTE_m[b$WATERBTE_m > 6 & !is.na(b$WATDTE_m) & !is.na(b$WATERBTE_m)] + 0.15
 b$handelpers <- b$WATDTE_m + b$SLIBDTE_m
 
-c <- b[,.(mean = mean(WATDTE_m,na.rm=T), median = quantile(WATDTE_m,probs = c(0.50), na.rm=T), perc90 = quantile(WATDTE_m,probs = c(0.90), na.rm=T), perc95 = quantile(WATDTE_m,probs = c(0.95), na.rm=T)), by = c('locatie.EAG','jaar')]%>%
-    group_by(locatie.EAG) %>%
-    top_n(1, wt = jaar)
-
-b <- b[, c('locatie.EAG','jaar','handelpers','WATDTE_m','WATDTE_max','WATERBTE_m', 'SLIBDTE_m')] %>%
+b <- b[, c('locatie.EAG','jaar','locatiecode','handelpers','WATDTE_m','WATDTE_max','WATERBTE_m', 'SLIBDTE_m')] %>%
     arrange(locatie.EAG,desc(jaar)) %>%
     group_by(locatie.EAG) %>%
     top_n(1, wt = jaar)
 
 b <- b[!is.na(b$WATDTE_m) & !is.na(b$handelpers),]
-b <- b[b$WATDTE_m < 0.35 & b$handelpers > 0.35,]
-b <- merge(b, eag_wl[,c('EAGIDENT','GAFNAAM')], by.x = 'locatie.EAG', by.y = 'EAGIDENT')
-b <- b[,c(8,1,2,3,4,5,6,7)]
-b <- b[order(b$WATDTE_m),]
+b <- merge(b, eag_wl[,c('GAFIDENT','GAFNAAM')], by.x = 'locatie.EAG', by.y = 'GAFIDENT')
+b <- as.data.table(b)
+
+# percentage loc per eag met waterdiepte < 35 cm en handelingsperspectief > 35
+b <- b[, c('ondieploc' , 'ondphandel', 'totloc') := .(nrow(.SD[WATDTE_m <= 0.35]),nrow(.SD[WATDTE_m <= 0.35 & handelpers > 0.35]), nrow(.SD)), .SD = 'WATDTE_m', by = 'locatie.EAG']
+b$relondiep <- b$ondieploc/b$totloc
+b$relondiephandelpers <- b$ondphandel/b$totloc
+
+# sum statistics, alleen voor overzicht wordt niets mee gedaan
+c <- b[,.(relondiephandelpers= mean(relondiephandelpers), relondiep = mean(relondiep), totondiep = mean(ondieploc), totloc = mean(totloc), mean = mean(WATDTE_m,na.rm=T), median = quantile(WATDTE_m,probs = c(0.50), na.rm=F), perc90 = quantile(WATDTE_m,probs = c(0.90), na.rm=T), perc95 = quantile(WATDTE_m,probs = c(0.95), na.rm=T)), by = c('locatie.EAG','jaar')]
+
+# aggr per eag
+b <- b[,lapply(.SD, median),.SDcols=c('handelpers','WATDTE_m','WATDTE_max','WATERBTE_m', 'SLIBDTE_m','ondieploc' , 'totloc','relondiep','relondiephandelpers'), by = c('GAFNAAM','locatie.EAG','jaar')]
+b <- b[order(b$relondiephandelpers) & b$totloc > 3,]
 row.names(b) <- NULL
 
 # write.table(b, file = paste(getwd(),"waterdiepte",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
     
 
 knitr::kable(b, format = "html",
-             col.names = c("Naam EAG",'EAG','jaar','handelingsperspectief (m)','waterdiepte (m)','waterdiepte max (m)','waterbreedte (m)','slibdikte (m)'), escape = F) %>% 
+             col.names = c("Naam EAG",'EAG','jaar','handelingsperspectief (m)','waterdiepte (m)','waterdiepte max (m)','waterbreedte (m)','slibdikte (m)','aantal ondiep','tot locaties','%ondiep','%ondiep met handelperspectief'), escape = F) %>% 
           kable_styling(full_width=FALSE, font_size = 10) %>% 
           column_spec(1, border_right = F, width = "5cm") %>%
           column_spec(2, border_right = F, width = "2cm") %>%
