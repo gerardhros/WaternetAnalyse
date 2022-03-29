@@ -12,6 +12,8 @@
 .yaml
 
 /development/*
+/litteratuur/*
+/overig/*
 /KRWapp/*
 /EST/*
 /atlasKRW/output/*
