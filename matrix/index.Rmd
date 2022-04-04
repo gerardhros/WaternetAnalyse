@@ -1,6 +1,6 @@
 ---
-title: "Ecologische sleutelfactoren vs Toestand"
-subtitle: "Versie 2019-04"
+title: "Ecologisch functioneren"
+subtitle: "Matrix reloaded 2022"
 author: "Laura Moria"
 always_allow_html: yes
 delete_merged_file: TRUE
@@ -21,16 +21,15 @@ knitr::opts_chunk$set(echo = TRUE)
 dirGIS <-"../GIS"
 
 # Load packages and functions-------------------------------------
-source('../scripts/loadPackages.R')
-source('../scripts/createOutput.R')
-source('../scripts/postProces.R')
-source('../scripts/makePmaps.R')
+source('../scripts/ppr_funs.R')
+source('../scripts/calc_funs.R')
+
+# require packages
+require(data.table);require(sf);require(dplyr); require(rgeos)
 
 # other settings
-proj4.rd <- CRS("+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725 +units=m +no_defs")
-proj4.google <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-col <- c('3'="blue",'4'="green",'5'="yellow",'6'="orange",'7'="red")
-labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
+proj4.rd <- 28992
+proj4.google <-4326
 
 # run for pdf and word
 # bookdown::render_book("index.Rmd", "bookdown::word_document2")
@@ -38,77 +37,225 @@ labels <- c('3'="0.8-1",'4'="0.6-0.8",'5'="0.4-0.6",'6'="0.2-0.4",'7'="0-0.2")
 ```
 
 ```{r data, include = FALSE}
-ESFoordelen <- read.csv('../factsheets/esfKRW_20191008.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier later ook eags of gafs aan toevoegen
-maatregelen <- read.csv('../factsheets/maatregelenKRW_20191022.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)# hier later ook eags of gafs aan toevoegen
-watertypen <- read.csv('../GIS/KRWWatertype.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-locaties <- read.csv("../wq/location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier staat de meest correcte verwijzing naar eags
-eag_wl    <- read.csv(paste(dirGIS, "/Oppervlaktes EAGs en Water.csv", sep = ""), header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F) # hier meest correcte verwijzing naar watertypen
+# inladen basis bestanden ----
+
+# output wsa --------
+# read in the latest version of ESFoordelen from 'data'
+ESFoordelen <- ppr_esf_oordeel(dir = '../data')
+
+# informatie over maatregelen
+maatregelen <- ppr_maatregelen(dir = '../data')
+
+# geoinfo -----------
+# shape met alle EAGs
+EAG <- sf::st_read("../data/EAG20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
+# shape met al het water in EAG
+waterpereag1 <- sf::st_read("../data/WaterPerEAG_20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
+
+# domeintabellen ------
+# water types
+watertypen <- data.table::fread('../data/KRWWatertype.csv')
+
+# locaties van alle metingen (water, biologie, en slootbodem)
+locaties <- data.table::fread('../data/Location.csv')
+
+## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
+eag_wl <- data.table::fread('../data/EAG_Opp_kenmerken_20201208.csv')
+eag_wl <- eag_wl[is.na(eag_wl$Einddatum),] #alleen actuele grenzen
+
+# pclakeditch en balansen -------
+# nonogram
+nomogram <- data.table::fread('../data/nomogram.csv')
+
+# datafile with P-load PC Ditch
+Overzicht_kP <- data.table::fread('../data/Overzicht_kP.csv')
+Overzicht_kP <- ppr_pcditch(db = Overzicht_kP)
+
+# waterbalans data (made by loadBalances)
+# load waterbalances (only when needed)
+if(FALSE){dat <- loadBalances_lm(dir_bal = dir_bal, kopTab = kopTab, sfile = FALSE)}
+dat <- readRDS("../pbelasting/dat.rds")  
+dat[,date := as.POSIXct(paste0(jaar,"-",maand,"-01"), format = '%Y-%m-%d')]
+
+# waterkwaliteitsdata ------------
+simoni <- readRDS('../data/simoni.rds')
+wq  <- readRDS("../data/ImportWQ.rds") %>% as.data.table()
+wq <-  ppr_wq(db = wq, syear = 2000, wtype = eag_wl, mlocs = locaties, srow= c("IONEN|NUTRI|ALG|VELD|ALGEN|LICHT|MONSVAR"))   
+
+# KRW beoordeling ---------------
+# KRW doelen 
+doelen <- ppr_doelen(dir = '../hydrobiologie')
+
+# EKR sets KRW en overig water
+EKRset1 <- readRDS('../hydrobiologie/EKRsetKRW.rds') %>% as.data.table()
+EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds') %>% as.data.table()
+EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen = doelen)
+
+# gegevens hydrobiologie ---------------
+hybi <- readRDS('../data/alles_reliable.rds') %>% as.data.table()
+hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
+    
+# slootbodem measurements ---------------
+bod  <- fread("../data/bodemfews.csv")
+bod <- ppr_slootbodem(db = bod, wtype = eag_wl, mlocs = locaties)
+    
+```
+
+```{r update filter and clean up databases, include = FALSE}
+# calculate means per EAG -----------
+# calculate mean EKR per EAG from last 3 measured years
+krw <- calc_mean_EKR(db = EKRset, nyears = 3, pEAG = TRUE, pYEAR = FALSE, pSEASON = FALSE)
+# rename GHPR in more readible (and less long names)
+krw[,GPHRnew := renameGHPR(GHPR)]
+krw[,wbmethode := renameWbmethode(wbmethode)]
+    
+# remove all data rows without EAGIDENT, alleen ongewogen scores selecteren
+krw <- krw[!is.na(EAGIDENT)]
+# dcast om maatlatten aprt te beschouwen en relaties tussen maatlatten te leggen
+krw <- dcast(krw, EAGIDENT + id + watertype ~ GPHRnew + wbmethode, 
+                 value.var = "EKR", fun.aggregate = mean)
+# add GAF code
+krw[,GAF := substr(EAGIDENT, 1, 4)]
+    
+# pvskp 
+PvskP <- makePmaps(dbwbal = dat, dbhybi = hybi, dbnomogram = nomogram,
+                       dbov_kP = Overzicht_kP, dbeag_wl = eag_wl)
+
+# bodem toevoegen 
+gemwaterbod <- bodsam(bod,cmean = TRUE)
+    
+# hybi indicatoren matrix maken obv mediaan per gebied en gemiddelde over jaren van laatste drie meetjaren
+d4 <- calcMeanHybi(hybi = hybi, pEAG =T, pYEAR = T)
+# a, b g diversiteit per eag per jaar
+hybi.div <- calcNtax(hybi = hybi, nyears = 20, smonth = 1:12, pEAG = T, pYEAR = TRUE, pSEASON = FALSE)
+
+# todo
+# compartiment EZ of OW_belangrijk bij koppeling hybi, fysische kenmerken en ekr, bij meren en plassen, sloten zijn alleen EZ
+# kop chemie 3 jaar voorafgaand aan hybi en ekr obv gemeten jaren ipv laatste jaren
+
+# mean wq syear-lastdate  
+wq1 <- dcast(wq1,locatie.EAG ~ fewsparameter+fewsparameterparameterfractie+fewsparametereenheidequivalent+eenheid, 
+                mean, value.var = c("meetwaarde"))
+# reset names
+colnames(wq1) <- gsub("___|__","_", colnames(wq1))
+    
+# merge tot matrix -----
+matrix1 <- merge(PvskP, krw, by.x = 'EAG', by.y = 'EAGIDENT', all.y = TRUE)
+matrix2 <- merge(matrix1,gemwaterbod,by.x = 'EAG', by.y = 'loc.eag', all.x = TRUE)
+matrix4 <- merge(matrix2, d4,by.x = 'EAG', by.y = 'locatie.EAG', all.x = TRUE)
+matrix5 <- merge(matrix4,wq1, by.x = 'EAG', by.y = 'locatie.EAG', all.x = TRUE)
+saveRDS(matrix5,'matrix/201005_matrix.rds')
 
 
-hybi <- read.csv("../hydrobiologie/alles_reliable.csv", header = TRUE, na.strings = " ", sep=";", dec =".", 
-                 stringsAsFactors = F)
-hybi$datum <- as.Date(hybi$datum, format = "%Y-%m-%d %H:%M")
-hybi$jaar <- format(hybi$datum, '%Y')
-hybi$jaar <- as.numeric(hybi$jaar)
-hybi$meetwaarde[hybi$limietsymbool == '<'] <- hybi$meetwaarde[hybi$limietsymbool == '<']/2 # meetwaarden
-hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP'] <-
- hybi$meetwaarde[hybi$fewsparameter == 'WATDTE_m' & hybi$jaar == 2006 & hybi$planvanaanpak == 'PVA MAFY LIJN 2006 WP']/10
-hybi <- merge(hybi, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =FALSE, all.y=FALSE) # correctie van eags naar nieuwe shape (moet eruit als dataset is verbeterd)
-hybi$locatie.EAG <- hybi$EAGIDENT
-hybi <- merge(hybi, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-hybi$locatie.KRW.watertype <- hybi$watertype
+# calculate means per sampling point and year-----------
+    
+    # calculate mean EKR per point, season is not correct since date is set to 01-01 for most measures
+    krw.mp <- calc_mean_EKR(db = EKRset, nyears = 3,pEAG = FALSE, pYEAR = TRUE, pSEASON = FALSE)
+    
+    # rename GHPR in more readible (and less long names)
+    krw.mp[,GPHRnew := renameGHPR(GHPR)]
+    krw.mp[,wbmethode := renameWbmethode(wbmethode)]
+    
+    # dcast om maatlatten aprt te beschouwen en relaties tussen maatlatten te leggen
+    krw.mp.ekr <- dcast(krw.mp, mpid + jaar + watertype + EAGIDENT  + KRW_SGBP3 ~ GPHRnew + wbmethode, 
+                        value.var = "EKR", fun.aggregate = mean)
+    
+    # add GAF code
+    krw.mp.ekr[,GAF := substr(EAGIDENT, 1, 4)]
 
-EKRset <- readRDS('../hydrobiologie/EKRset_KRW.rds')
-EKRset2 <- readRDS('../hydrobiologie/EKRset_OvWater.rds')
-EKRset <- smartbind(EKRset,EKRset2)
-EKRset$XCOORD <- as.integer(EKRset$XCOORD)
-EKRset$YCOORD <- as.integer(EKRset$YCOORD)
-doelen <- read.csv('../hydrobiologie/doelen.csv', header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-
-gEAG<- importOGR("EAG20190523.shp", dirGIS, CRSobj = proj4.google)
-gKRW<- importOGR("WBPKRW20170611.shp", dirGIS, CRSobj = proj4.google)
-gGAF<- importOGR("GAF.shp", dirGIS, CRSobj = proj4.google)
-
-# laden: Rdata file die meegestuurd is
-dat <- readRDS("../pbelasting/dat.rds") # data kan worden gecreerd obv script: loadbalances
-Overzicht_kP <- importCSV('../pbelasting/input/Overzicht_kP.csv', path = getwd()) 
-#vol <- importCSV('input/vollenweider.csv', path = getwd()) 
-nomogram <- importCSV('../pbelasting/input/nomogram.csv', path = getwd())
-
-bod  <- read.csv("../waterbodem/bodemfews.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-bod$datum <- as.Date(bod$datum, format = "%Y-%m-%d %H:%M")
-bod$jaar <- format(bod$datum, '%Y')
-bod$jaar <- as.numeric(bod$jaar)
-bod$meetwaarde[bod$limietsymbool == '<'] <- bod$meetwaarde[bod$limietsymbool == '<']/2 # meetwaarden detectiegrens/ halve detectiegrens meenemen
-bod <- merge(bod, eag_wl[,c('watertype','GAFIDENT')], by.x ='locatie.EAG', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-bod$locatie.KRW.watertype <- bod$watertype
-selb <- dcast(bod, locatie.EAG+locatiecode+locatie.omschrijving+locatie.x+locatie.y+locatie.z+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
-selb$klasseP <- NULL
-'8' -> selb$klasseP[is.na(selb$`Ptot_gP/kg_dg_BS`)]
-'7' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` > 10]
-'6' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 10 & selb$`Ptot_gP/kg_dg_BS` > 5 ] 
-'5' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 5 & selb$`Ptot_gP/kg_dg_BS` > 2.5]
-'4' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 2.5 & selb$`Ptot_gP/kg_dg_BS` > 1.5]
-'3' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1.5 & selb$`Ptot_gP/kg_dg_BS` > 1]
-'2' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 1 & selb$`Ptot_gP/kg_dg_BS` > 0.5]
-'1' -> selb$klasseP[selb$`Ptot_gP/kg_dg_BS` <= 0.5]
-selb$klasseP <- as.factor(selb$klasseP)
-
-simoni <- read.csv("../toxiciteit/overzicht_toxiciteit_2018_2017_2016_2013_2012.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-locatie <- read.csv("../toxiciteit/Location.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-
-wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
-wq$datum <- as.Date(wq$datum, format = "%Y-%m-%d %H:%M")
-wq$jaar <- format(wq$datum, '%Y')
-wq$maand <- format(wq$datum, '%m')
-wq$jaar <- as.numeric(wq$jaar)
-wq$maand <- as.numeric(wq$maand)
-wq$meetwaarde[wq$limietsymbool == '<'] <- wq$meetwaarde[wq$limietsymbool == '<']/2 
-wq <- merge(wq, locaties[,c('CODE','EAGIDENT')], by.x ='locatiecode', by.y = 'CODE', all.x =TRUE, all.y=FALSE)
-wq$locatie.EAG <- wq$EAGIDENT
-wq <- merge(wq, eag_wl[,c('watertype','GAFIDENT')], by.x ='EAGIDENT', by.y = 'GAFIDENT', all.x =FALSE, all.y=FALSE)
-wq$locatie.KRW.watertype <- wq$watertype
-
+    # update mp-id
+    krw.mp.ekr[,mpid2 := tstrsplit(mpid,'_',keep=1)]
+    
+    # add info for db Locaties
+    loc.sel <- locaties[,.(CODE,WATERTYPE,MORFOLOGIE,BODEMSOORT,
+                           GAFIDENT,EAGIDENT,OWMIDENT,XCOORD,YCOORD)]
+    setnames(loc.sel,paste0('loc_',colnames(loc.sel)))
+    krw.mp.ekr <- merge(krw.mp.ekr,loc.sel,by.x = 'mpid2', by.y = 'loc_CODE', all.x = TRUE)
+    
+    # add info hybi
+    hybi.mp <- calcMeanHybi(hybi = hybi, nyears = 20, pEAG = F, pYEAR = T)
+    # ntaxa per mp, problem some taxa are only availabe at genus, some at species doublecounting and it 2slow
+    hybi.tx.mp <- calcNtax(hybi = hybi, nyears = 20, smonth = 1:12, pEAG = F, pYEAR = TRUE, pSEASON = FALSE)
+    
+    # add info waterkwaliteitsmetingen, given season and year
+    wq.sel <- wq[,.(locatiecode,fewsparameter,meetwaarde,jaar,maand)]
+    wq.sel[,season := fifelse(maand %in% 4:10,'summer','winter')]
+    wq.sel <- wq.sel[,.(meetwaarde = mean(meetwaarde,na.rm=T)),by=.(locatiecode,fewsparameter,jaar,season)]
+    
+    # selectie parameters waar minstens 6 metingen beschikbaar zijn
+    wq.par <- c('Ptot_mgP_l','PO4_mgP_l_nf',"NO3_mgN_l_nf","Ntot_mgN_l_nf",'NH4_mgN_l_nf',"ZICHT_m","Cl_mg_l" ,
+               'O2_mg_l','pH','T_oC','SO4_mg_l',"SO4_mg_l_nf",'CHLFa_ug_l',
+               "CHLFa_ug_l_blauwalg" , "Ca_mg_l", "Ca_mg_l_nf",'MGETAL_mgHCO3_l',"MGETAL_mgHCO3_l_nf","Mg_mg_l","Mg_mg_l_nf","ZS_mg_l" )
+    wq.sel <- wq.sel[fewsparameter %in% wq.par]
+    wq.sel$fewsparameter <- gsub('_nf','',wq.sel$fewsparameter)
+    wq.sel <- wq.sel[,fewsparameter := tolower(fewsparameter)]
+    wq.sel <- dcast(wq.sel,locatiecode+jaar+season~fewsparameter,value.var = 'meetwaarde')
+    
+    # search for water quality measurement points that occur within a distance of 1000m and the same EAG
+    
+      # make wq measurement points spatial
+      wq.sel2 <- unique(wq[,.(locatiecode)])
+      wq.sel2 <- merge(wq.sel2,loc.sel[,.(loc_CODE,loc_XCOORD,loc_YCOORD,loc_EAGIDENT)],by.x='locatiecode',by.y = 'loc_CODE',all.x = TRUE)
+      wq.sel2 <- sf::st_as_sf(wq.sel2,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+      
+      # selection sediment measurement points
+      wq.sel.bod <- unique(bod[,.(locatiecode)])
+      wq.sel.bod <- merge(wq.sel.bod,loc.sel[,.(loc_CODE,loc_XCOORD,loc_YCOORD,loc_EAGIDENT)],
+                          by.x='locatiecode',by.y = 'loc_CODE',all.x = TRUE)
+      wq.sel.bod <- sf::st_as_sf(wq.sel.bod, coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+    
+      # make ekr set for each measurement point spatial
+      krw.mp.ekr.sf <- unique(krw.mp.ekr[!is.na(loc_XCOORD),.(mpid2,loc_XCOORD,loc_YCOORD,EAGIDENT)])
+      krw.mp.ekr.sf <- sf::st_as_sf(krw.mp.ekr.sf,coords = c('loc_XCOORD','loc_YCOORD'),crs = 28992)
+  
+      # combine both spatial sets with a distance of 1000m and filter on same EAG
+      # for loop is slow but I would like the closest (not all within 1 km2) location as well as distance (for filtering later on) per eag
+      # round buffer does not work for Vecht and Amstel etc.
+      wq.kop <- NULL
+      
+      for(mp in unique(krw.mp.ekr.sf$mpid2)){
+      krw.mp.ekr.sf. <- krw.mp.ekr.sf[krw.mp.ekr.sf$mpid2 == mp,]
+      eag <-  krw.mp.ekr.sf.$EAGIDENT
+      wq.sel3 <- wq.sel2[wq.sel2$loc_EAGIDENT == eag,]
+      if(nrow(wq.sel3) == 0){x <- rbind(cbind(mp,NaN,NaN,eag),wq.kop)}
+      if(nrow(wq.sel3) > 0){
+      nearest <- wq.sel3$locatiecode[which.min(st_distance(krw.mp.ekr.sf., wq.sel3, byid=TRUE))]
+      dist <- min(st_distance(krw.mp.ekr.sf.[krw.mp.ekr.sf.$mpid2 == mp,], wq.sel3, byid=TRUE))
+      x <- cbind(mp,nearest,dist,eag)
+      wq.kop <- rbind(x, wq.kop)}
+      }
+      
+      wq.kop <- as.data.table(wq.kop)
+     
+      # koppel met waterkwaliteitsmetingen op basis van jaar en seizoensgemiddelde
+      wq.kop.mean <- merge(krw.mp.ekr[,.(mpid2,jaar,season)],wq.kop[,.(mpid2,locatiecode)],by='mpid2',
+                           allow.cartesian = TRUE,all.x = TRUE)
+      wq.kop.mean <- merge(wq.kop.mean, wq.sel,by=c('locatiecode','jaar','season'),all.x=TRUE)
+    
+      # krw meetpunten without wq data
+      # welke krwlocs hebben geen koppeling, zelfde gaf nemen?
+      wq.kop.mean.mis1 <- wq.kop.mean[!is.na(locatiecode)]
+      
+      
+      
+    wq.kop.mean <- melt(wq.kop.mean,id.vars = c('mpid2','locatiecode','jaar','season'),variable.name = 'fewsparameter',
+                        value.name = 'meetwaarde')
+    wq.kop.mean <- wq.kop.mean[!is.na(meetwaarde)]
+    wq.kop.mean <- wq.kop.mean[,.(meetwaarde = median(meetwaarde,na.rm=TRUE)),by=.(mpid2,jaar,season,fewsparameter)]
+    wq.kop.mean <- dcast(wq.kop.mean,mpid2+jaar+season~fewsparameter,value.var='meetwaarde')
+    
+    
+    
+    krw.mp.ekr.fin <- merge(krw.mp.ekr,wq.kop.mean,by=c('mpid2','jaar','season'),all.x = TRUE)
+    
+    #pvskP
+    #bodem closest, interpolatie zou mooier zijn obv script yuki
+                        
+    
+ 
+        
+    
+    
 ```
 
 # ESF versus toestand

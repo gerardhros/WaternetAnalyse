@@ -1,5 +1,5 @@
-# prepare final database
-# Laura Moria & Gerard H. Ros, november-19
+# prepare final dataset for stat analysis
+# Laura Moria & Gerard H. Ros, april-2022
 
   # clear environment
   rm(list=ls())
@@ -10,7 +10,7 @@
   # source functions
   source('scripts/ppr_funs.R')
   source('scripts/calc_funs.R')
-  source('scripts/createOutput_gr.R')
+  source('scripts/createOutput.R')
   
   # inladen basis bestanden ----
   

@@ -190,7 +190,7 @@ ppr_slootbodem <- function(db, wtype = NULL,mlocs = NULL){
   return(db)
 }
 
-ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
+ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL, srow= c("IONEN|NUTRI|ALG|VELD|ALGEN|LICHT|MONSVAR")){
 
   # make local copies
   db <- copy(db)
@@ -213,11 +213,8 @@ ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   db[,locatie.KRW.watertype := watertype]
   db[,locatie.KRWmeetpuntlocatie := OWMIDENT]
 
-  # select relevant data
-  srow <- c("IONEN","NUTRI","ALG","VELD","ALGEN","LICHT")
-
   # subset waterquality data
-  db <- db[fewsparametercategorie %in% srow]
+  db <- db[grepl(srow, fewsparametercategorie)]
 
   # adjust fews parameter names to avoid complicated columns names
   db[,fewsparameter := gsub("/","_",fewsparameter)]
@@ -335,14 +332,14 @@ ppr_wbalfiles <- function(dir_bal,EAG.sf = gEAG,kopTab = kopTab){
 }
 
 # read in the lastest data from ESF oordelen
-ppr_esf_oordeel <- function(){
+ppr_esf_oordeel <- function(dir = 'data'){
 
   # select the latest file with ESF oordelen
-  fname <- list.files('data',pattern = '.csv$')
+  fname <- list.files(dir, pattern = '.csv$')
   fname <- sort(fname[grepl('^esfKRW',fname)],decreasing = TRUE)[1]
 
   # read ESF oordelen
-  d1 <- data.table::fread(paste0('data/',fname))
+  d1 <- data.table::fread(paste0(dir,'/',fname))
 
   # which colnames are character
   cols <- colnames(d1)[sapply(d1, is.character)]
@@ -359,14 +356,14 @@ ppr_esf_oordeel <- function(){
 }
 
 # read in the lastest data from maatregelen
-ppr_maatregelen <- function(){
+ppr_maatregelen <- function(dir = 'data'){
 
   # select the latest file with maatregelen
-  fname <- list.files('data')
+  fname <- list.files(dir)
   fname <- sort(fname[grepl('^maatregelenKRW',fname)],decreasing = TRUE)[1]
 
   # read maatregelen
-  d1 <- data.table::fread(paste0('data/',fname))
+  d1 <- data.table::fread(paste0(dir,'/',fname))
 
   # which colnames are character
   cols <- colnames(d1)[sapply(d1, is.character)]
@@ -387,14 +384,14 @@ ppr_maatregelen <- function(){
 }
 
 # read the latest file with doelen
-ppr_doelen <- function(){
+ppr_doelen <- function(dir = 'hydrobiologie'){
 
   # select the latest file with doelen
-  fname <- list.files('hydrobiologie')
+  fname <- list.files(dir)
   fname <- fname[grepl('^doelen',tolower(fname))][1]
 
   # read in the latest file from
-  d1 <- data.table::fread(paste0('hydrobiologie/',fname))
+  d1 <- data.table::fread(paste0(dir,'/',fname))
 
   # convert column to numeric
   d1[,Doel_2022 := as.numeric(Doel_2022)]
@@ -1008,13 +1005,13 @@ ppr_plotbod <- function(bod1, type='grid'){
 
   # add SP-ratio
   if(is.null(selb$Stot_mg_l_PW & selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(SO4_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - SO4_mg_l_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(SO4_mg_l_nf_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - SO4_mg_l_nf_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
   if(is.null(selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
   if(!is.null(selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
   }
 
   # filter only op samples where FESPFWratio, FESPDWratio and FESPPWratio are present

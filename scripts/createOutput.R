@@ -2559,14 +2559,14 @@ bodsam <- function(bod){
   #selb$`Ptot_mgP/l_nf_PW`<- selb$`Ptot_mgP/l_PW`
 
   if(is.null(selb$`Stot_mg/l_nf_PW`)){
-    if(!is.null(selb$`SO4_mg/l_PW`)){
-      selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`SO4_mg/l_PW`/96.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+    if(!is.null(selb$`SO4_mg/l_nf_PW`)){
+      selb$FESPPWratio <-(((selb$`Fe_mg/l_nf_PW`)/55.845)-(selb$`SO4_mg/l_nf_PW`/96.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
     }
     if(!is.null(selb$`Stot_mg/l_PW`)){
-      selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_PW`/32.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+      selb$FESPPWratio <-(((selb$`Fe_mg/l_nf_PW`)/55.845)-(selb$`Stot_mg/l_PW`/32.06))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
     }}
   if(!is.null(selb$`Stot_mg/l_nf_PW`)){
-    selb$FESPPWratio <-(((selb$`Fe_ug/l_nf_PW`/1000)/55.845)-(selb$`Stot_mg/l_nf_PW`/32.065))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
+    selb$FESPPWratio <-(((selb$`Fe_mg/l_nf_PW`)/55.845)-(selb$`Stot_mg/l_nf_PW`/32.065))/(selb$`Ptot_mgP/l_nf_PW`/30.974)
   }
   selb$nlvrFW <- 0.0247*selb$`Ptot_mgP/l_ng_BS`-1.6035
   selb$nlvrDW <- 0.0077*(selb$`Ptot_gP/kg_dg_BS`*1000)-4.7259
@@ -2594,13 +2594,13 @@ plotbod <- function(bod1){
 
   # add SP-ratio
   if(is.null(selb$Stot_mg_l_PW & selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(SO4_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - SO4_mg_l_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(SO4_mg_l_nf_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - SO4_mg_l_nf_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
   if(is.null(selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
   if(!is.null(selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
   }
 
   # filter only op samples where FESPFWratio, FESPDWratio and FESPPWratio are present
@@ -2715,13 +2715,13 @@ bodmap2 <- function(bod1){
 
   # add SP-ratio
   if(is.null(selb$Stot_mg_l_PW & selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(SO4_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - SO4_mg_l_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(SO4_mg_l_nf_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - SO4_mg_l_nf_PW/96.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
   if(is.null(selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(Stot_mg_l_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - Stot_mg_l_PW/32.06)/(Ptot_mgP_l_nf_PW/30.974)]
   }
   if(!is.null(selb$Stot_mg_l_nf_PW)){
-    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_ug_l_nf_PW*0.001/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
+    selb[!is.na(Stot_mg_l_nf_PW),FESPPWratio := (Fe_mg_l_nf_PW/55.845 - Stot_mg_l_nf_PW/32.065)/(Ptot_mgP_l_nf_PW/30.974)]
   }
 
   # filter only op samples where FESPFWratio, FESPDWratio and FESPPWratio are present

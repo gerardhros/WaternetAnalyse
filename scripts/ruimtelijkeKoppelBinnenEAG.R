@@ -6,6 +6,7 @@ spP <- SpatialPointsDataFrame(coords = xy, data = locP, proj4string = proj4.rd_n
 locB <- dcast(selb, Monsterp_1+ xcoor0xv_wb + ycoor0xv_wb + EAG ~ tp5a_wb, value.var = "xcoor0xv_wb", fun.aggregate = mean) # selb vervangen door bod
 xy <- locB[,c(2,3)]
 spB <- SpatialPointsDataFrame(coords = xy, data = locB, proj4string = proj4.rd_new)
+
 afsPB = matrix(nrow = 0, ncol = 4)
 for (i in unique(locB$EAG)){
   sppeag <- spP[spP$EAG == i,]

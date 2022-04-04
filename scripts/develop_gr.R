@@ -36,13 +36,15 @@
   s1 <- st_read('GIS/KRWwaterdelen_AGV_concept_Februari2020.shp') %>% st_set_crs(28992) %>% st_transform(28992)
   st_write(s1,'../data/WBPKRW20200525.gpkg')
   
-  s1 <- st_read('../GIS/EAGs_20191205.shp') %>% st_transform(28992)
-  domein <- read_xlsx("../GIS/EAG.xlsx", sheet = 2)
-  s1 <- merge(s1, domein, by.x = "OWMTYPE", by.y = "CODE", all.x =T)
-  s1$watertype <- s1$DESCRIPTIO
-  st_write(s1,'data/EAG_20191205.gpkg', layer_options= c("OVERWRITE=YES"))
-  s1 <- st_read('../GIS/Water_per_EAGs_20191205.shp') %>% st_transform(28992)
-  st_write(s1,'data/WaterPerEAG20191205.gpkg')
+  s1 <- st_read('../GIS/EAGs_20210709.shp') %>% st_transform(28992)
+  st_write(s1,'data/EAG_20210709.gpkg', layer_options= c("OVERWRITE=YES"))
+  
+  #aanmaken water per eag
+  s1 <- st_read('development/GIS/Watervlakken.shp') %>% st_transform(28992)
+  EAG <- sf::st_read("../data/EAG20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
+  #intersect water per eag and union all water within an eag
+  clp1 <- st_intersection(s1, EAG) %>% group_by(GAFIDENT) %>% summarise()
+  st_write(clp1,'./data/WaterPerEAG_20210709.gpkg')
 
 # importeren en converteren fychem data
   wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
@@ -73,7 +75,9 @@
   saveRDS(hybi,'data/alles_reliable.rds')  
   
  
-  
+  #chemie
+  wq <- fread("development/fysische_chemie_tm2022.csv")
+  saveRDS(wq,'data/ImportWQ.rds')
   
   
 
