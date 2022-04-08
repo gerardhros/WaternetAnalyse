@@ -18,8 +18,12 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   db[, jaar := year(datum)]
   db[,meetwaarde := as.numeric(meetwaarde)]
   db[limietsymbool == '<', meetwaarde := meetwaarde * 0.5]
+  
+  # correct wrong data par unit combinations etc
   db[fewsparameter == 'WATDTE_m' & jaar == 2006 & planvanaanpak == 'PVA MAFY LIJN 2006 WP', meetwaarde := meetwaarde * 0.1]
-
+  db[fewsparameter == 'TALBVWTR_SOORT' & jaar == 2019 , fewsparameter := 'TALBVWTR_graad']
+  
+  
   # filter measurements on periode since syear (2000)
   db <- db[jaar>=syear]
 
@@ -27,7 +31,7 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   sel <- unique(db$locatiecode)[grepl('meter$',unique(db$locatiecode))]
 
   # merge with locaties and watertypes (a few samples in 3300-EAG are also removed)
-  db <- merge.data.table(db[!locatiecode %in% sel,],mlocs[,c('CODE','EAGIDENT',"OWMIDENT")],by.x ='locatiecode', by.y = 'CODE')
+  db <- merge.data.table(db[!locatiecode %in% sel,], mlocs[,c('CODE','EAGIDENT',"OWMIDENT")],by.x ='locatiecode', by.y = 'CODE')
   db <- merge.data.table(db,wtype[,c('watertype','GAFIDENT')],by.x ='EAGIDENT', by.y = 'GAFIDENT')
 
   # add codes (is this really needed?)

@@ -596,8 +596,7 @@ ekrmap_mp <- function(EKRset2, maatlat = "2V1 Overige waterflora"){
 
   gebiedData <-
     spTransform(SpatialPointsDataFrame(coords=gebiedData[,c("XCOORD","YCOORD")],
-                                       data=gebiedData, proj4string=proj4.rd),
-                CRSobj=proj4.google)
+                                       data=gebiedData, proj4string=proj4.rd),CRSobj=proj4.google)
 
   gebiedData <-as.data.frame(gebiedData)
 
@@ -1530,11 +1529,6 @@ kaartved <- function(hybi1, proj4.rd =proj4.rd, proj4.google =proj4.google){
     addTiles()
 
   return(ktPbod)
-}
-#est
-est <- function (hybi1, hybi1parameter = c('SUBMSPTN','FLAB', 'WATDTE',"ZICHT_m","PTN_BEDKG_%","OEVBSIG_SOORT","KROOS", "DRIJF")){
-  hybi1_grenswaarden <- read.csv("./hydrobiologie/grenswaarden_est.csv", header = TRUE, na.strings = " ", sep=";", dec =".",
-                                stringsAsFactors = F)
 }
 
 # fytosoorten
@@ -3524,8 +3518,12 @@ wqsamKRW <- function(wq, locset = locKRW){
 
   return(wqsam)
 }
-wqsamEAG <- function(wq, locset = locKRW){
-  wq1<- wq[wq$fewsparameter %in% c("CL","PO4","O2","P","N","NH3","NO3", "CHLFA","FLUOBLAU","FLUOGROE"),]
+
+wqsamEAG <- function(wq, locset = locKRW, wq.par = c('Ptot_mgP_l','PO4_mgP_l_nf',"NO3_mgN_l_nf","Ntot_mgN_l_nf",'NH4_mgN_l_nf',"ZICHT_m","Cl_mg_l" ,
+                                                      'O2_mg_l','pH','T_oC','SO4_mg_l',"SO4_mg_l_nf",'CHLFa_ug_l',
+                                                      "CHLFa_ug_l_blauwalg" , "Ca_mg_l", "Ca_mg_l_nf",'MGETAL_mgHCO3_l',"MGETAL_mgHCO3_l_nf","Mg_mg_l","Mg_mg_l_nf","ZS_mg_l" )){
+  
+  wq1<- wq[wq$fewsparameter %in% wq.par,]
   #selecteer alleen KRW locaties
   wq1<- wq1[wq1$locatiecode %in% locset$CODE,]
 

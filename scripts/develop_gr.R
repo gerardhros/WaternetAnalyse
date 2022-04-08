@@ -36,15 +36,15 @@
   s1 <- st_read('GIS/KRWwaterdelen_AGV_concept_Februari2020.shp') %>% st_set_crs(28992) %>% st_transform(28992)
   st_write(s1,'../data/WBPKRW20200525.gpkg')
   
-  s1 <- st_read('../GIS/EAGs_20210709.shp') %>% st_transform(28992)
-  st_write(s1,'data/EAG_20210709.gpkg', layer_options= c("OVERWRITE=YES"))
+  EAG <- st_read('../GIS/EAGs_20210709.shp') %>% st_transform(28992)
+  st_write(EAG,'data/EAG_20210709.gpkg', layer_options= c("OVERWRITE=YES"))
   
   #aanmaken water per eag
   s1 <- st_read('development/GIS/Watervlakken.shp') %>% st_transform(28992)
-  EAG <- sf::st_read("../data/EAG20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
+  EAG <- sf::st_read("development/GIS/EAG20210709.shp", quiet = T) %>% sf::st_transform(proj4.rd)
   #intersect water per eag and union all water within an eag
   clp1 <- st_intersection(s1, EAG) %>% group_by(GAFIDENT) %>% summarise()
-  st_write(clp1,'./data/WaterPerEAG_20210709.gpkg')
+  st_write(clp1,'./data/WaterPerEAG_20210709.gpkg',layer_options= c("OVERWRITE=YES"), append = F)
 
 # importeren en converteren fychem data
   wq <- read.csv("../wq/ImportWQ.csv", header = TRUE, na.strings = " ", sep=";", dec =".", stringsAsFactors = F)
@@ -66,15 +66,12 @@
   
   # import en aanpassen hybi met gecorrigeerde data
   # gegevens hydrobiologie
-  hybi <- readRDS('data/alles_reliable.rds')
-  hybi2 <- fread("development/HB_macrofyten_all.csv", stringsAsFactors = F)
-  monst <- unique(hybi2$monsterident)
-  hybi1 <- hybi[!hybi$monsterident %in% monst,]
-  colnames(hybi2) <- gsub(" ", ".", colnames(hybi2), fixed=TRUE)
-  hybi <- smartbind(hybi1,hybi2, fill =T)
+  hybi1 <- fread("development/HB_tot2000.csv", stringsAsFactors = F)
+  hybi2 <- fread("development/HB_2000tm2021.csv", stringsAsFactors = F)
+  hybi <- rbind(hybi1,hybi2, fill =T)
+  colnames(hybi) <- gsub(" ", ".", colnames(hybi), fixed=TRUE)
   saveRDS(hybi,'data/alles_reliable.rds')  
   
- 
   #chemie
   wq <- fread("development/fysische_chemie_tm2022.csv")
   saveRDS(wq,'data/ImportWQ.rds')

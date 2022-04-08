@@ -1,6 +1,8 @@
 # calc functions to process data
 # Laura Moria & Gerard H. Ros, december-19
 
+# ppr hydrobiology -----------
+
 calc_mean_EKR <- function (db, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR = FALSE, pSEASON = FALSE){
   
   # input description
@@ -55,6 +57,10 @@ calc_mean_EKR <- function (db, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR = F
                                  EKRmedian = median(meetwaarde,na.rm=TRUE),
                                  GEP = mean(GEP,na.rm=TRUE),
                                  GEP_2022 = mean(GEP_2022,na.rm=TRUE)),by = c(groups,'mpid')]}
+  
+  # rename GHPR in more readible (and less long names)
+  d1[,GPHRnew := renameGHPR(GHPR)]
+  d1[,wbmethode := renameWbmethode(wbmethode)]
   
   # return the object
   return(d1)
@@ -143,7 +149,7 @@ calcMeanHybi <- function(hybi = hybi, nyears = 3, smonth = 1:12, pEAG = TRUE, pY
   if(pSEASON){groups <- c(groups,'season')}
   
   # add year number and take only nyears most recent years (selection per EAG)
-  b <- b[,yearid := frank(-jaar,ties.method = 'dense'),by = groups][yearid <= nyears]
+  b <- b[,yearid := frank(-jaar,ties.method = 'dense'), by = groups][yearid <= nyears]
  
   # calculate median value per loc, EAG, watertype and year
   cols <- colnames(b)[sapply(b, is.numeric)]
@@ -216,8 +222,6 @@ calcNtax <- function(hybi = hybi, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR 
   
 }
 
-
-
 # rename categories in more easier names
 renameGHPR <- function(inp){
   
@@ -231,7 +235,7 @@ renameGHPR <- function(inp){
   dt[,GHPRnew := gsub('massafractie','mf_',GHPRnew)]
   dt[,GHPRnew := gsub('soortensamenstelling','ss_',GHPRnew)]
   dt[,GHPRnew := gsub('bedekking','be_',GHPRnew)]
-  dt[,GHPRnew := gsub('abundantie','abon_',GHPRnew)]
+  dt[,GHPRnew := gsub('abundantie','abun_',GHPRnew)]
   dt[,GHPRnew := gsub('afwijking','afw_',GHPRnew)]
   
   # replace and move kwaliteit to front
@@ -274,7 +278,7 @@ renameWbmethode <- function(inp){
   return(dt[,wbmnew])
 }
 
-# merge balances with critical P loads
+# merge balances with critical P loads ------------------
 makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
   
   # convert to data.table, and make local copies
@@ -408,7 +412,7 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
   
 }
 
-# esf3 bodem ----
+# esf1 en 3 bodem ----
 bodsam <- function(bod, cmean = FALSE){
   
   # dcast slootbodem 

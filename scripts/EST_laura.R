@@ -10,15 +10,18 @@ monstextract <- function(i, macft, soortenlijst_submers, soortenlijst_kroos, soo
 # parameters water---------  
   doorz_diep <- ifelse(length(sel$meetwaarde[sel$parametercode %in% "ZICHT"])>0 &
                          length(sel$meetwaarde[sel$parametercode %in% "WATDTE"])>0,
-                       sel$meetwaarde[sel$parametercode %in% "ZICHT"]/sel$meetwaarde[sel$parametercode %in% "WATDTE"], 99)
-  if(!length(doorz_diep)>0|is.na(doorz_diep)){
-    doorz_diep <- 99
-  }
+                       sel$meetwaarde[sel$parametercode %in% "ZICHT"]/sel$meetwaarde[sel$parametercode %in% "WATDTE"], NA)
   
+  if(length(doorz_diep)==0|is.na(doorz_diep)|doorz_diep < 0) {out <- NULL}else{
+  
+  diepte <- ifelse(length(sel$meetwaarde[sel$parametercode %in% "WATDTE"])>0, sel$meetwaarde[sel$parametercode %in% "WATDTE"], NA)
+  slib <- ifelse(length(sel$meetwaarde[sel$parametercode %in% "SLIBDTE"])>0, sel$meetwaarde[sel$parametercode %in% "SLIBDTE"], NA)
+  talud <- ifelse(length(sel$meetwaarde[sel$fewsparameter %in% "TALBVWTR_graad"])>0, sel$meetwaarde[sel$fewsparameter %in% "TALBVWTR_graad" ], NA)
+   
   n_soort <- nrow(sel[sel$parametercode %in% "" & sel$parameterfractie %in% "" & sel$biotaxonnaam %in% soortenlijst_submers,]) #LET OP: DIT IS VOOR W5 en verder
   
   woeker <- ifelse(length(sel$meetwaarde[sel$parametercode %in% "" & sel$biotaxonnaam %in% soortenlijst_submers])==0,
-                   0, max(sel$meetwaarde[sel$parametercode %in% "" & sel$biotaxonnaam %in% soortenlijst_submers]))
+                   0, max(sel$meetwaarde[sel$parametercode %in% "" & sel$biotaxonnaam %in% soortenlijst_submers])) # max bedekking van 1 submers soort
   
   SUBMS <- sel$meetwaarde[sel$parametercode %in% "SUBMSPTN"]
   if(!length(SUBMS)>0){
@@ -32,8 +35,9 @@ monstextract <- function(i, macft, soortenlijst_submers, soortenlijst_kroos, soo
   
   FLAB <- sel$meetwaarde[sel$parametercode %in% "FLAB" & sel$parameterfractie %in% "DRIJVD"]
   if(!length(FLAB)>0){
-    FLAB <- 0.001
+    FLAB <- 0.001 # als ontbreekt dan is er geen flab
   }
+  
   # parameters oever----------  
   sel2 <- sel[sel$compartiment %in% c("OR", "EZ")]
   beschoeid <- if(length(sel2$meetwaarde[sel2$parametercode %in% "OEVBSIG"])==0){ 
@@ -41,6 +45,10 @@ monstextract <- function(i, macft, soortenlijst_submers, soortenlijst_kroos, soo
     "nee"}else{if(sel2$meetwaarde[sel2$parametercode %in% "OEVBSIG"] %in% c('31','32','41','52','35')){'ja'}else{"nee"}}
   
   n_ovsoort <- nrow(sel2[sel2$biotaxonnaam %in% soortenlijst_oever,])
+  emers <- sel$meetwaarde[sel$parametercode %in% "EMSPTN"]
+  if(!length(emers)>0){
+    emers <- min(100,sum(sel$meetwaarde[sel$biotaxonnaam %in% soortenlijst_oever])) #als groeivormmeting ontbreekt, dan bedekkingen optellen
+  }
   riet <- sel2$meetwaarde[sel2$biotaxonnaam %in% "Phragmites australis"]
   if(length(riet)<1){riet <- 0}
   
@@ -66,15 +74,13 @@ monstextract <- function(i, macft, soortenlijst_submers, soortenlijst_kroos, soo
   
   #W4----
   # troebel, weinig planten
-  if(!is.na(doorz_diep) & doorz_diep < grens_zicht & SUBMS < grens_submers){W4 <- 1}else{W4 <- 0}
-  if(is.na(doorz_diep)){W4 <- NA}
+  if(doorz_diep < grens_zicht & SUBMS < grens_submers){W4 <- 1}else{W4 <- 0}
   
   #W4a----
-  # troebel, veel planten
-  if(!is.na(doorz_diep) & doorz_diep < grens_zicht & SUBMS >= grens_submers){W4a <- 1}else{W4a <- 0}
-  if(is.na(doorz_diep)){W4a <- NA}
+  # troebel, veel planten: hier is doorzicht/diepte dus geen goede indicator
+  if(doorz_diep < grens_zicht & SUBMS >= grens_submers){W4a <- 1}else{W4a <- 0}
   
-  #W5----
+    #W5----
   #helder water met veel waterplanten in hoge bedekking (en meer dan 5 soorten)
   if(doorz_diep >= grens_zicht & n_soort >= grens_n_soort & SUBMS >= grens_submers ){W5 <- 1}
   if(!(doorz_diep >= grens_zicht & n_soort >= grens_n_soort & SUBMS >= grens_submers )){W5 <- 0}
@@ -86,7 +92,7 @@ monstextract <- function(i, macft, soortenlijst_submers, soortenlijst_kroos, soo
     
   #W7-----
   #helder water met weinig soorten (1 en 5) niet woekerende, ondergedoken waterplanten 
-  if(doorz_diep >= grens_zicht & n_soort <= grens_n_soort & n_soort >= 1 & woeker < grens_woeker ){W7<-1}
+  if(doorz_diep >= grens_zicht & n_soort <= grens_n_soort & n_soort >= 1 & woeker < grens_woeker){W7<-1}
   if(!(doorz_diep >= grens_zicht & n_soort <= grens_n_soort & n_soort >= 1 & woeker < grens_woeker )){W7<-0}
   
   #W7a-----
@@ -172,21 +178,26 @@ monstextract <- function(i, macft, soortenlijst_submers, soortenlijst_kroos, soo
               monsterident= unique(sel$monsterident),
               compartiment= unique(sel$compartiment),
               doorz_diep,
+              diepte,
+              slib,
+              talud,
               FLAB,
               KROOS,
               SUBMS,
+              emers,
               woeker,
               n_soort,
+              n_ovsoort,
               W1,W2,W2a,W3,W4,W4a,W5,W5a,W5b,W5c,W6,W6a,W6b,W7,W7a,W7b,W7c,W7d,W8,W9,O1,O2,O3,O4,O5,O6,O7,O8
           
   )
-  
+  }
   # return list with relevant properties
   return(out)
 }
 
 EST_aggloc <- function(est){
-  cols <- c('compartiment','monsterident','doorz_diep','FLAB','KROOS','SUBMS','woeker','n_soort')
+  cols <- c('compartiment','monsterident','doorz_diep','diepte','slib','talud','FLAB','KROOS','SUBMS','emers','woeker','n_soort','n_ovsoort')
   estloc <- est[,lapply(.SD, sum, na.rm=TRUE), by=c('locatie.EAG','locatiecode','jaar','watertype'),.SDcols = -cols]
   cols2 <- c('compartiment','monsterident',"W1","W2","W2a","W3","W4","W4a","W5","W5a","W5b","W5c","W6","W6a","W6b","W7","W7a","W7b","W7b","W7c","W7d","W8","W9","O1","O2","O3","O4","O5","O6","O7","O8")
   estloc2 <- est[,lapply(.SD, median, na.rm=TRUE), by=c('locatie.EAG','locatiecode','jaar','watertype'),.SDcols = -cols2]
@@ -196,7 +207,7 @@ EST_aggloc <- function(est){
 }
 
 EST_aggeag <- function(estloc){
-  cols <- c('locatiecode','doorz_diep','FLAB','KROOS','SUBMS','woeker','n_soort')
+  cols <- c('locatiecode','doorz_diep','diepte','slib','talud','FLAB','KROOS','SUBMS','emers','woeker','n_soort','n_ovsoort')
   esteag <- estloc[, lapply(.SD, sum, na.rm=TRUE), by=c('locatie.EAG','jaar','watertype'),.SDcols = -cols]
   cols2 <- c('locatiecode',"W1","W2","W2a","W3","W4","W4a","W5","W5a","W5b","W5c","W6","W6a","W6b","W7","W7a","W7b","W7b","W7c","W7d","W8","W9","O1","O2","O3","O4","O5","O6","O7","O8")
   esteag2 <- estloc[,lapply(.SD, median, na.rm=TRUE), by=c('locatie.EAG','jaar','watertype'),.SDcols = -cols2]
@@ -209,11 +220,11 @@ EST_addnameeag <- function(esteag, EKRset, eag_wl){
   esteag <- esteag[rowSums(esteag[,4:23]) > 0,]
   esteag$W <- colnames(esteag[,4:23])[max.col(esteag[,4:23],ties.method="first")]
   esteag$O <- colnames(esteag[,24:31])[max.col(esteag[,24:31],ties.method="first")]
-  estmerg <- merge(esteag, eag_wl, by.x = c('locatie.EAG'), by.y = c('GAFIDENT'))
-  estmerg$ESTnaam2[estmerg$watertype.y == 'M20'] <-  'DM'
-  estmerg$ESTnaam2[estmerg$watertype.y %in% c('M14','M27',"M25","M11")] <-  'OM'
-  estmerg$ESTnaam2[estmerg$watertype.y %in% c('M1a','M1b','M8',"M10","M3")] <- 'Sl'
-  estmerg$ESTnaam2[estmerg$watertype.y %in% c("M6b",'M30',"M7b", "M6a")] <- 'K'
+  estmerg <- merge(esteag[,-'watertype'], eag_wl, by.x = c('locatie.EAG'), by.y = c('GAFIDENT'))
+  estmerg$ESTnaam2[estmerg$watertype == 'M20'] <-  'DM'
+  estmerg$ESTnaam2[estmerg$watertype %in% c('M14','M27',"M25","M11")] <-  'OM'
+  estmerg$ESTnaam2[estmerg$watertype %in% c('M1a','M1b','M8',"M10","M3")] <- 'Sl'
+  estmerg$ESTnaam2[estmerg$watertype %in% c("M6b",'M30',"M7b", "M6a")] <- 'K'
   estmerg$ESTnaam3[estmerg$StedelijkLandelijk == 'Stedelijk'] <- 'St'
   estmerg$ESTnaam3[estmerg$StedelijkLandelijk == 'Landelijk'] <- 'L'
   estmerg$estnaam <- paste0(estmerg$W,'_',estmerg$O,'_',estmerg$ESTnaam2,'_', estmerg$ESTnaam3)
@@ -229,11 +240,11 @@ EST_addnameloc <- function(estloc, EKRset, eag_wl){
   estloc <- estloc[rowSums(estloc[,5:24]) > 0,]
   estloc$W <- colnames(estloc[,5:24])[max.col(estloc[,5:24],ties.method="first")]
   estloc$O <- colnames(estloc[,25:32])[max.col(estloc[,25:32],ties.method="first")]
-  estmergl <- merge(estloc, eag_wl, by.x = c('locatie.EAG'), by.y = c('GAFIDENT'))
-  estmergl$ESTnaam2[estmergl$watertype.y == 'M20'] <-  'DM'
-  estmergl$ESTnaam2[estmergl$watertype.y %in% c('M14','M27',"M25","M11")] <-  'OM'
-  estmergl$ESTnaam2[estmergl$watertype.y %in% c('M1a','M1b','M8',"M10","M3")] <- 'Sl'
-  estmergl$ESTnaam2[estmergl$watertype.y %in% c("M6b",'M30',"M7b", "M6a")] <- 'K'
+  estmergl <- merge(estloc[,-'watertype'], eag_wl, by.x = c('locatie.EAG'), by.y = c('GAFIDENT'))
+  estmergl$ESTnaam2[estmergl$watertype == 'M20'] <-  'DM'
+  estmergl$ESTnaam2[estmergl$watertype %in% c('M14','M27',"M25","M11")] <-  'OM'
+  estmergl$ESTnaam2[estmergl$watertype %in% c('M1a','M1b','M8',"M10","M3")] <- 'Sl'
+  estmergl$ESTnaam2[estmergl$watertype %in% c("M6b",'M30',"M7b", "M6a")] <- 'K'
   estmergl$ESTnaam3[estmergl$StedelijkLandelijk == 'Stedelijk'] <- 'St'
   estmergl$ESTnaam3[estmergl$StedelijkLandelijk == 'Landelijk'] <- 'L'
   estmergl$estnaam <- paste0(estmergl$W,'_',estmergl$O,'_',estmergl$ESTnaam2,'_', estmergl$ESTnaam3)
@@ -242,22 +253,21 @@ EST_addnameloc <- function(estloc, EKRset, eag_wl){
   return(estmergl)
 }
 
-EST_koppeleag <- function(estmerg, EKRset){
-  ekragg <- tabelOordeelPerGebiedPerJaar(EKRset, detail = "hoofd")
-  ekragg <- ekragg[ekragg$facet_wrap_code == 'Ov. waterflora', ]
-  estekr <- merge(estmerg, ekragg, by.x=c('locatie.EAG','jaar'), by.y = c('EAGIDENT','jaar'))
+EST_koppeleag <- function(esteagname, EKRset){
+  ekragg <- krw[krw$wbmethode == 'ml_2018_ov.wflora', ]
+  estekr <- merge(esteagname, ekragg, by.x=c('locatie.EAG','jaar'), by.y = c('EAGIDENT','jaar'))
   write.table(estekr, paste0("output/estekr_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estekr)
 }
 
-EST_koppelloc <- function(estmergl, EKRset){  
-  ekrsel <- EKRset[EKRset$facet_wrap_code == 'Ov. waterflora' & EKRset$level == 1, ]
-  estekrloc <- merge(estmergl, ekrsel, by.x=c('locatiecode','jaar'), by.y = c('CODE','jaar'))
+EST_koppelloc <- function(estmergl, krwloc){  
+  ekrsel <- dcast(krwloc, id+mpid2+jaar~GPHRnew, fun = median, value.var = 'EKR')
+  estekrloc <- merge(estmergl, ekrsel, by.x=c('locatiecode','jaar'), by.y = c('mpid2','jaar'))
   write.table(estekrloc, paste0("output/estekrloc_", Sys.Date(),".csv"), sep=";", dec=".", row.names=F)
   return(estekrloc)
 }
 
-estekrplot <- function(){
+estekrplot <- function(estekrloc){
   #Numeriekewaarde of EKR
   p<- ggplot(estekrloc, aes(x= paste0(W,"_",O), y= Numeriekewaarde))+
     geom_boxplot() +
@@ -277,7 +287,7 @@ estekrplot <- function(){
     labs(x= 'ecosysteem toestand' , y= 'ekr flora')
   ggplotly(p=p)
   
-  p<- ggplot(estekrloc[estekrloc$ESTnaam2 == "K",], aes(x= estnaam, y= Numeriekewaarde, label = paste0(locatie.EAG, jaar)))+
+  p<- ggplot(estekrloc[estekrloc$ESTnaam2 == "S",], aes(x= estnaam, y= Numeriekewaarde, label = paste0(locatie.EAG, jaar)))+
     geom_boxplot() +
     #facet_grid(~jaar, scales = 'free')+
     theme_minimal()+
@@ -294,7 +304,26 @@ estekrplot <- function(){
     ggtitle('') +
     labs(x= 'ecosysteem toestand' , y= 'ekr flora')
   ggplotly(p=p)
+  
+  p<- ggplot(estekrloc[estekrloc$diepte > 0,], aes(x= talud, y= emers, label = paste0(locatie.EAG, jaar), col = watertype))+
+    geom_boxplot() +
+    #facet_grid(~jaar, scales = 'free')+
+    theme_minimal()+
+    theme(
+      strip.background = element_blank(),
+      strip.text.x = element_text(size = 6), 
+      strip.text.y = element_text(size = 5), 
+      axis.text.x = element_text(size= 8, angle=90,hjust=1),
+      axis.text.y = element_text(size= 8, hjust=2),
+      axis.ticks =  element_line(colour = "black"),
+      panel.background = element_blank(),
+      plot.background = element_blank()
+    )+
+    ggtitle('') +
+    labs(x= 'talud' , y= 'emers')
+  ggplotly(p=p)
 }
+
 printestplots <- function(estekr){
   
   for(i in unique(paste0(estekrloc$W,estekrloc$ESTnaam2,estekrloc$ESTnaam3))){
@@ -317,6 +346,7 @@ printestplots <- function(estekr){
     ggsave(paste0("output/ekrest_W",i,".png"))
   }
 }
+
 kaartEST <- function(){
   library(sp)
   library(plotGoogleMaps)
@@ -340,24 +370,55 @@ kaartEST <- function(){
     geom_polygon(data=pi, aes(x=long, y=lat, group=id, fill=.id))
 }
 
-samenvattingbio <- function(hybi){
-hybisel <- unique(hybi[hybi$biotaxonnaam == "" & !hybi$eenheidequivalent %in% c("TansleyS", "BraunBS")
-                & !hybi$afronding %in% c("ja",'Ja'),])
-#hieronder waarden niet meenemen als niet het goede bemonsterd is
-#hybimeanKRW <- calcMeanHybiY(hybisel, eenheid = 'KRW') #loopt vast gaat iets mis
-hybimeanEAG <- calcMeanHybiY(hybisel, eenheid = 'EAG')
-#hybimeanGAF <- calcMeanHybiY(hybisel, eenheid = 'GAF')
-#colnames(hybisel) <- gsub(".", " ", colnames(hybisel), fixed=TRUE) # Gerard vraagt hierom
-write.table(hybimeanEAG, file = paste(getwd(),"/output/hybimeanEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
+kaartEKRmp <- function(dt = dt,
+                       waterpereag = waterpereag,
+                       EAG = EAG,
+                       mlocs = locaties,
+                       nyears = 3,
+                       ekr_col = c("red", "orange", "yellow", "green"),
+                       ekr_labels = c("slecht","ontoereikend","matig","goed"), 
+                       ekr_breaks = c(-0.01, 0.2, 0.4, 0.6, 1)){
+  
+  # add year number and take only nyears most recent years (selection per EAG)
+  dt <- dt[,yearid := frank(-jaar, ties.method = 'dense'), by = c('EAGIDENT','GPHRnew')][yearid <= nyears]
+  dt <- dt[!is.na(EKR),  cat1 := as.integer(cut(EKR, ekr_breaks, labels = 1:4, include.lowest = T))]
+  
+  pl <- merge(dt, mlocs[,c('CODE','XCOORD','YCOORD')], by.x ='mpid2', by.y = 'CODE')
+  pl <- st_as_sf(pl, coords = c('XCOORD','YCOORD'), crs = proj4.rd)
 
-#hieronder tekst maken met toestandbeschrijving per FS indeling
-hybimeanEAG <- hybimeanEAG[!is.na(hybimeanEAG$bedsubmers.median), maxjaar := jaar==max(jaar,na.rm=T), by = c('locatie.EAG','compartiment')]
-hybimeanEAG <- hybimeanEAG[!is.na(hybimeanEAG$bedsubmers.median)&!is.na(hybimeanEAG$locatie.EAG),]
-return(hybimeanEAG)
+  # bounding box needed
+  bboxEAG <- st_bbox(EAG)
+  bm <- loadbasemap(EAG, "hybrid",1.2,13)
+  
+  p <- ggplot() + 
+    geom_sf(data = waterpereag, color = '#3498DB', fill = '#3498DB') +
+    geom_sf(data = EAG, color = 'grey25', fill = "white", size = 0.2) +
+    geom_sf(data = pl, aes(fill = as.factor(cat1), color = as.factor(cat1), size = jaar), 
+            show.legend = TRUE) +
+    scale_fill_manual(values = c("1" =  ekr_col[1],
+                                 "2" = ekr_col[2],
+                                 "3" = ekr_col[3],
+                                 "4" = ekr_col[4]), drop =T, labels = ekr_labels, guide = "none") +
+    scale_colour_manual(values = c("1" =  ekr_col[1],
+                                   "2" = ekr_col[2],
+                                   "3" = ekr_col[3],
+                                   "4" = ekr_col[4]), drop =T, labels = ekr_labels) +
+    theme_void() +
+    guides(colour = guide_legend(title = paste0("EKR ",ke)), size = guide_legend(title = 'Jaar'))+
+    coord_sf(xlim = c(bboxEAG$xmin,bboxEAG$xmax) + c(-250,250),
+             ylim = c(bboxEAG$ymin,bboxEAG$ymax) + c(-250,250), datum = NA)+
+    # add north
+    ggspatial::annotation_scale(location = "bl", width_hint = 0.5) +
+    # add scale bar
+    ggspatial::annotation_north_arrow(location = "bl",which_north = "true", 
+                                      pad_x = unit(0, "in"), pad_y = unit(0.3, "in"),
+                                      height = unit(0.5, 'in'), width = unit(0.5, 'in'), 
+                                      style = north_arrow_fancy_orienteering) 
+  
+    ggsave(p, file = paste0('output/ekrstippen/', unique(pl$EAGIDENT),unique(pl$GPHRnew),'.png'), units='cm',dpi=600)
 }
 
-EST_koppeleaghybi <- function(esteagname, hybimeanEAG,wqmeanEAG){
-  estmeanhybi <- merge(esteagname, hybimeanEAG, by=c('locatie.EAG','jaar'))
+EST_koppeleagestwq <- function(esteagname, wqmeanEAG){
   estmeanhybi <- merge(estmeanhybi, wqmeanEAG, by=c('locatie.EAG','jaar'))
   return(estmeanhybi)
   write.table(estmeanhybi, file = paste(getwd(),"/output/esthybimeanEAG",format(Sys.time(),"%Y%m%d%H%M"),".csv", sep= ""), quote = FALSE, na = "", sep =';', row.names = FALSE)
@@ -376,4 +437,9 @@ hybiest$toestandb <- paste0("In ",hybiest$locatie.EAG,": ",hybiest$omschrijving.
                             hybiest$omschrijving.x,
                             ". De gemiddelde en mediane bedekking met emerse planten is respectievelijk ", round(hybiest$bedemers.mean,1)," en ",round(hybiest$bedemers.median,1),
                             ".")
+}
+
+clusteranalyse <- function() {
+  
+  
 }

@@ -50,7 +50,7 @@ maatregelen <- ppr_maatregelen(dir = '../data')
 # shape met alle EAGs
 EAG <- sf::st_read("../data/EAG20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
 # shape met al het water in EAG
-waterpereag1 <- sf::st_read("../data/WaterPerEAG_20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
+waterpereag <- sf::st_read("../data/WaterPerEAG_20210709.gpkg",quiet = T) %>% sf::st_transform(proj4.rd)
 
 # domeintabellen ------
 # water types
@@ -94,6 +94,7 @@ EKRset <- ppr_ekr(krwset = EKRset1, ovwatset = EKRset2,eag_wl = eag_wl, doelen =
 # gegevens hydrobiologie ---------------
 hybi <- readRDS('../data/alles_reliable.rds') %>% as.data.table()
 hybi <- ppr_hybi(db = hybi, syear = 2000, wtype = eag_wl, mlocs = locaties)
+
     
 # slootbodem measurements ---------------
 bod  <- fread("../data/bodemfews.csv")
