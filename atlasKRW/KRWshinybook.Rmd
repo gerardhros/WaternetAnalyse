@@ -23,8 +23,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # invoeropties
 mode <- "genereren" # "genereren" of "weergeven"
-gebiedlevel <- "KRW" # "KRW" of "OvWater"
-toetsjaar <- "2020"
+gebiedlevel <- "OvWater" # "KRW" of "OvWater"
+toetsjaar <- "2022"
 
 #  Directories and names------------------------------------------
 dirExportAquo <- paste0("./input/Rapportagefiles_",gebiedlevel,toetsjaar)    
@@ -42,6 +42,7 @@ require(flexdashboard)
 
 source('../scripts/postProces.R') # alleen als mode = generen
 source('../scripts/createOutput.R')
+source('../scripts/ppr_funs.R')
 #source('../scripts/PolarBarchart.R')
 #devtools::install_github('hadley/ggplot2')
 
@@ -70,7 +71,7 @@ EKRlijst <- convertDatum(EKRlijst)
 EKRlijst$klasse <- as.factor(EKRlijst$Classificatie)
 EKRlijst$Classificatie <- as.factor(EKRlijst$Classificatie)
 
-EKRlijst <- kopDat(meetpuntenAquo, meetpuntenGebied, EKRlijst)
+EKRlijst1 <- kopDat(meetpuntenAquo, meetpuntenGebied, EKRlijst)
 # locatie EAG en EAG toetsing passen niet middelpolder eag 6, bouw check in
 
 NA -> EKRlijst$EAGIDENT[EKRlijst$EAGIDENT == ""]
@@ -79,7 +80,7 @@ EKRlijst$Waardebepalingsmethode.code <- gsub('other:Aquo-kit;Bio-toetsing;KRWmaa
 
 # # Creer subsets voor plots ---------------------------------------
 EKRset<- EKRlijst[EKRlijst$Hoedanigheid.code == 'EKR', ]
-EKRset$GHPR<- paste(EKRset$Grootheid.omschrijving,ifelse(is.na(EKRset$Parameter.omschrijving),"",EKRset$Parameter.omschrijving))
+EKRset$GHPR<- paste(ifelse(is.na(EKRset$Grootheid.omschrijving)|EKRset$Grootheid.omschrijving == '', EKRset$Typering.Omschrijving, EKRset$Grootheid.omschrijving),ifelse(is.na(EKRset$Parameter.omschrijving)|EKRset$Parameter.omschrijving == '',"",EKRset$Parameter.omschrijving))
 EKRset$GHPR <- trimws(EKRset$GHPR)
 orderMaatlatten$GHPR <- trimws(orderMaatlatten$GHPR)
 
@@ -111,20 +112,28 @@ EKRset <- left_join(EKRset, TWG) %>% as.data.table()
 EKRset$GGW <- EKRset$GNW/EKRset$.
 
 # opslaan Rdataset voor app --------------------------------
-saveRDS(EKRset, file= paste0("EKRset",gebiedlevel,".rds"))
-saveRDS(EKRlijst, file= paste0("EKRlijst",gebiedlevel,".rds"))
+saveRDS(EKRset, file= paste0("EKRset",gebiedlevel,"2022.rds"))
+saveRDS(EKRlijst, file= paste0("EKRlijst",gebiedlevel,"2022.rds"))
 }
 
 if(mode == "weergeven"){
 source('../scripts/ppr_funs.R')
 # inlezen toetsdata
-EKRset <- readRDS('../hydrobiologie/EKRsetKRW.rds')
+EKRset <- readRDS('../hydrobiologie/EKRsetKRW2022.rds')
+# testroutine voor vergelijken toetsjaren in app, volgende 3 regels alleen gebruiken bij testen anders uitcommenten
+# EKRset$Waardebepalingsmethode.code <- paste0(EKRset$Waardebepalingsmethode.code,'_2022')
+# EKRset2 <- readRDS('../hydrobiologie/EKRsetKRW2020.rds')
+# EKRset2$Waardebepalingsmethode.code <- paste0(EKRset2$Waardebepalingsmethode.code,'_2020')
+
 EKRset2 <- readRDS('../hydrobiologie/EKRsetOvWater.rds')
+EKRset2$Begindatum <- as.IDate(EKRset2$Begindatum)
+EKRset2$Einddatum <- as.IDate(EKRset2$Einddatum)
+
 # KRW doelen 
 doelen <- data.table::fread('../hydrobiologie/Doelen.csv')
-eag_wl <- data.table::fread('../data/EAG_Opp_kenmerken_20200701.csv')
+eag_wl <- data.table::fread('../data/EAG_Opp_kenmerken_20201005.csv')
 EKRset <- ppr_ekr(krwset = EKRset, ovwatset = EKRset2, eag_wl = eag_wl, doelen = doelen) # let op ekr1 = krw
- # saveRDS(EKRset, file= paste0("EKRsetKRW",".rds"))
+# saveRDS(EKRset, file= paste0("EKRsetKRW",".rds"))
 
 ## calculate EKR scores from EKRset1
 ekr_scores <- tabelEKRPerWLEnEAGPerJaar(EKRset, detail = "hoofd")

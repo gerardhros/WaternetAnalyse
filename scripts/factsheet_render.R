@@ -21,7 +21,7 @@ source('scripts/ppr_funs.R')
 # collect all input data needed to make factsheets for all EAGs
 source('scripts/factsheet_ppr.R')
 
-# add functions again omdat factsheets.ppr ze weer wist
+#01 0add functions again omdat factsheets.ppr ze weer wist
 source('scripts/ppr_funs.R')
 
 # run for all files
@@ -31,7 +31,7 @@ for(eagnr in c(178:nrow(brondata$ESFoordelen))){#5, 13, 32 : nrow(brondata$ESFoo
   # voor debug attach(brondata) detach(brondata)
   # pdf gaat mis bij veel fs
   # eagnr <- 47 gansenhoef
-  # eagnr <- 199 
+  # eagnr <-  194 agrarisch molenpolder
   
   # collect the data for that specific water body / EAG / GAF
   out = factsheetExtract(i=eagnr, brondata = brondata, splot = TRUE)

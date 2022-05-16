@@ -31,11 +31,12 @@ ppr_hybi <- function(db,syear = NULL,wtype = NULL,mlocs = NULL){
   sel <- unique(db$locatiecode)[grepl('meter$',unique(db$locatiecode))]
 
   # merge with locaties and watertypes (a few samples in 3300-EAG are also removed)
-  db <- merge.data.table(db[!locatiecode %in% sel,], mlocs[,c('CODE','EAGIDENT',"OWMIDENT")],by.x ='locatiecode', by.y = 'CODE')
+  db <- merge.data.table(db[!locatiecode %in% sel,], mlocs[,c('CODE','EAGIDENT',"OWMIDENT","GAFIDENT")],by.x ='locatiecode', by.y = 'CODE')
   db <- merge.data.table(db,wtype[,c('watertype','GAFIDENT')],by.x ='EAGIDENT', by.y = 'GAFIDENT')
 
-  # add codes (is this really needed?)
+  # add codes (is this really needed?, to overwrite colums that have a seemingly similar content)
   db[,locatie.EAG := EAGIDENT]
+  db[,locatie.afaanvoergebied := as.character(GAFIDENT)]
   db[,locatie.KRW.watertype := watertype]
   db[,locatie.KRWmeetpuntlocatie := OWMIDENT]
 
@@ -67,6 +68,7 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
 
   # combine both EKR from KRW and overig water into one data.table
   db <- data.table::rbindlist(list(krwset,ovwatset), fill=TRUE)
+  # db <- data.table::rbindlist(list(EKRset,EKRset2), fill=TRUE)
 
   # rijen weg zonder informatie
   db <- db[!is.na(db$Numeriekewaarde),]
@@ -117,14 +119,6 @@ ppr_ekr <- function(krwset, ovwatset, eag_wl, doelen){
 
   # namen aanpassen
   d3[,facet_wrap_code := as.factor(gsub("Maatlatten2018 ","",Waardebepalingsmethode.code))]
-  # return updated database
-
-  # noodgreep omdat er fouten zitten in de toetsgegevens
-  d3$KRWwatertype.code[d3$Identificatie == 'VaartenRondeHoep'] <- 'M8'
-  d3$KRWwatertype.code[d3$Identificatie == 'VaartenZevenhoven'] <- 'M1a'
-
-  # alleen nieuwe maatlatten
-  d3 <- d3[!Waardebepalingsmethode.code %in% c("Maatlatten2012 Ov. waterflora","Maatlatten2012 Vis"),]
 
   return(d3)
 }
@@ -180,15 +174,13 @@ ppr_slootbodem <- function(db, wtype = NULL,mlocs = NULL){
 
   # merge with GAFIDENT from eag_wl (be aware: EAG 3300 are few missing)
   db <- merge.data.table(db, mlocs[,c('CODE','EAGIDENT')],by.x ='locatiecode', by.y = 'CODE')
-  db <- merge.data.table(db, wtype[,c('watertype','GAFIDENT')],by.x='locatie EAG',by.y = 'GAFIDENT',all.x = TRUE)
+  db <- merge.data.table(db, wtype[,c('watertype','GAFIDENT')],by.x='EAGIDENT',by.y = 'GAFIDENT',all.x = TRUE)
 
   # wijzig relevante namen van bodemfews database
   cols <- colnames(db)
-  setnames(db,c('locatie EAG','locatiecode','locatie omschrijving','locatie x','locatie y','locatie z','fewsparameter','compartiment'),
-           c('loc.eag','loc.code','loc.oms','loc.x','loc.y','loc.z','parm.fews','parm.compartiment'))
 
   # adapt unit sign in parm.fews to simply reference
-  db[,parm.fews := gsub("/","_",parm.fews)]
+  db[,fewsparameter := gsub("/","_",fewsparameter)]
 
   # return updated database
   return(db)
@@ -225,10 +217,10 @@ ppr_wq <- function(db,syear = NULL,wtype = NULL,mlocs = NULL, srow= c("IONEN|NUT
   db[,eenheid := gsub("/","_",eenheid)]
 
   # remove columns with no data or non-relevant information (judgement gerard)
-  cols <- c('locatie.referentievlakzcoord','locatie.meetprogrammaactueel',
-            'locatie.meetnetactueel',
-            'fewsparametereenheidreferentie')
-  db[,c(cols) := NULL]
+  # cols <- c('locatie.referentievlakzcoord','locatie.meetprogrammaactueel',
+  #           'locatie.meetnetactueel',
+  #           'fewsparametereenheidreferentie')
+  # db[,c(cols) := NULL]
 
   # return output wq parameters
   return(db)

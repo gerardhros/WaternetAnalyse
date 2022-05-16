@@ -48,7 +48,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
   simoni <- readRDS('data/simoni.rds')
 
   ## aanvullende eag data, krwwatertype niet overal ingevuld en stedelijk landelijk voor EST
-  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20200218.csv')
+  eag_wl <- data.table::fread('data/EAG_Opp_kenmerken_20201208.csv')
   eag_wl <- eag_wl[is.na(eag_wl$Einddatum),]
 
   # KRW doelen
@@ -140,7 +140,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
 # --- extractfunctie for relevant properties needed for single factsheet ----
 
   factsheetExtract <- function(i,brondata,splot = TRUE){ with(brondata, {
-    # i <- 177
+    # i <- 194
     # subset data ----
     # subset ESFoordelen and get ESF
     waterlichamenwl <- ESFoordelen[i,]
@@ -293,7 +293,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
       dir.create(paste0('factsheets/routput/',pdir))}
 
     # save plot, and location where map is saved
-    if(splot){mapEAG + ggsave(paste0('factsheets/routput/',pdir,'/mapEAG.png'),
+    if(splot){ggsave(mapEAG, file = paste0('factsheets/routput/',pdir,'/mapEAG.png'),
                               width = 11,height = 10,units='cm',dpi=500)    }
     mapEAG <- paste0('routput/',pdir,'/mapEAG.png')
 
@@ -324,7 +324,7 @@ pb <- txtProgressBar(max = 8, style=3);pbc <- 0
                ylim = c(bboxEAG$ymin,bboxEAG$ymax) + c(-250,250), datum = NA)
 
     # save plot, and location where map is saved
-    if(splot){ggplot2::ggsave(mapDEELGEBIED,file=paste0('factsheets/routput/',pdir,'/mapDEELGEBIED.png'), units='cm',dpi=600)}
+    if(splot){ggplot2::ggsave(plot = mapDEELGEBIED,file=paste0('factsheets/routput/',pdir,'/mapDEELGEBIED.png'), units='cm',dpi=600)}
     mapDEELGEBIED <- paste0('routput/',pdir,'/mapDEELGEBIED.png')
 
     # --- make EKR plot ------------

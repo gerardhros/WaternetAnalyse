@@ -56,3 +56,4 @@ factsheets/*.log
 factsheets/*.tex
 /iregv_app/*
 /diepte/output*
+/EST/overig*

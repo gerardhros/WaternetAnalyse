@@ -12,13 +12,13 @@ calc_mean_EKR <- function (db, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR = F
   # pEAG, pYEAR, pSEASON (boolean): grouping needed for EAG, YEAR or SEASON
   
   # make local copy
-  db <- copy(db)
+  db <- copy(db) %>% as.data.table()
   
   # simplify data.table to relevant columns only and rename those columns
-  cols <- c('Identificatie','XCOORD','YCOORD','datum','HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code','KRW_SGBP3',
+  cols <- c('Identificatie','waterlichaam','XCOORD','YCOORD','datum','HoortBijGeoobject.identificatie','EAGIDENT','KRWwatertype.code','KRW_SGBP3',
             'Waardebepalingsmethode.code','GHPR_level','GHPR','level','jaar','Numeriekewaarde','GEP','GEP_2022')
   d0 <- db[,mget(cols)]
-  setnames(d0,cols,c('mpid','x','y','datum','id','EAGIDENT','watertype','KRW_SGBP3','wbmethode','GHPR_level','GHPR','level','jaar',
+  setnames(d0,cols,c('mpid','waterlichaam','x','y','datum','id','EAGIDENT','watertype','KRW_SGBP3','wbmethode','GHPR_level','GHPR','level','jaar',
                      'meetwaarde','GEP','GEP_2022'))
   
   # add season and filter on selected months
@@ -29,12 +29,12 @@ calc_mean_EKR <- function (db, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR = F
   # remove empty spaces in GHPR (needed for joining later)
   d0[,GHPR := gsub(' ','',GHPR)]
   
+  groups <- c('EAGIDENT','id','waterlichaam','watertype','KRW_SGBP3','GHPR_level','GHPR','level','wbmethode') 
   # add dynamic grouping variable depening on function input
-  groups <- c('EAGIDENT','id','watertype','KRW_SGBP3','GHPR_level','GHPR','level','wbmethode')
   if(pSEASON){groups <- c(groups,'season')}
   
   # add year number and take only nyears most recent years (selection per EAG)
-  d0 <- d0[,yearid := frank(-jaar,ties.method = 'dense'),by = groups][yearid <= nyears]
+  d0 <- d0[,yearid := frank(-jaar, ties.method = 'dense'), by = groups][yearid <= nyears]
   
   # calculate mean EKR value per group per jaar
   if(pEAG){d1 <- d0[,.(EKR = mean(meetwaarde,na.rm=TRUE),
@@ -191,6 +191,12 @@ calcNtax <- function(hybi = hybi, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR 
   # aantal soorten per locatie
   ntaxa <- dcast(b,locatiecode+locatie.EAG+jaar+compartiment ~ ., sum, 
                      value.var= c("WNA.onderwaterplantensoorten",'WNA.emerse.plantensoorten','WNA.oeverplantensoorten'), na.rm =T)
+  woeker <- dcast(b[b$parametercode %in% "" & b$WNA.onderwaterplantensoorten == 1],locatiecode+locatie.EAG+jaar+compartiment ~ ., max, 
+                 value.var= c("meetwaarde"), na.rm =T)
+  woeker$woeker <- woeker$.
+  ntaxa <- merge(ntaxa, woeker[,c('locatiecode','locatie.EAG','jaar','compartiment','woeker')], by = c('locatiecode','locatie.EAG','jaar','compartiment')) 
+ 
+  
   # alfa, gem aantal soorten per locatie op niveau EAG
   alfdiv <- dcast(ntaxa,locatie.EAG+jaar+compartiment ~ ., mean, 
                   value.var= c("WNA.onderwaterplantensoorten",'WNA.emerse.plantensoorten','WNA.oeverplantensoorten')) 
@@ -202,6 +208,8 @@ calcNtax <- function(hybi = hybi, nyears = 3, smonth = 1:12, pEAG = TRUE, pYEAR 
   div$WNA.onderwaterplantensoorten.beta <- div$WNA.onderwaterplantensoorten.gam/div$WNA.onderwaterplantensoorten.alf
   div$WNA.emerse.plantensoorten.beta <- div$WNA.emerse.plantensoorten.gam/div$WNA.emerse.plantensoorten.alf
   div$WNA.oeverplantensoorten.beta <- div$WNA.oeverplantensoorten.gam/ div$WNA.oeverplantensoorten.alf
+  
+  
   
   # NAN vervangen door 0
   
@@ -279,6 +287,7 @@ renameWbmethode <- function(inp){
 }
 
 # merge balances with critical P loads ------------------
+
 makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
   
   # convert to data.table, and make local copies
@@ -413,10 +422,11 @@ makePmaps <- function(dbwbal,dbhybi,dbnomogram,dbov_kP,dbeag_wl){
 }
 
 # esf1 en 3 bodem ----
+
 bodsam <- function(bod, cmean = FALSE){
-  
+ 
   # dcast slootbodem 
-  selb <- dcast(bod, loc.eag+loc.code+loc.oms+loc.x+loc.y+loc.z+datum+jaar ~ parm.fews+parm.compartiment, value.var = "meetwaarde", fun.aggregate = mean)
+  selb <- dcast(bod, EAGIDENT+locatiecode+datum+jaar ~ fewsparameter+compartiment, value.var = "meetwaarde", fun.aggregate = mean)
   
   # calculate relevant ratios
   selb[,FESPFWratio := (Fe_mg_l_ng_BS/55.845 - Stot_mg_l_ng_BS/32.065)/(Ptot_mgP_l_ng_BS/30.974)]
@@ -445,20 +455,101 @@ bodsam <- function(bod, cmean = FALSE){
     
     # what are the numeric columns
     cols <- colnames(selb)[sapply(selb, is.numeric)]
-    selb.num <- selb[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(loc.eag,jaar)]
+    selb.num <- selb[,lapply(.SD,median),.SDcols = cols[!cols=='jaar'],by=.(EAGIDENT,jaar)]
     
     # function to get modal value for categorial columns
     fmod <- function(x){names(sort(table(x),decreasing = T)[1])}
     
     # categorial columns to get modal
     cols <- colnames(selb)[grepl('^class',colnames(selb))]
-    selb.cat <- selb[,lapply(.SD,fmod),.SDcols = cols,by=.(loc.eag,jaar)]
+    selb.cat <- selb[,lapply(.SD,fmod),.SDcols = cols,by=.(EAGIDENT,jaar)]
     
     # combine categorial and numerical columns
-    selb <- merge(selb.num,selb.cat,by=c('loc.eag','jaar'))
+    selb <- merge(selb.num,selb.cat,by=c('EAGIDENT','jaar'))
   }
   
   # return extended soil-ditch properties database
   return(selb)
+}
+
+# RF model
+
+fun_rf <- function(loc_t, var_id, var_cov, check_mtry = FALSE,
+                   mtry = round(length(var_cov)/3, 0),
+                   ntree = 400){
+  
+  
+  # Randam forest model
+  #rf_res <- randomForest(varres ~ ., data = loc_t[,.SD, .SDcols = !var_id], subset = train,
+  cols <- c("varres", var_cov)
+  rf_res <- randomForest(varres ~ ., data = loc_t[set == "training", ..cols],
+                         mtry = mtry, ntree = ntree)
+  print(rf_res)
+  
+  #prediction
+  loc_t[, pred_rf := predict(rf_res, loc_t)]
+  loc_t[, resid_rf := varres - pred_rf]
+  
+  # show  figure of variable importance
+  imp <- data.table(covar = dimnames(importance(rf_res))[1][[1]],
+                    IndNodePurity =as.vector(importance(rf_res)))
+  imp$covar <- factor(imp$covar, levels = imp$covar[order(imp$IndNodePurity)])
+  gp_imp <- ggplot(imp) + geom_bar(aes(x = covar,y = IndNodePurity), stat = "identity") +
+    coord_flip() + ylab("") + xlab("") + ggtitle("RF importance of variables")
+  #varImpPlot(ls_rf$rf_res, main = "importance of variables")
+  
+  # # show figure of error vs number of trees
+  # plot(rf_res, main = "Error vs number of trees")
+  
+  
+  ## Check different numbers of Variables randomly chosen at each split (mtry)
+  if (check_mtry == TRUE){
+    print("Testing different numbers of Variables randomly chosen at each split (mtry)...")
+    # Check OBB errors in errors in test set
+    nvar <- length(var_cov) # number of explanatory variables
+    oob.err=double(nvar)
+    test.err=double(nvar)
+    #mtry is no of Variables randomly chosen at each split
+    for(mtry_t in 1:nvar)
+    {
+      #rf <- randomForest(varres ~ ., data = loc_t[,.SD, .SDcols = !var_id], subset = train, mtry=mtry_t, ntree=ntree)
+      cols <- c("varres", var_cov)
+      rf <- randomForest(varres ~ ., data = loc_t[set == "training", ..cols], 
+                         mtry=mtry_t, ntree=ntree)
+      oob.err[mtry_t] = rf$mse[ntree] #Error of all Trees fitted
+      
+      pred <- predict(rf, loc_t[-train,]) #Predictions on Test Set for each Tree
+      test.err[mtry_t] = with(loc_t[-train,], mean( (varres - pred)^2)) #Mean Squared Test Error
+      
+      cat(mtry_t," ") #printing the output to the console
+      
+    }
+    # plot errors
+    dt_f <- data.table(mtry = rep(1:nvar, times = 2),
+                       val = c(oob.err, test.err),
+                       type = c(rep("oob.err", nvar),
+                                rep("test.err", nvar)))
+    gp_error <- ggplot(dt_f) + geom_point(aes(x = mtry, y = val, col = type), size = 3) +
+      geom_line(aes(x = mtry, y = val, col = type), size = 1) +
+      xlab("Number of Predictors Considered at each Split") + ylab("Mean Squared Error") +
+      scale_color_discrete(name="", breaks=c("oob.err", "test.err"),
+                           labels=c("Out of Bag Error", "Test Error"))  +
+      theme(legend.position="top")
+    show(gp_error)
+    
+  }
+  
+  
+  
+  ls_rf <- list()
+  ls_rf$loc_t <- loc_t
+  ls_rf$rf_res <- rf_res
+  ls_rf$gp_imp <- gp_imp
+  if(check_mtry == TRUE){
+    ls_rf$gp_error <- gp_error
+  }
+  
+  return(ls_rf)
+  
 }
 

@@ -404,7 +404,7 @@ show(gp_num)
 
 ```
 
-Er wordt aangegeven dat er verschillende covariabelen zijn die een (zwake) invloed hebben op de waterdiepte.  Namelijk, de waterdiepte is groter wanneer het peil hoger is, wanneer de kwel negatief is, wanneer de theoretische diepte hoger is, wanneer het water breder is en wanneer de slibdiepte groter is.
+Er wordt aangegeven dat er verschillende covariabelen zijn die een (zwake) invloed hebben op de waterdiepte.  Namelijk, de waterdiepte is groter wanneer het peil hoger is (en AHN dus ook), wanneer de kwel negatief is, wanneer de theoretische diepte hoger is, wanneer het water breder is en wanneer de slibdiepte groter is.
 Let op dat niet alle covariables gebiedsdekkend zijn, maar slechts voor een beperkt aantal punten beschikbaar (zoals theoretische diepte _theo_dep_, slibdiepte _med_sd_). Daarom worden deze covariables niet gebruikt in het model.
 
 Verder vergelijken we de waterdiepte met factorvariabelen.

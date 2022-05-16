@@ -33,6 +33,10 @@
   st_write(s1,'data/WBPKRW20170611.gpkg')
 
   # aanpassen shape file from shp to gpkg van Laura
+  s1 <- st_read('../GIS/Top10Vlakken.shp') %>% st_set_crs(28992) %>% st_transform(28992)
+  st_write(s1,'../data/Top10Vlakken.gpkg')
+  
+  # aanpassen shape file from shp to gpkg van Laura
   s1 <- st_read('GIS/KRWwaterdelen_AGV_concept_Februari2020.shp') %>% st_set_crs(28992) %>% st_transform(28992)
   st_write(s1,'../data/WBPKRW20200525.gpkg')
   
@@ -68,7 +72,8 @@
   # gegevens hydrobiologie
   hybi1 <- fread("development/HB_tot2000.csv", stringsAsFactors = F)
   hybi2 <- fread("development/HB_2000tm2021.csv", stringsAsFactors = F)
-  hybi <- rbind(hybi1,hybi2, fill =T)
+  hybi3<- fread("development/MACFYT_2021.csv", stringsAsFactors = F)
+  hybi <- rbind(hybi1,hybi2,hybi3, fill =T)
   colnames(hybi) <- gsub(" ", ".", colnames(hybi), fixed=TRUE)
   saveRDS(hybi,'data/alles_reliable.rds')  
   
